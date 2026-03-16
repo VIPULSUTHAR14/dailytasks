@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Minimalist Login Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ffffff",
+                        "background-light": "#f7f7f7",
+                        "background-dark": "#09090b",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-dark text-slate-100 font-display selection:bg-primary selection:text-background-dark">
+<div class="relative flex min-h-screen w-full flex-col items-center justify-center p-6 sm:p-8">
+<!-- Main Container -->
+<div class="w-full max-w-[400px] flex flex-col gap-8">
+<!-- Header -->
+<header class="flex flex-col gap-2">
+<h1 class="text-primary text-[32px] font-bold tracking-tight leading-tight">Welcome back</h1>
+<p class="text-primary/60 text-base font-light">Enter your details to continue</p>
+</header>
+<!-- Login Form -->
+<div class="flex flex-col gap-5">
+<!-- Email Field -->
+<div class="flex flex-col gap-2">
+<label class="text-primary text-sm font-medium tracking-wide">EMAIL</label>
+<input class="form-input flex w-full rounded-none border-b border-t-0 border-l-0 border-r-0 border-primary bg-transparent p-3 text-primary placeholder:text-primary/30 focus:border-primary focus:ring-0 transition-all text-base font-light" placeholder="your@email.com" type="email"/>
+</div>
+<!-- Password Field -->
+<div class="flex flex-col gap-2">
+<label class="text-primary text-sm font-medium tracking-wide">PASSWORD</label>
+<div class="relative flex items-center">
+<input class="form-input flex w-full rounded-none border-b border-t-0 border-l-0 border-r-0 border-primary bg-transparent p-3 text-primary placeholder:text-primary/30 focus:border-primary focus:ring-0 transition-all text-base font-light" placeholder="••••••••" type="password"/>
+<button class="absolute right-2 text-primary/50 hover:text-primary">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+</div>
+</div>
+<!-- Action Button -->
+<div class="pt-6">
+<button class="flex w-full items-center justify-center bg-primary text-background-dark h-14 rounded-none font-bold text-base tracking-widest uppercase hover:bg-primary/90 transition-colors">
+                        Sign In
+                    </button>
+</div>
+<!-- Forgot Password -->
+<div class="text-center">
+<a class="text-primary/50 text-xs font-medium uppercase tracking-tighter hover:text-primary transition-colors" href="#">
+                        Forgot Password?
+                    </a>
+</div>
+</div>
+<!-- Footer Link -->
+<footer class="mt-8 text-center">
+<p class="text-primary/60 text-sm font-light">
+                    Don't have an account? 
+                    <a class="text-primary font-semibold hover:underline decoration-1 underline-offset-4 ml-1" href="#">Sign up</a>
+</p>
+</footer>
+</div>
+<!-- Visual element for minimalist iOS feel -->
+<div class="absolute bottom-2 w-32 h-1 bg-primary/20 rounded-full"></div>
+</div>
+</body></html>
