@@ -223,6 +223,13 @@ export default function DashboardPage() {
                         Completed
                         <span className="text-xs">{tasks.filter(t => t.task.status === "completed").length}</span>
                     </button>
+                    <button
+                        onClick={() => { router.push("/aptitude") }}
+                        className={`flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${filter === "completed" ? "bg-white text-black" : "text-zinc-400 hover:bg-white/10 hover:text-white"
+                            }`}
+                    >
+                        Aptitude
+                    </button>
                 </div>
 
                 <div className="p-6 border-t border-white/10">
