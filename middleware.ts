@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { dbcollection } from "@/lib/mongodb";
 import { cookies } from "next/headers";
 
 const ProtectedRoutes = ["/dashboard"];
@@ -8,32 +7,25 @@ const PublicRoutes = ["/Login", "/signup", "/"];
 export async function middleware(request: NextRequest) {
     const cookieStore = await cookies();
     const path = request.nextUrl.pathname;
-    if (path === "/" && !cookieStore.get("session_token")) {
+    if (path.startsWith("/_next") || path.startsWith("/api") || path.includes(".")) {
+        return NextResponse.next();
+    }
+
+    const hashedToken = cookieStore.get("session_token")?.value;
+    const isTokenPresent = !!hashedToken;
+
+    if (path === "/" && !isTokenPresent) {
         return NextResponse.redirect(new URL("/Login", request.url));
     }
+
     const isProtectedRoute = ProtectedRoutes.some(p => path.toLowerCase() === p);
     const isPublicRoute = PublicRoutes.some(p => path.toLowerCase() === p);
-    const hashedToken = cookieStore.get("session_token")?.value;
-    let isTokenValid = false;
 
-    if (hashedToken) {
-        try {
-            const sessions = await dbcollection("sessions");
-            const session = await sessions.findOne({
-                hashedToken,
-                ExpireAt: { $gt: new Date() },
-            });
-            isTokenValid = !!session;
-        } catch {
-            isTokenValid = false;
-        }
-    }
-
-    if (isProtectedRoute && !isTokenValid) {
+    if (isProtectedRoute && !isTokenPresent) {
         return NextResponse.redirect(new URL("/Login", request.url));
     }
 
-    if (isPublicRoute && isTokenValid) {
+    if (isPublicRoute && isTokenPresent) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 
@@ -41,5 +33,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/((?!api|_next/static|_next/image|.*\.png$).*)'],
+    matcher: ['/((?!api|_next/static|_next/image|.*\\.png$).*)'],
 }
