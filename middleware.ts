@@ -2,17 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { dbcollection } from "@/lib/mongodb";
 import { cookies } from "next/headers";
 
-const ProtectedRoutes = ["/pages/Homepage", "/dashboard"];
-const PublicRoutes = ["/Login", "/signup"];
+const ProtectedRoutes = ["/dashboard"];
+const PublicRoutes = ["/Login", "/signup", "/"];
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     const cookieStore = await cookies();
     const path = request.nextUrl.pathname;
     if (path === "/" && !cookieStore.get("session_token")) {
         return NextResponse.redirect(new URL("/Login", request.url));
     }
-    const isProtectedRoute = ProtectedRoutes.includes(path);
-    const isPublicRoute = PublicRoutes.includes(path);
+    const isProtectedRoute = ProtectedRoutes.some(p => path.toLowerCase() === p);
+    const isPublicRoute = PublicRoutes.some(p => path.toLowerCase() === p);
     const hashedToken = cookieStore.get("session_token")?.value;
     let isTokenValid = false;
 

@@ -52,7 +52,7 @@ export function AuthFormContainer({ children, actionType, className }: AuthFormC
             if (actionType === "login") {
                 router.push("/dashboard");
             } else {
-                router.push("/login?signup_success=1");
+                router.push("/login");
             }
         } catch (err: unknown) {
             setGlobalError("Network error, please try again later.");
