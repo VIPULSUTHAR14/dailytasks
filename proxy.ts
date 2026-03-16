@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 const ProtectedRoutes = ["/dashboard"];
 const PublicRoutes = ["/Login", "/signup", "/"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const cookieStore = await cookies();
     const path = request.nextUrl.pathname;
     if (path.startsWith("/_next") || path.startsWith("/api") || path.includes(".")) {
