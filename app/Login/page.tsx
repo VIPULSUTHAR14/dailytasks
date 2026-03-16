@@ -3,8 +3,15 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { loginMeta } from "@/lib/data/mockData";
 import { AuthFormContainer } from "@/components/auth/AuthFormContainer";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("session_token");
+    if (token) {
+        redirect("/dashboard");
+    }
     return (
         <main className="min-h-screen relative w-full bg-zinc-950 font-sans text-white flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
             {/* Global Container with Max Width to prevent ultrawide void */}

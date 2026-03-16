@@ -4,8 +4,15 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { signupMeta } from "@/lib/data/mockData";
 import { AuthFormContainer } from "@/components/auth/AuthFormContainer";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-export default function SignupPage() {
+export default async function SignupPage() {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("session_token");
+    if (token) {
+        redirect("/dashboard");
+    }
     return (
         <main className="min-h-screen relative w-full bg-zinc-950 font-sans text-white antialiased flex flex-col items-center justify-center p-0 sm:p-6 md:p-8">
             <div className="w-full max-w-7xl mx-auto flex flex-col items-center justify-center h-full">
