@@ -20,6 +20,8 @@ type Task = {
 
 export default function DashboardPage() {
     const [tasks, setTasks] = useState<Task[]>([]);
+    const [todaytasks, setTodayTasks] = useState<Task[]>([]);
+    const [completedTaskss, setCompletedTaskss] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<"today" | "all" | "pending" | "completed">("today");
     const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -56,9 +58,28 @@ export default function DashboardPage() {
             setLoading(false);
         }
     };
+    const fetchtodaytasks = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch(`/api/tasktoday`);
+            if (res.ok) {
+                const data = await res.json();
+                setTodayTasks(data.tasks || []);
+                setCompletedTaskss(data.filterddata || []);
+            } else if (res.status === 404) {
+                setTodayTasks([]);
+                setCompletedTaskss([]);
+            }
+        } catch (e) {
+            console.error("Failed to fetch today tasks", e);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     useEffect(() => {
         fetchTasks();
+        fetchtodaytasks();
     }, []);
 
     const toggleStatus = async (targetTask: Task) => {
@@ -84,10 +105,12 @@ export default function DashboardPage() {
             });
 
             if (!res.ok) throw new Error("Failed to update status");
+            fetchtodaytasks();
         } catch (e) {
             // Revert on error
             console.log(e);
             fetchTasks();
+            fetchtodaytasks();
         }
     };
 
@@ -100,9 +123,11 @@ export default function DashboardPage() {
                 method: "DELETE"
             });
             if (!res.ok) throw new Error("Failed to delete task");
+            fetchtodaytasks();
         } catch (e) {
             console.log(e);
             fetchTasks(); // Revert on error
+            fetchtodaytasks();
         }
     };
 
@@ -126,6 +151,7 @@ export default function DashboardPage() {
                 setNewTaskTitle("");
                 setModalOpen(false);
                 fetchTasks(); // refresh from DB
+                fetchtodaytasks();
             }
         } catch (e) {
             console.error(e);
@@ -148,9 +174,10 @@ export default function DashboardPage() {
         return t.task.status === filter;
     });
 
-    const totalTasks = tasks.length;
-    const completedTasks = tasks.filter(t => t.task.status === "completed").length;
+    const totalTasks = todaytasks.length;
+    const completedTasks = completedTaskss.length;
     const progressPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+    console.log(progressPercentage);
 
     return (
         <div className="min-h-screen bg-zinc-950 text-white font-sans flex flex-col md:flex-row">
