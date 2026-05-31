@@ -1,0 +1,97 @@
+[
+  {
+    "id": "two-pointers",
+    "name": "Two Pointers",
+    "completed": false
+  },
+  {
+    "id": "sliding-window",
+    "name": "Sliding Window",
+    "completed": false
+  },
+  {
+    "id": "fast-slow-pointers",
+    "name": "Fast & Slow Pointers",
+    "completed": false
+  },
+  {
+    "id": "merge-intervals",
+    "name": "Merge Intervals",
+    "completed": false
+  },
+  {
+    "id": "cyclic-sort",
+    "name": "Cyclic Sort",
+    "completed": false
+  },
+  {
+    "id": "inplace-reversal-linked-list",
+    "name": "In-place Reversal of a Linked List",
+    "completed": false
+  },
+  {
+    "id": "tree-bfs",
+    "name": "Tree Breadth-First Search",
+    "completed": false
+  },
+  {
+    "id": "tree-dfs",
+    "name": "Tree Depth-First Search",
+    "completed": false
+  },
+  {
+    "id": "two-heaps",
+    "name": "Two Heaps",
+    "completed": false
+  },
+  {
+    "id": "top-k-elements",
+    "name": "Top K Elements",
+    "completed": false
+  },
+  {
+    "id": "k-way-merge",
+    "name": "K-way Merge",
+    "completed": false
+  },
+  {
+    "id": "monotonic-stack",
+    "name": "Monotonic Stack",
+    "completed": false
+  },
+  {
+    "id": "modified-binary-search",
+    "name": "Modified Binary Search",
+    "completed": false
+  },
+  {
+    "id": "bitwise-xor",
+    "name": "Bitwise XOR",
+    "completed": false
+  },
+  {
+    "id": "backtracking",
+    "name": "Backtracking",
+    "completed": false
+  },
+  {
+    "id": "topological-sort",
+    "name": "Topological Sort",
+    "completed": false
+  },
+  {
+    "id": "union-find",
+    "name": "Union-Find",
+    "completed": false
+  },
+  {
+    "id": "1d-dp",
+    "name": "1D Dynamic Programming",
+    "completed": false
+  },
+  {
+    "id": "2d-dp",
+    "name": "2D Dynamic Programming",
+    "completed": false
+  }
+]

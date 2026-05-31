@@ -1,0 +1,147 @@
+[
+  {
+    "id": "arrays-strings",
+    "name": "Arrays & Strings",
+    "completed": false
+  },
+  {
+    "id": "linked-lists",
+    "name": "Linked Lists",
+    "completed": false
+  },
+  {
+    "id": "stacks-queues",
+    "name": "Stacks & Queues",
+    "completed": false
+  },
+  {
+    "id": "hash-maps-sets",
+    "name": "Hash Maps & Hash Sets",
+    "completed": false
+  },
+  {
+    "id": "trees",
+    "name": "Trees",
+    "completed": false
+  },
+  {
+    "id": "heaps",
+    "name": "Heaps",
+    "completed": false
+  },
+  {
+    "id": "graphs",
+    "name": "Graphs",
+    "completed": false
+  },
+  {
+    "id": "two-pointers",
+    "name": "Two Pointers",
+    "completed": false
+  },
+  {
+    "id": "sliding-window",
+    "name": "Sliding Window",
+    "completed": false
+  },
+  {
+    "id": "fast-slow-pointers",
+    "name": "Fast & Slow Pointers",
+    "completed": false
+  },
+  {
+    "id": "merge-intervals",
+    "name": "Merge Intervals",
+    "completed": false
+  },
+  {
+    "id": "cyclic-sort",
+    "name": "Cyclic Sort",
+    "completed": false
+  },
+  {
+    "id": "inplace-reversal-linked-list",
+    "name": "In-place Reversal of a Linked List",
+    "completed": false
+  },
+  {
+    "id": "tree-bfs",
+    "name": "Tree Breadth-First Search",
+    "completed": false
+  },
+  {
+    "id": "tree-dfs",
+    "name": "Tree Depth-First Search",
+    "completed": false
+  },
+  {
+    "id": "two-heaps",
+    "name": "Two Heaps",
+    "completed": false
+  },
+  {
+    "id": "top-k-elements",
+    "name": "Top K Elements",
+    "completed": false
+  },
+  {
+    "id": "k-way-merge",
+    "name": "K-way Merge",
+    "completed": false
+  },
+  {
+    "id": "monotonic-stack",
+    "name": "Monotonic Stack",
+    "completed": false
+  },
+  {
+    "id": "binary-search",
+    "name": "Binary Search",
+    "completed": false
+  },
+  {
+    "id": "bitwise-xor",
+    "name": "Bitwise XOR",
+    "completed": false
+  },
+  {
+    "id": "backtracking",
+    "name": "Backtracking",
+    "completed": false
+  },
+  {
+    "id": "topological-sort",
+    "name": "Topological Sort",
+    "completed": false
+  },
+  {
+    "id": "dijkstras-algorithm",
+    "name": "Dijkstra's Algorithm",
+    "completed": false
+  },
+  {
+    "id": "union-find",
+    "name": "Union-Find",
+    "completed": false
+  },
+  {
+    "id": "tries",
+    "name": "Tries",
+    "completed": false
+  },
+  {
+    "id": "1d-dp",
+    "name": "1D Dynamic Programming",
+    "completed": false
+  },
+  {
+    "id": "2d-dp",
+    "name": "2D Dynamic Programming",
+    "completed": false
+  },
+  {
+    "id": "segment-fenwick-trees",
+    "name": "Segment Trees / Fenwick Trees",
+    "completed": false
+  }
+]
