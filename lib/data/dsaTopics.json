@@ -2,146 +2,175 @@
   {
     "id": "arrays-strings",
     "name": "Arrays & Strings",
-    "completed": false
+    "completed": false,
+    "difficulty": "basic"
   },
   {
     "id": "linked-lists",
     "name": "Linked Lists",
-    "completed": false
+    "completed": false,
+    "difficulty": "basic"
   },
   {
     "id": "stacks-queues",
     "name": "Stacks & Queues",
-    "completed": false
+    "completed": false,
+    "difficulty": "basic"
   },
   {
     "id": "hash-maps-sets",
     "name": "Hash Maps & Hash Sets",
-    "completed": false
+    "completed": false,
+    "difficulty": "basic"
   },
   {
     "id": "trees",
     "name": "Trees",
-    "completed": false
+    "completed": false,
+    "difficulty": "basic"
   },
   {
     "id": "heaps",
     "name": "Heaps",
-    "completed": false
+    "completed": false,
+    "difficulty": "intermediate"
   },
   {
     "id": "graphs",
     "name": "Graphs",
-    "completed": false
+    "completed": false,
+    "difficulty": "intermediate"
   },
   {
     "id": "two-pointers",
     "name": "Two Pointers",
-    "completed": false
+    "completed": false,
+    "difficulty": "basic"
   },
   {
     "id": "sliding-window",
     "name": "Sliding Window",
-    "completed": false
+    "completed": false,
+    "difficulty": "basic"
   },
   {
     "id": "fast-slow-pointers",
     "name": "Fast & Slow Pointers",
-    "completed": false
+    "completed": false,
+    "difficulty": "intermediate"
   },
   {
     "id": "merge-intervals",
     "name": "Merge Intervals",
-    "completed": false
+    "completed": false,
+    "difficulty": "intermediate"
   },
   {
     "id": "cyclic-sort",
     "name": "Cyclic Sort",
-    "completed": false
+    "completed": false,
+    "difficulty": "intermediate"
   },
   {
     "id": "inplace-reversal-linked-list",
     "name": "In-place Reversal of a Linked List",
-    "completed": false
+    "completed": false,
+    "difficulty": "intermediate"
   },
   {
     "id": "tree-bfs",
     "name": "Tree Breadth-First Search",
-    "completed": false
+    "completed": false,
+    "difficulty": "intermediate"
   },
   {
     "id": "tree-dfs",
     "name": "Tree Depth-First Search",
-    "completed": false
+    "completed": false,
+    "difficulty": "intermediate"
   },
   {
     "id": "two-heaps",
     "name": "Two Heaps",
-    "completed": false
+    "completed": false,
+    "difficulty": "advanced"
   },
   {
     "id": "top-k-elements",
     "name": "Top K Elements",
-    "completed": false
+    "completed": false,
+    "difficulty": "intermediate"
   },
   {
     "id": "k-way-merge",
     "name": "K-way Merge",
-    "completed": false
+    "completed": false,
+    "difficulty": "advanced"
   },
   {
     "id": "monotonic-stack",
     "name": "Monotonic Stack",
-    "completed": false
+    "completed": false,
+    "difficulty": "advanced"
   },
   {
     "id": "binary-search",
     "name": "Binary Search",
-    "completed": false
+    "completed": false,
+    "difficulty": "basic"
   },
   {
     "id": "bitwise-xor",
     "name": "Bitwise XOR",
-    "completed": false
+    "completed": false,
+    "difficulty": "intermediate"
   },
   {
     "id": "backtracking",
     "name": "Backtracking",
-    "completed": false
+    "completed": false,
+    "difficulty": "advanced"
   },
   {
     "id": "topological-sort",
     "name": "Topological Sort",
-    "completed": false
+    "completed": false,
+    "difficulty": "advanced"
   },
   {
     "id": "dijkstras-algorithm",
     "name": "Dijkstra's Algorithm",
-    "completed": false
+    "completed": false,
+    "difficulty": "advanced"
   },
   {
     "id": "union-find",
     "name": "Union-Find",
-    "completed": false
+    "completed": false,
+    "difficulty": "advanced"
   },
   {
     "id": "tries",
     "name": "Tries",
-    "completed": false
+    "completed": false,
+    "difficulty": "advanced"
   },
   {
     "id": "1d-dp",
     "name": "1D Dynamic Programming",
-    "completed": false
+    "completed": false,
+    "difficulty": "intermediate"
   },
   {
     "id": "2d-dp",
     "name": "2D Dynamic Programming",
-    "completed": false
+    "completed": false,
+    "difficulty": "advanced"
   },
   {
     "id": "segment-fenwick-trees",
     "name": "Segment Trees / Fenwick Trees",
-    "completed": false
+    "completed": false,
+    "difficulty": "advanced"
   }
 ]

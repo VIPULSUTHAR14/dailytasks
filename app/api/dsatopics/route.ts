@@ -15,6 +15,7 @@ type DsaTopicItem = {
     id: string;
     name: string;
     completed: boolean;
+    difficulty: "basic" | "intermediate" | "advanced";
 };
 
 async function getAuthenticatedUserId(): Promise<string | null> {
