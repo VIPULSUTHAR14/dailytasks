@@ -4,9 +4,84 @@
         "name": "Arrays & Strings",
         "questions": [
             {
+                "name": "Largest Element in an Array",
+                "difficulty": "Easy",
+                "url": "https://www.geeksforgeeks.org/problems/largest-element-in-array1302/1"
+            },
+            {
+                "name": "Second Largest",
+                "difficulty": "Easy",
+                "url": "https://www.geeksforgeeks.org/problems/second-largest3735/1"
+            },
+            {
+                "name": "Check if Array Is Sorted and Rotated",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/check-if-array-is-sorted-and-rotated/"
+            },
+            {
+                "name": "Remove Duplicates from Sorted Array",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/remove-duplicates-from-sorted-array/"
+            },
+            {
+                "name": "Rotate Array (Left by K)",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/rotate-array/"
+            },
+            {
+                "name": "Move Zeroes",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/move-zeroes/"
+            },
+            {
+                "name": "Linear Search",
+                "difficulty": "Easy",
+                "url": "https://www.geeksforgeeks.org/problems/who-will-win-1587115621/1"
+            },
+            {
+                "name": "Union of Two Sorted Arrays",
+                "difficulty": "Medium",
+                "url": "https://www.geeksforgeeks.org/problems/union-of-two-sorted-arrays-1587115621/1"
+            },
+            {
+                "name": "Missing Number",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/missing-number/"
+            },
+            {
+                "name": "Max Consecutive Ones",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/max-consecutive-ones/"
+            },
+            {
+                "name": "Single Number",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/single-number/"
+            },
+            {
+                "name": "Longest Sub-Array with Sum K (Positives)",
+                "difficulty": "Medium",
+                "url": "https://www.geeksforgeeks.org/problems/longest-sub-array-with-sum-k0809/1"
+            },
+            {
                 "name": "Two Sum",
                 "difficulty": "Easy",
                 "url": "https://leetcode.com/problems/two-sum/"
+            },
+            {
+                "name": "Sort Colors (0s, 1s, 2s)",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/sort-colors/"
+            },
+            {
+                "name": "Majority Element (>N/2)",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/majority-element/"
+            },
+            {
+                "name": "Maximum Subarray (Kadane's)",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/maximum-subarray/"
             },
             {
                 "name": "Best Time to Buy and Sell Stock",
@@ -14,35 +89,275 @@
                 "url": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock/"
             },
             {
-                "name": "Group Anagrams",
+                "name": "Rearrange Array Elements by Sign",
                 "difficulty": "Medium",
-                "url": "https://leetcode.com/problems/group-anagrams/"
+                "url": "https://leetcode.com/problems/rearrange-array-elements-by-sign/"
             },
             {
-                "name": "Product of Array Except Self",
+                "name": "Next Permutation",
                 "difficulty": "Medium",
-                "url": "https://leetcode.com/problems/product-of-array-except-self/"
+                "url": "https://leetcode.com/problems/next-permutation/"
             },
             {
-                "name": "First Missing Positive",
+                "name": "Leaders in an Array",
+                "difficulty": "Easy",
+                "url": "https://www.geeksforgeeks.org/problems/leaders-in-an-array-1587115620/1"
+            },
+            {
+                "name": "Longest Consecutive Sequence",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/longest-consecutive-sequence/"
+            },
+            {
+                "name": "Set Matrix Zeroes",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/set-matrix-zeroes/"
+            },
+            {
+                "name": "Rotate Image (90 Degrees)",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/rotate-image/"
+            },
+            {
+                "name": "Spiral Matrix",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/spiral-matrix/"
+            },
+            {
+                "name": "Subarray Sum Equals K",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/subarray-sum-equals-k/"
+            },
+            {
+                "name": "Pascal's Triangle",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/pascals-triangle/"
+            },
+            {
+                "name": "Majority Element II (>N/3)",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/majority-element-ii/"
+            },
+            {
+                "name": "3Sum",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/3sum/"
+            },
+            {
+                "name": "4Sum",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/4sum/"
+            },
+            {
+                "name": "Largest Subarray with 0 Sum",
+                "difficulty": "Medium",
+                "url": "https://www.geeksforgeeks.org/problems/largest-subarray-with-0-sum/1"
+            },
+            {
+                "name": "Subarrays with given XOR K",
+                "difficulty": "Medium",
+                "url": "https://www.interviewbit.com/problems/subarrays-with-given-xor/"
+            },
+            {
+                "name": "Merge Intervals",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/merge-intervals/"
+            },
+            {
+                "name": "Merge Sorted Array (Without extra space)",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/merge-sorted-array/"
+            },
+            {
+                "name": "Find the Repeating and Missing Number",
+                "difficulty": "Medium",
+                "url": "https://www.geeksforgeeks.org/problems/find-missing-and-repeating2512/1"
+            },
+            {
+                "name": "Count Inversions",
+                "difficulty": "Medium",
+                "url": "https://www.geeksforgeeks.org/problems/inversion-of-array-1587115620/1"
+            },
+            {
+                "name": "Reverse Pairs",
                 "difficulty": "Hard",
-                "url": "https://leetcode.com/problems/first-missing-positive/"
+                "url": "https://leetcode.com/problems/reverse-pairs/"
+            },
+            {
+                "name": "Maximum Product Subarray",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/maximum-product-subarray/"
+            },
+            {
+                "name": "Remove Outermost Parentheses",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/remove-outermost-parentheses/"
+            },
+            {
+                "name": "Reverse Words in a String",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/reverse-words-in-a-string/"
+            },
+            {
+                "name": "Largest Odd Number in String",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/largest-odd-number-in-string/"
+            },
+            {
+                "name": "Longest Common Prefix",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/longest-common-prefix/"
+            },
+            {
+                "name": "Isomorphic Strings",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/isomorphic-strings/"
+            },
+            {
+                "name": "Rotate String",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/rotate-string/"
+            },
+            {
+                "name": "Valid Anagram",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/valid-anagram/"
+            },
+            {
+                "name": "Sort Characters By Frequency",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/sort-characters-by-frequency/"
+            },
+            {
+                "name": "Maximum Nesting Depth of Parentheses",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/maximum-nesting-depth-of-the-parentheses/"
+            },
+            {
+                "name": "Roman to Integer",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/roman-to-integer/"
+            },
+            {
+                "name": "Integer to Roman",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/integer-to-roman/"
+            },
+            {
+                "name": "String to Integer (atoi)",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/string-to-integer-atoi/"
+            },
+            {
+                "name": "Count Number of Substrings (K distinct)",
+                "difficulty": "Medium",
+                "url": "https://www.geeksforgeeks.org/problems/count-number-of-substrings4522/1"
+            },
+            {
+                "name": "Longest Palindromic Substring",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/longest-palindromic-substring/"
+            },
+            {
+                "name": "Sum of Beauty of All Substrings",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/sum-of-beauty-of-all-substrings/"
+            },
+            {
+                "name": "Minimum Add to Make Parentheses Valid",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/minimum-add-to-make-parentheses-valid/"
+            },
+            {
+                "name": "Repeated String Match (Rabin-Karp)",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/repeated-string-match/"
+            },
+            {
+                "name": "Shortest Palindrome (KMP)",
+                "difficulty": "Hard",
+                "url": "https://leetcode.com/problems/shortest-palindrome/"
             }
         ]
     },
     {
-        "id": "linked-lists",
-        "name": "Linked Lists",
+        "id": "linked-list",
+        "name": "Linked List",
         "questions": [
             {
-                "name": "Reverse Linked List",
+                "name": "Introduction to Linked List (Array to LL)",
+                "difficulty": "Easy",
+                "url": "https://www.geeksforgeeks.org/problems/introduction-to-linked-list/1"
+            },
+            {
+                "name": "Linked List Insertion At End",
+                "difficulty": "Easy",
+                "url": "https://www.geeksforgeeks.org/problems/linked-list-insertion-1587115620/1"
+            },
+            {
+                "name": "Delete Node in a Linked List",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/delete-node-in-a-linked-list/"
+            },
+            {
+                "name": "Count Linked List Nodes",
+                "difficulty": "Easy",
+                "url": "https://www.geeksforgeeks.org/problems/count-nodes-of-linked-list/1"
+            },
+            {
+                "name": "Search in a Linked List",
+                "difficulty": "Easy",
+                "url": "https://www.geeksforgeeks.org/problems/search-in-linked-list-1664434326/1"
+            },
+            {
+                "name": "Introduction to Doubly Linked List",
+                "difficulty": "Easy",
+                "url": "https://www.geeksforgeeks.org/problems/introduction-to-doubly-linked-list/1"
+            },
+            {
+                "name": "Delete node in Doubly Linked List",
+                "difficulty": "Medium",
+                "url": "https://www.geeksforgeeks.org/problems/delete-node-in-doubly-linked-list/1"
+            },
+            {
+                "name": "Reverse a Doubly Linked List",
+                "difficulty": "Easy",
+                "url": "https://www.geeksforgeeks.org/problems/reverse-a-doubly-linked-list/1"
+            },
+            {
+                "name": "Middle of the Linked List",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/middle-of-the-linked-list/"
+            },
+            {
+                "name": "Reverse Linked List (Iterative & Recursive)",
                 "difficulty": "Easy",
                 "url": "https://leetcode.com/problems/reverse-linked-list/"
             },
             {
-                "name": "Merge Two Sorted Lists",
+                "name": "Linked List Cycle (Detect Loop)",
                 "difficulty": "Easy",
-                "url": "https://leetcode.com/problems/merge-two-sorted-lists/"
+                "url": "https://leetcode.com/problems/linked-list-cycle/"
+            },
+            {
+                "name": "Linked List Cycle II (Find Starting Point)",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/linked-list-cycle-ii/"
+            },
+            {
+                "name": "Find Length of Loop",
+                "difficulty": "Easy",
+                "url": "https://www.geeksforgeeks.org/problems/find-length-of-loop/1"
+            },
+            {
+                "name": "Palindrome Linked List",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/palindrome-linked-list/"
+            },
+            {
+                "name": "Odd Even Linked List",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/odd-even-linked-list/"
             },
             {
                 "name": "Remove Nth Node From End of List",
@@ -50,14 +365,64 @@
                 "url": "https://leetcode.com/problems/remove-nth-node-from-end-of-list/"
             },
             {
+                "name": "Delete the Middle Node of a Linked List",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/delete-the-middle-node-of-a-linked-list/"
+            },
+            {
+                "name": "Sort List (0s, 1s, 2s in LL)",
+                "difficulty": "Easy",
+                "url": "https://www.geeksforgeeks.org/problems/given-a-linked-list-of-0s-1s-and-2s-sort-it/1"
+            },
+            {
+                "name": "Intersection of Two Linked Lists",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/intersection-of-two-linked-lists/"
+            },
+            {
+                "name": "Add One to a Number Represented as Linked List",
+                "difficulty": "Medium",
+                "url": "https://www.geeksforgeeks.org/problems/add-1-to-a-number-represented-as-linked-list/1"
+            },
+            {
+                "name": "Add Two Numbers",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/add-two-numbers/"
+            },
+            {
+                "name": "Find pairs with given sum in DLL",
+                "difficulty": "Easy",
+                "url": "https://www.geeksforgeeks.org/problems/find-pairs-with-given-sum-in-doubly-linked-list/1"
+            },
+            {
+                "name": "Remove duplicates from a sorted DLL",
+                "difficulty": "Easy",
+                "url": "https://www.geeksforgeeks.org/problems/remove-duplicates-from-a-sorted-doubly-linked-list/1"
+            },
+            {
+                "name": "Delete all occurrences of a given key in a DLL",
+                "difficulty": "Medium",
+                "url": "https://www.geeksforgeeks.org/problems/delete-all-occurrences-of-a-given-key-in-a-doubly-linked-list/1"
+            },
+            {
+                "name": "Reverse Nodes in k-Group",
+                "difficulty": "Hard",
+                "url": "https://leetcode.com/problems/reverse-nodes-in-k-group/"
+            },
+            {
+                "name": "Rotate List",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/rotate-list/"
+            },
+            {
+                "name": "Flattening a Linked List",
+                "difficulty": "Medium",
+                "url": "https://www.geeksforgeeks.org/problems/flattening-a-linked-list/1"
+            },
+            {
                 "name": "Copy List with Random Pointer",
                 "difficulty": "Medium",
                 "url": "https://leetcode.com/problems/copy-list-with-random-pointer/"
-            },
-            {
-                "name": "Merge k Sorted Lists",
-                "difficulty": "Hard",
-                "url": "https://leetcode.com/problems/merge-k-sorted-lists/"
             }
         ]
     },
@@ -66,9 +431,19 @@
         "name": "Stacks & Queues",
         "questions": [
             {
-                "name": "Valid Parentheses",
+                "name": "Implement Stack using Arrays",
                 "difficulty": "Easy",
-                "url": "https://leetcode.com/problems/valid-parentheses/"
+                "url": "https://www.geeksforgeeks.org/problems/implement-stack-using-array/1"
+            },
+            {
+                "name": "Implement Queue using Arrays",
+                "difficulty": "Easy",
+                "url": "https://www.geeksforgeeks.org/problems/implement-queue-using-array/1"
+            },
+            {
+                "name": "Implement Stack using Queue",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/implement-stack-using-queues/"
             },
             {
                 "name": "Implement Queue using Stacks",
@@ -76,19 +451,134 @@
                 "url": "https://leetcode.com/problems/implement-queue-using-stacks/"
             },
             {
+                "name": "Implement Stack using Linked List",
+                "difficulty": "Easy",
+                "url": "https://www.geeksforgeeks.org/problems/implement-stack-using-linked-list/1"
+            },
+            {
+                "name": "Implement Queue using Linked List",
+                "difficulty": "Easy",
+                "url": "https://www.geeksforgeeks.org/problems/implement-queue-using-linked-list/1"
+            },
+            {
+                "name": "Valid Parentheses",
+                "difficulty": "Easy",
+                "url": "https://leetcode.com/problems/valid-parentheses/"
+            },
+            {
                 "name": "Min Stack",
                 "difficulty": "Medium",
                 "url": "https://leetcode.com/problems/min-stack/"
             },
             {
-                "name": "Evaluate Reverse Polish Notation",
+                "name": "Infix to Postfix",
                 "difficulty": "Medium",
-                "url": "https://leetcode.com/problems/evaluate-reverse-polish-notation/"
+                "url": "https://www.geeksforgeeks.org/problems/infix-to-postfix-1587115620/1"
+            },
+            {
+                "name": "Prefix to Infix",
+                "difficulty": "Medium",
+                "url": "https://www.geeksforgeeks.org/problems/prefix-to-infix-conversion/1"
+            },
+            {
+                "name": "Prefix to Postfix",
+                "difficulty": "Medium",
+                "url": "https://www.geeksforgeeks.org/problems/prefix-to-postfix-conversion/1"
+            },
+            {
+                "name": "Postfix to Prefix",
+                "difficulty": "Medium",
+                "url": "https://www.geeksforgeeks.org/problems/postfix-to-prefix-conversion/1"
+            },
+            {
+                "name": "Postfix to Infix",
+                "difficulty": "Medium",
+                "url": "https://www.geeksforgeeks.org/problems/postfix-to-infix-conversion/1"
+            },
+            {
+                "name": "Infix to Prefix",
+                "difficulty": "Medium",
+                "url": "https://www.geeksforgeeks.org/problems/infix-to-prefix-conversion/1"
+            },
+            {
+                "name": "Next Greater Element I",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/next-greater-element-i/"
+            },
+            {
+                "name": "Next Greater Element II",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/next-greater-element-ii/"
+            },
+            {
+                "name": "Next Smaller Element",
+                "difficulty": "Medium",
+                "url": "https://www.interviewbit.com/problems/nearest-smaller-element/"
+            },
+            {
+                "name": "Number of NGEs to the right",
+                "difficulty": "Medium",
+                "url": "https://www.geeksforgeeks.org/problems/number-of-nges-to-the-right/1"
+            },
+            {
+                "name": "Trapping Rain Water",
+                "difficulty": "Hard",
+                "url": "https://leetcode.com/problems/trapping-rain-water/"
+            },
+            {
+                "name": "Sum of Subarray Minimums",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/sum-of-subarray-minimums/"
+            },
+            {
+                "name": "Asteroid Collision",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/asteroid-collision/"
+            },
+            {
+                "name": "Sum of Subarray Ranges",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/sum-of-subarray-ranges/"
             },
             {
                 "name": "Largest Rectangle in Histogram",
                 "difficulty": "Hard",
                 "url": "https://leetcode.com/problems/largest-rectangle-in-histogram/"
+            },
+            {
+                "name": "Maximal Rectangle",
+                "difficulty": "Hard",
+                "url": "https://leetcode.com/problems/maximal-rectangle/"
+            },
+            {
+                "name": "Remove K Digits",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/remove-k-digits/"
+            },
+            {
+                "name": "Online Stock Span",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/online-stock-span/"
+            },
+            {
+                "name": "Sliding Window Maximum",
+                "difficulty": "Hard",
+                "url": "https://leetcode.com/problems/sliding-window-maximum/"
+            },
+            {
+                "name": "The Celebrity Problem",
+                "difficulty": "Medium",
+                "url": "https://www.geeksforgeeks.org/problems/the-celebrity-problem/1"
+            },
+            {
+                "name": "LRU Cache",
+                "difficulty": "Medium",
+                "url": "https://leetcode.com/problems/lru-cache/"
+            },
+            {
+                "name": "LFU Cache",
+                "difficulty": "Hard",
+                "url": "https://leetcode.com/problems/lfu-cache/"
             }
         ]
     },
