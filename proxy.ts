@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-const ProtectedRoutes = ["/dashboard"];
+const ProtectedRoutes = ["/dashboard", "/tasks", "/timetable", "/aptitude", "/dsapattern", "/dsatopics", "/dsaquestions"];
 const PublicRoutes = ["/Login", "/signup", "/"];
 
 export async function proxy(request: NextRequest) {

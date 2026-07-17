@@ -47,7 +47,7 @@ async function getBaseQuestions(): Promise<DsaTopic[]> {
     try {
         const fileContent = await fs.readFile(filePath, "utf-8");
         return JSON.parse(fileContent);
-    } catch (e) {
+    } catch (e: unknown) {
         console.error("Critical: Failed to read local static questions configuration file:", e);
         return [];
     }
