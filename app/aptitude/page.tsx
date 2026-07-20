@@ -11,15 +11,15 @@ import {
   Briefcase,
   TrendingUp,
   Award,
-  ChevronRight
+  ChevronRight,
+  Menu,
+  X,
+  LogOut
 } from 'lucide-react';
+import { useRouter, usePathname } from "next/navigation";
 
 // Types
 type Status = 'Not Started' | 'In Progress' | 'Mastered';
-
-interface SubTopic {
-  name: string;
-}
 
 interface Topic {
   name: string;
@@ -94,6 +94,10 @@ export default function AptitudePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterWeight, setFilterWeight] = useState("All");
   const [statuses, setStatuses] = useState<Record<string, Status>>({});
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     async function fetchStatuses() {
@@ -111,6 +115,19 @@ export default function AptitudePage() {
     }
     fetchStatuses();
   }, []);
+
+  const handelSignOut = async () => {
+    try {
+      const res = await fetch("/api/auth/Logout", {
+        method: "POST",
+      });
+      if (res.ok) {
+        router.push("/Login");
+      }
+    } catch (error) {
+      console.error("Failed to sign out", error);
+    }
+  };
 
   const toggleStatus = async (id: string) => {
     const current = statuses[id] || 'Not Started';
@@ -135,9 +152,9 @@ export default function AptitudePage() {
 
   const getStatusIcon = (status: Status) => {
     switch (status) {
-      case 'Mastered': return <CheckCircle className="w-5 h-5 text-black" />;
-      case 'In Progress': return <Clock className="w-5 h-5 text-zinc-500" />;
-      default: return <Circle className="w-5 h-5 text-zinc-300" />;
+      case 'Mastered': return <CheckCircle className="w-4 h-4 text-white" />;
+      case 'In Progress': return <Clock className="w-4 h-4 text-zinc-500" />;
+      default: return <Circle className="w-4 h-4 text-zinc-700" />;
     }
   };
 
@@ -184,37 +201,106 @@ export default function AptitudePage() {
   const weightages = ["All", "Medium", "High", "Very High"];
 
   return (
-    <div className="min-h-screen bg-white text-zinc-900 font-sans pb-24 selection:bg-zinc-200">
-      {/* Global Progress Bar */}
-      <div className="fixed top-0 left-0 right-0 h-1.5 bg-zinc-100 z-50">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${progressPercentage}%` }}
-          className="h-full bg-black shadow-[0_0_10px_rgba(0,0,0,0.5)]"
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        />
+    <div className="min-h-screen bg-zinc-950 text-white font-sans flex flex-col md:flex-row">
+      {/* Mobile Header */}
+      <div className="md:hidden flex items-center justify-between p-5 border-b border-white/10 relative z-20 bg-zinc-950">
+        <h1 className="text-xl font-bold tracking-tight">Task Manager</h1>
+        <button onClick={() => setSidebarOpen(true)} className="p-2 text-white hover:bg-zinc-900">
+          <Menu size={24} />
+        </button>
       </div>
 
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-16">
-        {/* Header Section */}
-        <header className="mb-14 border-b border-zinc-100 pb-10">
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8"
+      {/* Sidebar Overlay for Mobile */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-zinc-950/80 backdrop-blur-sm md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed md:sticky top-0 h-screen w-64 bg-zinc-950 border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+          } flex flex-col`}
+      >
+        <div className="p-6 flex items-center justify-between md:justify-start gap-4 border-b border-white/10">
+          <div className="w-8 h-8 bg-white flex items-center justify-center">
+            <span className="text-zinc-950 font-bold text-lg">E</span>
+          </div>
+          <h2 className="text-xl font-bold tracking-tight">Dashboard.</h2>
+          <button className="md:hidden p-2 text-zinc-400 hover:text-white" onClick={() => setSidebarOpen(false)}>
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="flex-1 p-6 flex flex-col gap-2">
+          <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">Navigation</div>
+          <button
+            onClick={() => { router.push("/tasks"); setSidebarOpen(false); }}
+            className={`flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${pathname === "/tasks" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
+              }`}
           >
+            Tasks
+          </button>
+          <button
+            onClick={() => { router.push("/aptitude"); setSidebarOpen(false); }}
+            className={`flex items-center justify-between px-4 py-3 text-sm font-bold bg-white text-black`}
+          >
+            Aptitude
+          </button>
+          <button
+            onClick={() => { router.push("/dsapattern"); setSidebarOpen(false); }}
+            className={`flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${pathname === "/dsapattern" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
+              }`}
+          >
+            DSA Patterns
+          </button>
+          <button
+            onClick={() => { router.push("/dsatopics"); setSidebarOpen(false); }}
+            className={`flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${pathname === "/dsatopics" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
+              }`}
+          >
+            DSA Topics
+          </button>
+          <button
+            onClick={() => { router.push("/dsaquestions"); setSidebarOpen(false); }}
+            className={`flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${pathname === "/dsaquestions" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
+              }`}
+          >
+            DSA Questions
+          </button>
+          <button
+            onClick={() => { router.push("/timetable"); setSidebarOpen(false); }}
+            className={`flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${pathname === "/timetable" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
+              }`}
+          >
+            Time Table
+          </button>
+        </div>
+
+        <div className="p-6 border-t border-white/10">
+          <button className="flex items-center gap-3 px-4 py-3 w-full text-zinc-400 hover:text-white hover:bg-white/10 text-sm font-medium transition-colors" onClick={handelSignOut}>
+            <LogOut size={18} /> Sign Out
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 p-6 md:p-12 w-full max-w-[1400px] relative min-h-screen mt-0 overflow-y-auto">
+        {/* Header Section */}
+        <header className="mb-10 hidden md:block">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
             <div className="space-y-4">
-              <h1 className="text-4xl md:text-6xl font-black tracking-tight text-black">
+              <h1 className="text-3xl font-bold tracking-tight text-white focus:outline-none">
                 Aptitude Prep
               </h1>
               <div className="flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-1.5 bg-black text-white px-4 py-2 rounded-full text-sm font-semibold shadow-sm">
-                  <Briefcase className="w-4 h-4" />
+                <span className="inline-flex items-center gap-1.5 bg-white text-zinc-950 px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-none shadow-sm">
+                  <Briefcase className="w-3.5 h-3.5" />
                   {rawData.role_target}
                 </span>
-                <span className="inline-flex items-center gap-1.5 bg-white border border-zinc-200 text-zinc-800 px-4 py-2 rounded-full text-sm font-semibold shadow-sm">
-                  <Clock className="w-4 h-4 text-zinc-500" />
+                <span className="inline-flex items-center gap-1.5 bg-zinc-900 border border-white/10 text-zinc-400 px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-none shadow-sm">
+                  <Clock className="w-3.5 h-3.5 text-zinc-500" />
                   {rawData.duration} Timeline
                 </span>
               </div>
@@ -222,46 +308,62 @@ export default function AptitudePage() {
 
             <div className="hidden md:flex flex-col items-end shrink-0">
               <div className="flex items-baseline gap-1">
-                <span className="text-6xl font-black tabular-nums tracking-tighter text-black">
+                <span className="text-5xl font-black tabular-nums tracking-tighter text-white">
                   {progressPercentage}
                 </span>
-                <span className="text-2xl font-bold text-zinc-400">%</span>
+                <span className="text-xl font-bold text-zinc-500">%</span>
               </div>
-              <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest mt-1">
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">
                 Overall Mastery
               </span>
             </div>
-          </motion.div>
+          </div>
         </header>
 
+        {/* Overall Progress Section */}
+        <div className="mb-10 bg-zinc-900/40 border border-white/5 p-6 rounded-none">
+          <div className="flex justify-between items-end mb-3">
+            <div>
+              <h2 className="text-lg font-bold text-white tracking-tight">Prep Progress</h2>
+              <p className="text-xs text-zinc-500 font-medium uppercase tracking-widest mt-1">
+                {masteredCount} / {totalSubtopics} Subtopics Mastered
+              </p>
+            </div>
+            <span className="text-2xl font-bold text-white tracking-tight">{progressPercentage}%</span>
+          </div>
+          <div className="h-[2px] w-full bg-zinc-800 rounded-none overflow-hidden">
+            <motion.div
+              className="h-full bg-white"
+              initial={{ width: 0 }}
+              animate={{ width: `${progressPercentage}%` }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            />
+          </div>
+        </div>
+
         {/* Filters and Controls */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
-          className="flex flex-col lg:flex-row gap-4 justify-between items-center mb-12 bg-zinc-50/50 p-2 rounded-2xl border border-zinc-100 shadow-sm"
-        >
+        <div className="flex flex-col lg:flex-row gap-4 justify-between items-center mb-12 bg-zinc-900 border border-white/5 p-4 rounded-none">
           <div className="relative w-full lg:max-w-xl">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
             <input
               type="text"
               placeholder="Search topics or subtopics..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3.5 bg-white border border-zinc-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all shadow-sm placeholder:text-zinc-400 font-medium"
+              className="w-full pl-10 pr-4 py-2.5 bg-zinc-950 border border-white/10 text-white text-sm font-medium placeholder-zinc-500 focus:outline-none focus:border-white transition-colors"
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full lg:w-auto p-2">
-            <Filter className="w-4 h-4 text-zinc-400 shrink-0 ml-2" />
-            <div className="flex gap-2 overflow-x-auto no-scrollbar snap-x">
+          <div className="flex items-center gap-3 w-full lg:w-auto p-2 overflow-x-auto">
+            <Filter className="w-4 h-4 text-zinc-500 shrink-0 ml-2" />
+            <div className="flex gap-2">
               {weightages.map(w => (
                 <button
                   key={w}
                   onClick={() => setFilterWeight(w)}
-                  className={`snap-center px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 shrink-0 border ${filterWeight === w
-                      ? "bg-black text-white border-black shadow-md scale-105"
-                      : "bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-100 hover:border-zinc-300 hover:text-black"
+                  className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors border ${filterWeight === w
+                      ? "bg-white text-zinc-950 border-white"
+                      : "bg-zinc-950 text-zinc-400 border-white/10 hover:text-white hover:border-white/35"
                     }`}
                 >
                   {w}
@@ -269,30 +371,33 @@ export default function AptitudePage() {
               ))}
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Main Grid Content */}
         {filteredAreas.length === 0 ? (
-          <div className="text-center py-20">
+          <div className="text-center py-20 border border-dashed border-white/10 p-12">
             <p className="text-zinc-500 font-medium">No results found for your search criteria.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <AnimatePresence>
               {filteredAreas.map((area, i) => (
                 <motion.div
                   key={area.category}
-                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  initial={{ opacity: 0, scale: 0.98, y: 10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.3, delay: i * 0.05 }}
                   className="flex flex-col gap-5 h-full"
                 >
-                  <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-md pt-2 pb-4 border-b-2 border-black">
-                    <h2 className="text-xl font-bold text-black mb-3 leading-tight">
+                  <div className="sticky top-0 z-10 bg-zinc-950/90 backdrop-blur-md pt-2 pb-4 border-b-2 border-white/20">
+                    <h2 className="text-lg font-bold text-white mb-3 leading-tight min-h-[56px] flex items-center">
                       {area.category}
                     </h2>
-                    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2 py-1 rounded bg-zinc-100 text-black border border-zinc-200 uppercase tracking-wider">
+                    <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-1 border rounded-none uppercase tracking-wider ${area.weightage === 'Very High' ? 'bg-rose-400/10 text-rose-400 border-rose-400/20' :
+                        area.weightage === 'High' ? 'bg-amber-400/10 text-amber-400 border-amber-400/20' :
+                          'bg-emerald-400/10 text-emerald-400 border-emerald-400/20'
+                      }`}>
                       <TrendingUp className="w-3.5 h-3.5" />
                       {area.weightage} priority
                     </span>
@@ -308,19 +413,19 @@ export default function AptitudePage() {
                       return (
                         <div
                           key={topic.name}
-                          className={`bg-white border rounded-2xl overflow-hidden transition-all duration-300 group ${isTopicComplete ? 'border-zinc-300 shadow-sm' : 'border-zinc-200 hover:border-zinc-300 hover:shadow-md'
+                          className={`bg-zinc-900 border rounded-none overflow-hidden transition-all duration-300 group ${isTopicComplete ? 'border-white/25 shadow-sm' : 'border-white/5 hover:border-white/20'
                             }`}
                         >
-                          <div className={`px-4 py-3.5 flex justify-between items-center bg-zinc-50/50 border-b ${isTopicComplete ? 'border-zinc-200' : 'border-zinc-100'
+                          <div className={`px-4 py-3.5 flex justify-between items-center bg-zinc-900 border-b ${isTopicComplete ? 'border-white/10' : 'border-white/5'
                             }`}>
-                            <h3 className="font-bold text-zinc-900 text-sm leading-tight flex items-center gap-2">
+                            <h3 className="font-bold text-zinc-100 text-xs leading-tight flex items-center gap-2">
                               {topic.name}
                             </h3>
                             <div className="flex items-center gap-2">
-                              <span className="text-xs font-bold font-mono text-zinc-500 bg-zinc-200 px-2 py-0.5 rounded-full">
+                              <span className="text-[10px] font-bold font-mono text-zinc-400 bg-zinc-950 px-2 py-0.5 border border-white/5">
                                 {topicProgress}/{topic.subtopics.length}
                               </span>
-                              {isTopicComplete && <Award className="w-4 h-4 text-black" />}
+                              {isTopicComplete && <Award className="w-4 h-4 text-white" />}
                             </div>
                           </div>
 
@@ -333,18 +438,18 @@ export default function AptitudePage() {
                                 <button
                                   key={subtopic}
                                   onClick={() => toggleStatus(id)}
-                                  className="w-full text-left p-2.5 rounded-xl hover:bg-zinc-100 flex items-start gap-3.5 transition-all duration-200 group/btn"
+                                  className="w-full text-left p-2.5 rounded-none hover:bg-white/[0.02] flex items-start gap-3.5 transition-all duration-150 group/btn"
                                 >
-                                  <div className="mt-0.5 shrink-0 transition-transform duration-300 group-hover/btn:scale-110">
+                                  <div className="mt-0.5 shrink-0 transition-transform duration-150 group-hover/btn:scale-110">
                                     {getStatusIcon(status)}
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <p className={`text-sm font-semibold truncate transition-colors duration-200 ${status === 'Mastered' ? 'text-zinc-400 line-through' : 'text-zinc-900'
+                                    <p className={`text-xs font-semibold truncate transition-colors duration-150 ${status === 'Mastered' ? 'text-zinc-500 line-through' : 'text-zinc-200'
                                       }`}>
                                       {subtopic}
                                     </p>
-                                    <p className={`text-[10px] font-bold mt-1 uppercase tracking-widest transition-colors duration-200 ${status === 'Mastered' ? 'text-zinc-300' :
-                                        status === 'In Progress' ? 'text-zinc-500' : 'text-zinc-300'
+                                    <p className={`text-[9px] font-bold mt-1 uppercase tracking-widest transition-colors duration-150 ${status === 'Mastered' ? 'text-zinc-600' :
+                                        status === 'In Progress' ? 'text-zinc-400' : 'text-zinc-700'
                                       }`}>
                                       {status}
                                     </p>
@@ -362,19 +467,7 @@ export default function AptitudePage() {
             </AnimatePresence>
           </div>
         )}
-      </div>
-
-      {/* Global CSS for hiding scrollbar if needed */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}} />
+      </main>
     </div>
   );
 }
