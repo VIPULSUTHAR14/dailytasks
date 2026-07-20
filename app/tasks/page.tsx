@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { CheckCircle2, Circle, Plus, Trash2, Menu, X, LogOut, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -18,8 +18,6 @@ type Task = {
 
 export default function TasksPage() {
     const [tasks, setTasks] = useState<Task[]>([]);
-    const [todaytasks, setTodayTasks] = useState<Task[]>([]);
-    const [completedTaskss, setCompletedTaskss] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<"today" | "all" | "pending" | "completed">("today");
     const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -57,28 +55,8 @@ export default function TasksPage() {
         }
     };
 
-    const fetchtodaytasks = async () => {
-        setLoading(true);
-        try {
-            const res = await fetch(`/api/tasktoday`);
-            if (res.ok) {
-                const data = await res.json();
-                setTodayTasks(data.tasks || []);
-                setCompletedTaskss(data.filterddata || []);
-            } else if (res.status === 404) {
-                setTodayTasks([]);
-                setCompletedTaskss([]);
-            }
-        } catch (e) {
-            console.error("Failed to fetch today tasks", e);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
         fetchTasks();
-        fetchtodaytasks();
     }, []);
 
     const toggleStatus = async (targetTask: Task) => {
@@ -104,11 +82,9 @@ export default function TasksPage() {
             });
 
             if (!res.ok) throw new Error("Failed to update status");
-            fetchtodaytasks();
         } catch (e) {
-            console.log(e);
+            console.error("Failed to toggle task status:", e);
             fetchTasks();
-            fetchtodaytasks();
         }
     };
 
@@ -121,11 +97,9 @@ export default function TasksPage() {
                 method: "DELETE"
             });
             if (!res.ok) throw new Error("Failed to delete task");
-            fetchtodaytasks();
         } catch (e) {
-            console.log(e);
+            console.error("Failed to delete task:", e);
             fetchTasks();
-            fetchtodaytasks();
         }
     };
 
@@ -149,7 +123,6 @@ export default function TasksPage() {
                 setNewTaskTitle("");
                 setModalOpen(false);
                 fetchTasks();
-                fetchtodaytasks();
             }
         } catch (e) {
             console.error(e);
@@ -172,8 +145,16 @@ export default function TasksPage() {
         return t.task.status === filter;
     });
 
-    const totalTasks = todaytasks.length;
-    const completedTasks = completedTaskss.length;
+    const todayTasks = useMemo(() => {
+        return tasks.filter(t => t.created_at && new Date(t.created_at).toDateString() === new Date().toDateString());
+    }, [tasks]);
+
+    const completedTodayTasks = useMemo(() => {
+        return todayTasks.filter(t => t.task.status === "completed");
+    }, [todayTasks]);
+
+    const totalTasks = todayTasks.length;
+    const completedTasks = completedTodayTasks.length;
     const progressPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
 
     return (

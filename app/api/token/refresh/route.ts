@@ -12,30 +12,36 @@ export async function POST() {
         if (!sessionToken) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
         }
-        const hashedToken = crypto.createHash("sha256").update(sessionToken).digest("hex");
-        const session = await collection.findOne({ sessionToken: hashedToken });
+        
+        // Find the active session. The cookie value is hashedToken.
+        const session = await collection.findOne({ 
+            hashedToken: sessionToken,
+            ExpireAt: { $gt: new Date() }
+        });
         if (!session) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
         }
 
-        const newAccessToken = generatetoken(session._id.toString());
+        const newAccessToken = generatetoken(session.userId);
         const newRefreshToken = crypto.randomBytes(32).toString("hex");
         const newhashedRefreshToken = crypto.createHash("sha256").update(newRefreshToken).digest("hex");
 
+        // Cycle the session
         await collection.deleteOne({ _id: session._id })
         await collection.insertOne({
-            userID: session.userID,
-            tokenHash: newhashedRefreshToken,
-            createAt: new Date(),
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+            userId: session.userId,
+            hashedToken: newhashedRefreshToken,
+            CreatedAt: new Date(),
+            ExpireAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
         })
 
-        cookieStore.set("session_token", newRefreshToken, {
+        // Set the new session token cookie
+        cookieStore.set("session_token", newhashedRefreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: "lax",
             path: "/",
-            maxAge: 7 * 24 * 60 * 60 * 1000
+            maxAge: 60 * 60 * 24 * 7,
         })
 
         return NextResponse.json({ accessToken: newAccessToken })

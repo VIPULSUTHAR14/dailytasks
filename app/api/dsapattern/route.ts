@@ -2,10 +2,7 @@ import { dbcollection } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import z from "zod";
-import fs from "fs/promises";
-import path from "path";
-
-const filePath = path.join(process.cwd(), "lib", "data", "dsaPatterns.json");
+import basePatterns from "@/lib/data/dsaPatterns.json";
 
 const dsaSchema = z.object({
     statuses: z.record(z.string(), z.boolean()),
@@ -36,17 +33,6 @@ async function getAuthenticatedUserId(): Promise<string | null> {
     }
 }
 
-// Helper function to read static template patterns safely
-async function getBasePatterns(): Promise<DsaPatternItem[]> {
-    try {
-        const fileContent = await fs.readFile(filePath, "utf-8");
-        return JSON.parse(fileContent);
-    } catch (e) {
-        console.error("Critical: Failed to read local static patterns configuration file:", e);
-        return [];
-    }
-}
-
 export async function GET() {
     try {
         const user_id = await getAuthenticatedUserId();
@@ -55,7 +41,7 @@ export async function GET() {
         }
 
         // Get the base definition structure of the 19 patterns
-        const localPatterns = await getBasePatterns();
+        const localPatterns = basePatterns as DsaPatternItem[];
 
         // Fetch user-specific progress overrides from MongoDB
         const data = await dbcollection("dsapattern");
@@ -101,20 +87,10 @@ export async function PATCH(request: NextRequest) {
             { upsert: true }
         );
 
-        // Fetch the fresh, updated array definition back to the UI seamlessly
-        const localPatterns = await getBasePatterns();
-        const updatedDsa = await data.findOne({ user_id });
-        const latestStatuses = updatedDsa?.statuses || {};
-
-        const mergedPatterns = localPatterns.map(p => ({
-            ...p,
-            completed: latestStatuses[p.id] !== undefined ? latestStatuses[p.id] : false
-        }));
-
+        // Return simple success status to client which discards the payload anyway
         return NextResponse.json({
-            message: "DSA pattern tracking updated successfully",
-            statuses: latestStatuses,
-            patterns: mergedPatterns
+            success: true,
+            message: "DSA pattern tracking updated successfully"
         }, { status: 200 });
     } catch (error: unknown) {
         if (error instanceof z.ZodError) {

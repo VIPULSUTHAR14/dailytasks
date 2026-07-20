@@ -2,10 +2,7 @@ import { dbcollection } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import z from "zod";
-import fs from "fs/promises";
-import path from "path";
-
-const filePath = path.join(process.cwd(), "lib", "data", "dsaTopics.json");
+import baseTopics from "@/lib/data/dsaTopics.json";
 
 const dsaSchema = z.object({
     statuses: z.record(z.string(), z.boolean()),
@@ -37,17 +34,6 @@ async function getAuthenticatedUserId(): Promise<string | null> {
     }
 }
 
-// Helper function to read static template topics safely
-async function getBaseTopics(): Promise<DsaTopicItem[]> {
-    try {
-        const fileContent = await fs.readFile(filePath, "utf-8");
-        return JSON.parse(fileContent);
-    } catch (e) {
-        console.error("Critical: Failed to read local static topics configuration file:", e);
-        return [];
-    }
-}
-
 export async function GET() {
     try {
         const user_id = await getAuthenticatedUserId();
@@ -56,7 +42,7 @@ export async function GET() {
         }
 
         // Get the base definition structure of the topics
-        const localTopics = await getBaseTopics();
+        const localTopics = baseTopics as DsaTopicItem[];
 
         // Fetch user-specific progress overrides from MongoDB
         const data = await dbcollection("dsatopics");
@@ -102,20 +88,10 @@ export async function PATCH(request: NextRequest) {
             { upsert: true }
         );
 
-        // Fetch the fresh, updated array definition back to the UI seamlessly
-        const localTopics = await getBaseTopics();
-        const updatedDsa = await data.findOne({ user_id });
-        const latestStatuses = updatedDsa?.statuses || {};
-
-        const mergedTopics = localTopics.map(t => ({
-            ...t,
-            completed: latestStatuses[t.id] !== undefined ? latestStatuses[t.id] : false
-        }));
-
+        // Return simple success status to client which discards the payload anyway
         return NextResponse.json({
-            message: "DSA topic tracking updated successfully",
-            statuses: latestStatuses,
-            topics: mergedTopics
+            success: true,
+            message: "DSA topic tracking updated successfully"
         }, { status: 200 });
     } catch (error: unknown) {
         if (error instanceof z.ZodError) {

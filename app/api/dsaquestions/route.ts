@@ -2,10 +2,7 @@ import { dbcollection } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import z from "zod";
-import fs from "fs/promises";
-import path from "path";
-
-const filePath = path.join(process.cwd(), "lib", "data", "dsaQuesions.json");
+import baseQuestions from "@/lib/data/dsaQuesions.json";
 
 const dsaSchema = z.object({
     statuses: z.record(z.string(), z.boolean()),
@@ -42,17 +39,6 @@ async function getAuthenticatedUserId(): Promise<string | null> {
     }
 }
 
-// Helper function to read static question data safely
-async function getBaseQuestions(): Promise<DsaTopic[]> {
-    try {
-        const fileContent = await fs.readFile(filePath, "utf-8");
-        return JSON.parse(fileContent);
-    } catch (e: unknown) {
-        console.error("Critical: Failed to read local static questions configuration file:", e);
-        return [];
-    }
-}
-
 // Generate a stable unique key for each question (topic-id + slugified question name)
 function questionKey(topicId: string, questionName: string): string {
     return `${topicId}::${questionName}`;
@@ -65,7 +51,7 @@ export async function GET() {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
-        const topics = await getBaseQuestions();
+        const topics = baseQuestions as DsaTopic[];
 
         // Fetch user-specific progress overrides from MongoDB
         const data = await dbcollection("dsaquestions");
@@ -115,23 +101,11 @@ export async function PATCH(request: NextRequest) {
             { upsert: true }
         );
 
-        // Fetch the fresh updated state back
-        const topics = await getBaseQuestions();
-        const updatedRecord = await data.findOne({ user_id });
-        const latestStatuses = updatedRecord?.statuses || {};
-
-        const mergedTopics = topics.map(topic => ({
-            ...topic,
-            questions: topic.questions.map(q => ({
-                ...q,
-                completed: latestStatuses[questionKey(topic.id, q.name)] === true,
-            })),
-        }));
-
+        // The client ignores the response payload on success, so we return a simple success status
+        // to save CPU cycles, disk IO, database queries, and bandwidth.
         return NextResponse.json({
-            message: "DSA question tracking updated successfully",
-            statuses: latestStatuses,
-            topics: mergedTopics,
+            success: true,
+            message: "DSA question tracking updated successfully"
         }, { status: 200 });
     } catch (error: unknown) {
         if (error instanceof z.ZodError) {
