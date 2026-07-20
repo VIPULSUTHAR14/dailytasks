@@ -361,8 +361,8 @@ export default function Timetable() {
                             )}
                         </div>
 
-                        {/* Interactive Table Container */}
-                        <div className="bg-zinc-900/40 border border-white/5 overflow-x-auto rounded-none">
+                        {/* Interactive Table Container (Desktop Mode) */}
+                        <div className="hidden md:block bg-zinc-900/40 border border-white/5 overflow-x-auto rounded-none">
                             <table className="w-full text-left border-collapse min-w-[700px]">
                                 <thead>
                                     <tr className="border-b border-white/10 bg-zinc-900/80">
@@ -455,8 +455,6 @@ export default function Timetable() {
                                                     )}
                                                 </td>
 
-
-
                                                 {/* Delete Row Action (Edit Mode Only) */}
                                                 {isEditing && (
                                                     <td className="p-4 text-center align-middle">
@@ -475,7 +473,7 @@ export default function Timetable() {
                                 </tbody>
                             </table>
 
-                            {/* Add Row Button (Edit Mode Only) */}
+                            {/* Add Row Button (Edit Mode Only - Desktop) */}
                             {isEditing && (
                                 <div className="p-4 bg-zinc-900/20 border-t border-white/5 flex justify-center">
                                     <button
@@ -488,9 +486,138 @@ export default function Timetable() {
                                 </div>
                             )}
 
-                            {/* Empty View within Table (No Rows in Edit Mode) */}
+                            {/* Empty View within Table (No Rows in Edit Mode - Desktop) */}
                             {isEditing && editedSchedule.length === 0 && (
                                 <div className="p-12 text-center text-zinc-500 text-sm font-medium">
+                                    No rows added to your schedule. Click "Add Row" above to start building.
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Vertical Cards List (Mobile Mode) */}
+                        <div className="md:hidden space-y-4">
+                            {isEditing ? (
+                                <AnimatePresence initial={false}>
+                                    {editedSchedule.map((row, index) => (
+                                        <motion.div
+                                            key={index}
+                                            initial={{ opacity: 0, y: 4 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0 }}
+                                            transition={{ duration: 0.15 }}
+                                            className="p-4 bg-zinc-900 border border-white/5 space-y-3 relative rounded-none"
+                                        >
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Row #{index + 1}</span>
+                                                <button
+                                                    onClick={() => deleteRow(index)}
+                                                    className="text-zinc-500 hover:text-red-400 transition-colors p-1"
+                                                    title="Remove Row"
+                                                >
+                                                    <Trash size={16} />
+                                                </button>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <div>
+                                                    <label className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 block mb-1">Time</label>
+                                                    <input
+                                                        type="text"
+                                                        value={row.time}
+                                                        onChange={(e) => updateCell(index, "time", e.target.value)}
+                                                        placeholder="e.g. 8:00 – 10:00 AM"
+                                                        className="bg-zinc-950 border border-white/10 rounded-none px-3 py-1.5 text-xs text-white focus:outline-none focus:border-white w-full"
+                                                        required
+                                                    />
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div>
+                                                        <label className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 block mb-1">Duration</label>
+                                                        <input
+                                                            type="text"
+                                                            value={row.duration}
+                                                            onChange={(e) => updateCell(index, "duration", e.target.value)}
+                                                            placeholder="e.g. 2 hrs"
+                                                            className="bg-zinc-950 border border-white/10 rounded-none px-3 py-1.5 text-xs text-white focus:outline-none focus:border-white w-full"
+                                                            required
+                                                        />
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 block mb-1">Task</label>
+                                                        <input
+                                                            type="text"
+                                                            value={row.task}
+                                                            onChange={(e) => updateCell(index, "task", e.target.value)}
+                                                            placeholder="e.g. DSA Concepts"
+                                                            className="bg-zinc-950 border border-white/10 rounded-none px-3 py-1.5 text-xs text-white focus:outline-none focus:border-white w-full"
+                                                            required
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
+                            ) : (
+                                <AnimatePresence initial={false}>
+                                    {(schedule || []).map((row, index) => (
+                                        <motion.div
+                                            key={index}
+                                            initial={{ opacity: 0, y: 4 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0 }}
+                                            transition={{ duration: 0.15 }}
+                                            className={`p-4 bg-zinc-900 border border-white/5 flex items-start gap-4 transition-colors rounded-none ${row.completed ? "bg-white/[0.01] text-zinc-500" : ""
+                                                }`}
+                                        >
+                                            <button
+                                                onClick={() => toggleCompleted(index)}
+                                                className="text-zinc-500 hover:text-white transition-colors inline-block mt-0.5 shrink-0"
+                                            >
+                                                {row.completed ? (
+                                                    <CheckCircle2 className="text-white w-5 h-5" />
+                                                ) : (
+                                                    <Circle className="w-5 h-5" />
+                                                )}
+                                            </button>
+                                            <div className="flex-1 min-w-0">
+                                                <span className={`font-semibold block text-sm leading-snug break-words ${row.completed ? "line-through text-zinc-500" : "text-white"
+                                                    }`}>
+                                                    {row.task || "—"}
+                                                </span>
+                                                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-2 text-[11px] font-medium">
+                                                    <span className={row.completed ? "line-through text-zinc-600" : "text-zinc-400"}>
+                                                        {row.time || "—"}
+                                                    </span>
+                                                    <span className="text-zinc-700 font-bold">•</span>
+                                                    <span className={row.completed ? "line-through text-zinc-700" : "text-zinc-500"}>
+                                                        {row.duration || "—"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
+                            )}
+
+                            {/* Add Row Button (Edit Mode Only - Mobile view) */}
+                            {isEditing && (
+                                <div className="p-4 bg-zinc-900/20 border border-dashed border-white/10 flex justify-center">
+                                    <button
+                                        onClick={addRow}
+                                        className="flex items-center gap-2 px-4 py-2 text-zinc-400 hover:text-white text-xs font-bold uppercase tracking-wider rounded-none transition-colors"
+                                    >
+                                        <Plus size={14} />
+                                        Add Row
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Empty View within Mobile Cards */}
+                            {isEditing && editedSchedule.length === 0 && (
+                                <div className="p-12 text-center text-zinc-500 text-sm font-medium border border-dashed border-white/10">
                                     No rows added to your schedule. Click "Add Row" above to start building.
                                 </div>
                             )}
