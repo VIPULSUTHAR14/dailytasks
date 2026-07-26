@@ -8,10 +8,27 @@ const dsaSchema = z.object({
     statuses: z.record(z.string(), z.boolean()),
 });
 
+const notesSchema = z.object({
+    questionKey: z.string(),
+    note: z.string().optional(),
+    pseudoCode: z.string().optional(),
+});
+
 type DsaQuestion = {
     name: string;
     difficulty: string;
     url: string;
+    pseudoCode?: string;
+    note?: string;
+    description?: string;
+    interviewQuestion?: string;
+    hint?: string;
+    pattern?: string;
+    prerequisites?: string[];
+    commonMistakes?: string[];
+    followUpQuestions?: string[];
+    timeComplexity?: string;
+    spaceComplexity?: string;
 };
 
 type DsaTopic = {
@@ -57,14 +74,21 @@ export async function GET() {
         const data = await dbcollection("dsaquestions");
         const record = await data.findOne({ user_id });
         const dbStatuses = record?.statuses || {};
+        const dbNotes: Record<string, string> = record?.notes || {};
+        const dbPseudoCodes: Record<string, string> = record?.pseudoCodes || {};
 
-        // Merge user-specific completion state into the topics structure
+        // Merge user-specific completion state, notes, and pseudoCode into the topics structure
         const mergedTopics = topics.map(topic => ({
             ...topic,
-            questions: topic.questions.map(q => ({
-                ...q,
-                completed: dbStatuses[questionKey(topic.id, q.name)] === true,
-            })),
+            questions: topic.questions.map(q => {
+                const key = questionKey(topic.id, q.name);
+                return {
+                    ...q,
+                    completed: dbStatuses[key] === true,
+                    note: dbNotes[key] ?? q.note ?? '',
+                    pseudoCode: dbPseudoCodes[key] ?? q.pseudoCode ?? '',
+                };
+            }),
         }));
 
         return NextResponse.json({
@@ -112,6 +136,45 @@ export async function PATCH(request: NextRequest) {
             return NextResponse.json({ message: error.issues[0].message }, { status: 400 });
         }
         console.error("DSA Questions PATCH error:", error);
+        return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    }
+}
+
+// Save/update notes and pseudoCode for a specific question
+export async function PUT(request: NextRequest) {
+    try {
+        const user_id = await getAuthenticatedUserId();
+        if (!user_id) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        }
+
+        const body = await request.json();
+        const { questionKey: qKey, note, pseudoCode } = notesSchema.parse(body);
+        const data = await dbcollection("dsaquestions");
+
+        const setPayload: Record<string, any> = { updated_at: new Date() };
+        if (note !== undefined) {
+            setPayload[`notes.${qKey}`] = note;
+        }
+        if (pseudoCode !== undefined) {
+            setPayload[`pseudoCodes.${qKey}`] = pseudoCode;
+        }
+
+        await data.updateOne(
+            { user_id },
+            { $set: setPayload },
+            { upsert: true }
+        );
+
+        return NextResponse.json({
+            success: true,
+            message: "Notes updated successfully"
+        }, { status: 200 });
+    } catch (error: unknown) {
+        if (error instanceof z.ZodError) {
+            return NextResponse.json({ message: error.issues[0].message }, { status: 400 });
+        }
+        console.error("DSA Questions PUT error:", error);
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }
 }

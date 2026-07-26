@@ -222,20 +222,7 @@ export default function Timetable() {
                     >
                         Aptitude
                     </button>
-                    <button
-                        onClick={() => { router.push("/dsapattern"); setSidebarOpen(false); }}
-                        className={`flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${pathname === "/dsapattern" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
-                            }`}
-                    >
-                        DSA Patterns
-                    </button>
-                    <button
-                        onClick={() => { router.push("/dsatopics"); setSidebarOpen(false); }}
-                        className={`flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${pathname === "/dsatopics" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
-                            }`}
-                    >
-                        DSA Topics
-                    </button>
+
                     <button
                         onClick={() => { router.push("/dsaquestions"); setSidebarOpen(false); }}
                         className={`flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${pathname === "/dsaquestions" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"

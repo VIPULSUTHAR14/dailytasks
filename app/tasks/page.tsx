@@ -248,18 +248,7 @@ export default function TasksPage() {
                     >
                         Aptitude
                     </button>
-                    <button
-                        onClick={() => { router.push("/dsapattern"); setSidebarOpen(false); }}
-                        className="flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors text-zinc-400 hover:bg-white/10 hover:text-white"
-                    >
-                        DSA Patterns
-                    </button>
-                    <button
-                        onClick={() => { router.push("/dsatopics"); setSidebarOpen(false); }}
-                        className="flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors text-zinc-400 hover:bg-white/10 hover:text-white"
-                    >
-                        DSA Topics
-                    </button>
+
                     <button
                         onClick={() => { router.push("/dsaquestions"); setSidebarOpen(false); }}
                         className="flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors text-zinc-400 hover:bg-white/10 hover:text-white"
