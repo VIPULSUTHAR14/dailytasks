@@ -256,6 +256,12 @@ export default function TasksPage() {
                         DSA Questions
                     </button>
                     <button
+                        onClick={() => { router.push("/notes"); setSidebarOpen(false); }}
+                        className="flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors text-zinc-400 hover:bg-white/10 hover:text-white"
+                    >
+                        Notes
+                    </button>
+                    <button
                         onClick={() => { router.push("/timetable"); setSidebarOpen(false); }}
                         className="flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors text-zinc-400 hover:bg-white/10 hover:text-white"
                     >

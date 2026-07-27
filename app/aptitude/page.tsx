@@ -257,6 +257,13 @@ export default function AptitudePage() {
             DSA Questions
           </button>
           <button
+            onClick={() => { router.push("/notes"); setSidebarOpen(false); }}
+            className={`flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${pathname === "/notes" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
+              }`}
+          >
+            Notes
+          </button>
+          <button
             onClick={() => { router.push("/timetable"); setSidebarOpen(false); }}
             className={`flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${pathname === "/timetable" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
               }`}
@@ -349,8 +356,8 @@ export default function AptitudePage() {
                   key={w}
                   onClick={() => setFilterWeight(w)}
                   className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors border ${filterWeight === w
-                      ? "bg-white text-zinc-950 border-white"
-                      : "bg-zinc-950 text-zinc-400 border-white/10 hover:text-white hover:border-white/35"
+                    ? "bg-white text-zinc-950 border-white"
+                    : "bg-zinc-950 text-zinc-400 border-white/10 hover:text-white hover:border-white/35"
                     }`}
                 >
                   {w}
@@ -382,8 +389,8 @@ export default function AptitudePage() {
                       {area.category}
                     </h2>
                     <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-1 border rounded-none uppercase tracking-wider ${area.weightage === 'Very High' ? 'bg-rose-400/10 text-rose-400 border-rose-400/20' :
-                        area.weightage === 'High' ? 'bg-amber-400/10 text-amber-400 border-amber-400/20' :
-                          'bg-emerald-400/10 text-emerald-400 border-emerald-400/20'
+                      area.weightage === 'High' ? 'bg-amber-400/10 text-amber-400 border-amber-400/20' :
+                        'bg-emerald-400/10 text-emerald-400 border-emerald-400/20'
                       }`}>
                       <TrendingUp className="w-3.5 h-3.5" />
                       {area.weightage} priority
@@ -436,7 +443,7 @@ export default function AptitudePage() {
                                       {subtopic}
                                     </p>
                                     <p className={`text-[9px] font-bold mt-1 uppercase tracking-widest transition-colors duration-150 ${status === 'Mastered' ? 'text-zinc-600' :
-                                        status === 'In Progress' ? 'text-zinc-400' : 'text-zinc-700'
+                                      status === 'In Progress' ? 'text-zinc-400' : 'text-zinc-700'
                                       }`}>
                                       {status}
                                     </p>
