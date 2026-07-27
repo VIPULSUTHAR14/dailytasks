@@ -1036,15 +1036,18 @@ export default function DsaNotes() {
     useEffect(() => {
         async function loadData() {
             try {
-                const stored = localStorage.getItem(STORAGE_KEY);
-                if (stored) {
-                    setTopics(JSON.parse(stored));
+                const res = await fetch("/api/notes");
+                if (res.ok) {
+                    const data = await res.json();
+                    setTopics(data);
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                } else if (res.status === 401) {
+                    router.push("/Login");
                 } else {
-                    const res = await fetch("/api/notes");
-                    if (res.ok) {
-                        const data = await res.json();
-                        setTopics(data);
-                        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                    // Fetch failed (non-401 error) -> fallback to localStorage
+                    const stored = localStorage.getItem(STORAGE_KEY);
+                    if (stored) {
+                        setTopics(JSON.parse(stored));
                     } else {
                         const notesData = await import("@/lib/data/notes.json");
                         const data = Array.isArray(notesData.default) ? notesData.default : notesData;
@@ -1052,29 +1055,51 @@ export default function DsaNotes() {
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
                     }
                 }
-            } catch {
-                try {
-                    const notesData = await import("@/lib/data/notes.json");
-                    const data = Array.isArray(notesData.default) ? notesData.default : notesData;
-                    setTopics(data as NoteTopic[]);
-                } catch {
-                    console.error("Failed to load notes data");
+            } catch (error) {
+                console.error("Failed to fetch notes, falling back to local cache:", error);
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) {
+                    setTopics(JSON.parse(stored));
+                } else {
+                    try {
+                        const notesData = await import("@/lib/data/notes.json");
+                        const data = Array.isArray(notesData.default) ? notesData.default : notesData;
+                        setTopics(data as NoteTopic[]);
+                    } catch {
+                        console.error("Failed to load fallback notes data");
+                    }
                 }
             } finally {
                 setLoading(false);
             }
         }
         loadData();
-    }, []);
+    }, [router]);
 
-    const saveTopicUpdate = useCallback((updated: NoteTopic) => {
+    const saveTopicUpdate = useCallback(async (updated: NoteTopic) => {
+        // Optimistic UI updates
         setTopics(prev => {
             const newTopics = prev.map(t => t.id === updated.id ? updated : t);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(newTopics));
             return newTopics;
         });
-        // Update selectedTopic so the panel reflects saved data
         setSelectedTopic(updated);
+
+        // Sync to cloud in background
+        try {
+            const res = await fetch("/api/notes", {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(updated),
+            });
+            if (!res.ok) {
+                console.error("Failed to sync updated note to cloud. Status:", res.status);
+            }
+        } catch (error) {
+            console.error("Failed to sync updated note to cloud due to network error:", error);
+        }
     }, []);
 
     const filteredTopics = useMemo(() => {
