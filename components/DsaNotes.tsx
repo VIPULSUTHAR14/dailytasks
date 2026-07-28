@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import React, { useEffect, useState, useMemo, useCallback, useRef, ReactNode } from "react";
 import {
     Search, X, Filter, Menu, LogOut,
     BookOpen, Save, Star, StarOff, CheckCircle2, Circle,
@@ -124,7 +124,66 @@ function getFilledFieldsCount(topic: NoteTopic): number {
     return count;
 }
 
-// ── Paginated Notes Block (Explained & beautiful rendering, 15 lines capacity) ─
+// ── Markdown Parser Helper ──────────────────────────────────────────────────
+
+function renderMarkdownLine(line: string) {
+    if (!line) return " ";
+
+    // Check for Headers
+    if (line.startsWith("# ")) {
+        return <span className="text-base font-bold text-white tracking-wide">{line.substring(2)}</span>;
+    }
+    if (line.startsWith("## ")) {
+        return <span className="text-sm font-bold text-zinc-100 tracking-wide">{line.substring(3)}</span>;
+    }
+    if (line.startsWith("### ")) {
+        return <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider">{line.substring(4)}</span>;
+    }
+
+    // Check for Bullet list items
+    let prefix = "";
+    let content = line;
+    if (line.startsWith("- ")) {
+        prefix = "• ";
+        content = line.substring(2);
+    } else if (line.startsWith("* ")) {
+        prefix = "• ";
+        content = line.substring(2);
+    }
+
+    // Parse Bold (**bold**), Italic (*italic* or _italic_), Code (`code`)
+    const parts: (string | ReactNode)[] = [];
+    let currentText = content;
+
+    // Regex matching inline formatting
+    const regex = /(\*\*.*?\*\*|\*.*?\*|`.*?`)/g;
+    const splitParts = currentText.split(regex);
+
+    splitParts.forEach((part, index) => {
+        if (part.startsWith("**") && part.endsWith("**")) {
+            parts.push(<strong key={index} className="font-bold text-zinc-100">{part.slice(2, -2)}</strong>);
+        } else if (part.startsWith("*") && part.endsWith("*")) {
+            parts.push(<em key={index} className="italic text-zinc-400">{part.slice(1, -1)}</em>);
+        } else if (part.startsWith("`") && part.endsWith("`")) {
+            parts.push(
+                <code key={index} className="bg-white/10 px-1.5 py-0.5 rounded text-xs text-rose-300 font-mono border border-white/5">
+                    {part.slice(1, -1)}
+                </code>
+            );
+        } else {
+            parts.push(part);
+        }
+    });
+
+    return (
+        <span>
+            {prefix && <span className="text-zinc-500 font-bold mr-1">{prefix}</span>}
+            {parts}
+        </span>
+    );
+}
+
+// ── Paginated Notes Block (Explained & beautiful rendering, 40 lines capacity) ─
 
 function PaginatedNotesBlock({
     label,
@@ -140,7 +199,9 @@ function PaginatedNotesBlock({
     const [isEditing, setIsEditing] = useState(false);
     const [currentPage, setCurrentPage] = useState(0);
     const [copied, setCopied] = useState(false);
-    const linesPerPage = 15;
+    const [highlightedLines, setHighlightedLines] = useState<Set<number>>(new Set());
+    const [fontSize, setFontSize] = useState<"sm" | "base" | "lg">("sm");
+    const linesPerPage = 40;
 
     // Split value into lines, preserving empty lines
     const lines = useMemo(() => {
@@ -149,6 +210,15 @@ function PaginatedNotesBlock({
     }, [value]);
 
     const totalPages = Math.max(1, Math.ceil(lines.length / linesPerPage));
+
+    const stats = useMemo(() => {
+        if (!value) return { words: 0, readTime: 0 };
+        const cleanText = value.trim();
+        if (!cleanText) return { words: 0, readTime: 0 };
+        const words = cleanText.split(/\s+/).filter(Boolean).length;
+        const readTime = Math.max(1, Math.ceil(words / 200)); // ~200 WPM
+        return { words, readTime };
+    }, [value]);
 
     // Ensure page range is correct
     useEffect(() => {
@@ -163,6 +233,9 @@ function PaginatedNotesBlock({
         return lines.slice(start, start + linesPerPage);
     }, [lines, currentPage]);
 
+    const leftLines = useMemo(() => pageLines.slice(0, 20), [pageLines]);
+    const rightLines = useMemo(() => pageLines.slice(20, 40), [pageLines]);
+
     const handleCopy = async () => {
         try {
             await navigator.clipboard.writeText(value);
@@ -173,6 +246,48 @@ function PaginatedNotesBlock({
         }
     };
 
+    const toggleLineHighlight = (lineNum: number) => {
+        setHighlightedLines(prev => {
+            const next = new Set(prev);
+            if (next.has(lineNum)) {
+                next.delete(lineNum);
+            } else {
+                next.add(lineNum);
+            }
+            return next;
+        });
+    };
+
+    const insertMarkdown = (syntax: string) => {
+        const textarea = document.getElementById(`textarea-${label}`) as HTMLTextAreaElement;
+        if (!textarea) return;
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        const selected = text.substring(start, end);
+
+        let replacement = "";
+        if (syntax === "bold") replacement = `**${selected || "bold text"}**`;
+        else if (syntax === "italic") replacement = `*${selected || "italic text"}*`;
+        else if (syntax === "code") replacement = `\`${selected || "code"}\``;
+        else if (syntax === "list") replacement = `\n- ${selected || "list item"}`;
+        else if (syntax === "h1") replacement = `\n# ${selected || "Heading 1"}`;
+        else if (syntax === "h2") replacement = `\n## ${selected || "Heading 2"}`;
+        else if (syntax === "codeblock") replacement = `\n\`\`\`\n${selected || "// code block"}\n\`\`\`\n`;
+
+        const newValue = text.substring(0, start) + replacement + text.substring(end);
+        onChange(newValue);
+
+        // Refocus and select
+        setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(start + replacement.length, start + replacement.length);
+        }, 50);
+    };
+
+    const textSizeClass = fontSize === "sm" ? "text-xs" : fontSize === "base" ? "text-sm" : "text-base";
+
     return (
         <div className="border border-white/[0.08] rounded-2xl overflow-hidden bg-zinc-900/40 shadow-inner flex flex-col font-sans mb-6">
             {/* Header */}
@@ -182,10 +297,29 @@ function PaginatedNotesBlock({
                     {lines.length > 0 && (
                         <span className="text-xs text-zinc-500 font-mono">
                             {lines.length} {lines.length === 1 ? "line" : "lines"}
+                            {stats.words > 0 && ` • ${stats.words} words • ${stats.readTime} min read`}
                         </span>
                     )}
                 </div>
                 <div className="flex items-center gap-2">
+                    {/* Font Size controls */}
+                    {!isEditing && (
+                        <div className="flex items-center border border-white/[0.06] rounded-lg p-0.5 bg-white/[0.02] mr-2">
+                            {(["sm", "base", "lg"] as const).map((sz) => (
+                                <button
+                                    key={sz}
+                                    type="button"
+                                    onClick={() => setFontSize(sz)}
+                                    className={`px-2 py-1 text-[10px] font-bold rounded transition-all uppercase ${fontSize === sz
+                                        ? "bg-white text-zinc-950 shadow-sm"
+                                        : "text-zinc-400 hover:text-white"
+                                        }`}
+                                >
+                                    {sz}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                     {value && (
                         <button
                             type="button"
@@ -216,16 +350,39 @@ function PaginatedNotesBlock({
                 </div>
             </div>
 
-            {/* Body - holds 15 lines of content */}
+            {/* Body - holds 40 lines of content */}
             <div className="relative bg-black/[0.15]">
                 {isEditing ? (
-                    <div className="p-4">
+                    <div className="p-4 flex flex-col">
+                        {/* Toolbar */}
+                        <div className="flex flex-wrap items-center gap-1.5 p-2 bg-white/[0.02] border border-white/[0.06] border-b-0 rounded-t-xl">
+                            {[
+                                { id: "h1", label: "H1", title: "Heading 1" },
+                                { id: "h2", label: "H2", title: "Heading 2" },
+                                { id: "bold", label: "B", title: "Bold", className: "font-bold" },
+                                { id: "italic", label: "I", title: "Italic", className: "italic" },
+                                { id: "code", label: "`Code`", title: "Inline Code" },
+                                { id: "codeblock", label: "Code Block", title: "Code Block" },
+                                { id: "list", label: "• List", title: "Bullet List" },
+                            ].map((btn) => (
+                                <button
+                                    key={btn.id}
+                                    type="button"
+                                    onClick={() => insertMarkdown(btn.id)}
+                                    className={`text-[10px] font-bold px-2.5 py-1 rounded bg-white/[0.04] text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-all ${btn.className || ""}`}
+                                    title={btn.title}
+                                >
+                                    {btn.label}
+                                </button>
+                            ))}
+                        </div>
                         <textarea
+                            id={`textarea-${label}`}
                             value={value}
                             onChange={(e) => onChange(e.target.value)}
                             placeholder={placeholder}
-                            rows={15}
-                            className="w-full bg-white/[0.02] border border-white/[0.06] rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-white/20 focus:bg-white/[0.04] transition-all font-mono leading-relaxed resize-y"
+                            rows={40}
+                            className="w-full bg-white/[0.02] border border-white/[0.06] rounded-b-xl rounded-t-none px-4 py-3 text-sm text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-white/20 focus:bg-white/[0.04] transition-all font-mono leading-relaxed resize-y"
                             style={{
                                 fontFamily: "var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
                                 lineHeight: "1.6"
@@ -236,7 +393,7 @@ function PaginatedNotesBlock({
                     <div
                         className="p-5 font-mono text-sm leading-relaxed overflow-x-auto select-text selection:bg-white selection:text-zinc-950 flex flex-col justify-start"
                         style={{
-                            minHeight: "360px",
+                            minHeight: "520px",
                             fontFamily: "var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
                         }}
                     >
@@ -245,20 +402,66 @@ function PaginatedNotesBlock({
                                 {placeholder}
                             </div>
                         ) : (
-                            <div className="space-y-1">
-                                {pageLines.map((line, idx) => {
-                                    const lineNumber = currentPage * linesPerPage + idx + 1;
-                                    return (
-                                        <div key={idx} className="flex items-start hover:bg-white/[0.02] px-1 py-0.5 rounded transition-colors group">
-                                            <span className="w-9 select-none text-right pr-3 text-zinc-600 group-hover:text-zinc-500 font-mono text-xs mt-0.5 border-r border-white/[0.04] mr-3 shrink-0">
-                                                {lineNumber}
-                                            </span>
-                                            <span className="flex-1 whitespace-pre-wrap break-all text-zinc-300 tracking-normal leading-relaxed text-sm font-mono">
-                                                {line || " "}
-                                            </span>
-                                        </div>
-                                    );
-                                })}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 divide-y lg:divide-y-0 lg:divide-x divide-white/[0.04]">
+                                {/* Left Column (Lines 1-20) */}
+                                <div className="space-y-1 group/notes-left">
+                                    {leftLines.map((line, idx) => {
+                                        const lineNumber = currentPage * linesPerPage + idx + 1;
+                                        const isHighlighted = highlightedLines.has(lineNumber);
+                                        return (
+                                            <div
+                                                key={idx}
+                                                className={`flex items-start px-1 py-0.5 rounded transition-all duration-150 group/line hover:!opacity-100 group-hover/notes-left:opacity-40 ${isHighlighted
+                                                    ? "bg-amber-400/[0.06] border-l-2 border-amber-400/50"
+                                                    : "hover:bg-white/[0.02]"
+                                                    }`}
+                                            >
+                                                <span
+                                                    onClick={(e) => { e.stopPropagation(); toggleLineHighlight(lineNumber); }}
+                                                    className={`w-9 select-none text-right pr-3 font-mono text-xs mt-0.5 border-r border-white/[0.04] mr-3 shrink-0 cursor-pointer ${isHighlighted ? "text-amber-400 font-bold" : "text-zinc-600 group-hover/line:text-zinc-400 hover:text-white"
+                                                        }`}
+                                                    title="Toggle line highlight"
+                                                >
+                                                    {lineNumber}
+                                                </span>
+                                                <span className={`flex-1 whitespace-pre-wrap break-all tracking-normal leading-relaxed font-mono ${textSizeClass} ${isHighlighted ? "text-amber-100/90 font-medium" : "text-zinc-300"
+                                                    }`}>
+                                                    {renderMarkdownLine(line)}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Right Column (Lines 21-40) */}
+                                <div className="space-y-1 pt-6 lg:pt-0 lg:pl-8 group/notes-right border-t lg:border-t-0 border-white/[0.04]">
+                                    {rightLines.map((line, idx) => {
+                                        const lineNumber = currentPage * linesPerPage + 20 + idx + 1;
+                                        const isHighlighted = highlightedLines.has(lineNumber);
+                                        return (
+                                            <div
+                                                key={idx}
+                                                className={`flex items-start px-1 py-0.5 rounded transition-all duration-150 group/line hover:!opacity-100 group-hover/notes-right:opacity-40 ${isHighlighted
+                                                    ? "bg-amber-400/[0.06] border-l-2 border-amber-400/50"
+                                                    : "hover:bg-white/[0.02]"
+                                                    }`}
+                                            >
+                                                <span
+                                                    onClick={(e) => { e.stopPropagation(); toggleLineHighlight(lineNumber); }}
+                                                    className={`w-9 select-none text-right pr-3 font-mono text-xs mt-0.5 border-r border-white/[0.04] mr-3 shrink-0 cursor-pointer ${isHighlighted ? "text-amber-400 font-bold" : "text-zinc-600 group-hover/line:text-zinc-400 hover:text-white"
+                                                        }`}
+                                                    title="Toggle line highlight"
+                                                >
+                                                    {lineNumber}
+                                                </span>
+                                                <span className={`flex-1 whitespace-pre-wrap break-all tracking-normal leading-relaxed font-mono ${textSizeClass} ${isHighlighted ? "text-amber-100/90 font-medium" : "text-zinc-300"
+                                                    }`}>
+                                                    {renderMarkdownLine(line)}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -400,11 +603,259 @@ function EditableListField({
     );
 }
 
+// ── Resource Links Block (interactive add/edit form, index selection) ───────
+
+function ResourceLinksBlock({
+    resources,
+    onChange,
+}: {
+    resources: string[];
+    onChange: (updated: string[]) => void;
+}) {
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editIndex, setEditIndex] = useState<number | null>(null);
+
+    const [name, setName] = useState("");
+    const [link, setLink] = useState("");
+    const [targetIndex, setTargetIndex] = useState<number>(resources.length); // 0-indexed position, defaults to end
+
+    // Reset form state
+    const closeForm = () => {
+        setIsFormOpen(false);
+        setEditIndex(null);
+        setName("");
+        setLink("");
+        setTargetIndex(resources.length);
+    };
+
+    // Open form for adding
+    const openAddForm = () => {
+        setName("");
+        setLink("");
+        setTargetIndex(resources.length);
+        setEditIndex(null);
+        setIsFormOpen(true);
+    };
+
+    // Open form for editing
+    const openEditForm = (idx: number) => {
+        const item = resources[idx] || "";
+        const parts = item.split(" | ");
+        const itemName = parts[0] || "";
+        const itemLink = parts[1] || itemName;
+
+        setName(parts.length > 1 ? itemName : "");
+        setLink(itemLink);
+        setTargetIndex(idx);
+        setEditIndex(idx);
+        setIsFormOpen(true);
+    };
+
+    const handleSave = (e: React.FormEvent) => {
+        e.preventDefault();
+        const trimmedLink = link.trim();
+        if (!trimmedLink) return;
+
+        const trimmedName = name.trim();
+        const resourceValue = trimmedName ? `${trimmedName} | ${trimmedLink}` : trimmedLink;
+
+        let updated = [...resources];
+        if (editIndex !== null) {
+            // Editing existing resource
+            // Remove it first
+            updated.splice(editIndex, 1);
+            // Insert at the chosen targetIndex (capping at length)
+            const insertPos = Math.min(Math.max(0, targetIndex), updated.length);
+            updated.splice(insertPos, 0, resourceValue);
+        } else {
+            // Adding new resource
+            const insertPos = Math.min(Math.max(0, targetIndex), updated.length);
+            updated.splice(insertPos, 0, resourceValue);
+        }
+
+        onChange(updated);
+        closeForm();
+    };
+
+    const handleDelete = (idx: number) => {
+        onChange(resources.filter((_, i) => i !== idx));
+    };
+
+    return (
+        <div className="border border-white/[0.08] rounded-2xl overflow-hidden bg-zinc-900/40 shadow-inner flex flex-col font-sans mb-6 font-semibold">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-3.5 bg-white/[0.02] border-b border-white/[0.06]">
+                <div className="flex items-center gap-3">
+                    <span className="text-sm font-semibold text-zinc-200 tracking-wide">🔗 Useful Resources</span>
+                    {resources.length > 0 && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-zinc-400 font-mono">
+                            {resources.length}
+                        </span>
+                    )}
+                </div>
+                {!isFormOpen && (
+                    <button
+                        type="button"
+                        onClick={openAddForm}
+                        className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-all"
+                    >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add Resource</span>
+                    </button>
+                )}
+            </div>
+
+            {/* List & Form */}
+            <div className="p-5 space-y-4">
+                {/* Form (shows when open) */}
+                {isFormOpen && (
+                    <form onSubmit={handleSave} className="p-4 rounded-xl border border-white/[0.08] bg-white/[0.02] space-y-3">
+                        <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
+                            {editIndex !== null ? "Edit Resource Link" : "Add Resource Link"}
+                        </h4>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="space-y-1 flex flex-col">
+                                <label className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">Resource Name (Label)</label>
+                                <input
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="e.g. GeeksforGeeks Sorting Guide"
+                                    className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-white/20 transition-all font-sans"
+                                />
+                            </div>
+                            <div className="space-y-1 flex flex-col">
+                                <label className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider">Resource URL (Link) *</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={link}
+                                    onChange={(e) => setLink(e.target.value)}
+                                    placeholder="e.g. https://geeksforgeeks.org/sorting-algorithms"
+                                    className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-white/20 transition-all font-sans"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <div className="space-y-1 flex flex-col">
+                                <label className="text-[10px] text-zinc-500 font-semibold uppercase tracking-wider block">Position (Index)</label>
+                                <select
+                                    value={targetIndex}
+                                    onChange={(e) => setTargetIndex(parseInt(e.target.value))}
+                                    className="bg-zinc-950 border border-white/[0.08] text-zinc-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-white/20"
+                                >
+                                    {Array.from({ length: editIndex !== null ? resources.length : resources.length + 1 }).map((_, i) => (
+                                        <option key={i} value={i}>
+                                            {i + 1} {i === (editIndex !== null ? resources.length - 1 : resources.length) ? "(At the end)" : ""}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-end gap-2 pt-2">
+                            <button
+                                type="button"
+                                onClick={closeForm}
+                                className="px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 border border-white/[0.04] rounded-lg hover:bg-white/[0.02]"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                className="px-4 py-1.5 text-xs font-semibold bg-white text-zinc-950 rounded-lg hover:bg-zinc-200"
+                            >
+                                Save Link
+                            </button>
+                        </div>
+                    </form>
+                )}
+
+                {/* Display items */}
+                {resources.length === 0 ? (
+                    <div className="text-zinc-600 italic py-8 text-center font-sans text-xs">
+                        No resources added yet. Click "Add Resource" to include links.
+                    </div>
+                ) : (
+                    <div className="space-y-2">
+                        {resources.map((item, idx) => {
+                            const parts = item.split(" | ");
+                            const displayName = parts[0] || "";
+                            const url = parts[1] || displayName;
+                            const isClickable = url.startsWith("http://") || url.startsWith("https://") || url.includes(".");
+                            const formattedUrl = isClickable && !url.startsWith("http") ? `https://${url}` : url;
+
+                            return (
+                                <div key={idx} className="flex items-center justify-between p-3 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.02] group transition-all">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <span className="text-zinc-600 text-xs font-mono w-5 text-right shrink-0">
+                                            {idx + 1}.
+                                        </span>
+                                        <div className="flex flex-col min-w-0">
+                                            {parts.length > 1 ? (
+                                                <>
+                                                    {isClickable ? (
+                                                        <a
+                                                            href={formattedUrl}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-sm font-semibold text-emerald-400 hover:text-emerald-300 hover:underline truncate"
+                                                        >
+                                                            {displayName}
+                                                        </a>
+                                                    ) : (
+                                                        <span className="text-sm font-semibold text-zinc-300 truncate">{displayName}</span>
+                                                    )}
+                                                    <span className="text-[10px] text-zinc-500 truncate font-mono">{url}</span>
+                                                </>
+                                            ) : (
+                                                <a
+                                                    href={formattedUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-sm text-emerald-400 hover:text-emerald-300 hover:underline truncate font-mono"
+                                                >
+                                                    {url}
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all shrink-0 ml-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => openEditForm(idx)}
+                                            className="p-1 rounded-md text-zinc-500 hover:text-white hover:bg-white/[0.06] transition-all"
+                                            title="Edit resource"
+                                        >
+                                            <Edit3 className="w-3.5 h-3.5" />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDelete(idx)}
+                                            className="p-1 rounded-md text-zinc-500 hover:text-rose-400 hover:bg-rose-400/10 transition-all"
+                                            title="Delete resource"
+                                        >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 // ── Topic Detail Panel (80vw overlay, all fields visible) ───────────────────
 
-// ── Topic Detail Panel (80vw overlay, sidebar layout) ───────────────────────
+// ── Topic Detail Panel (Full-screen overlay, sidebar layout) ────────────────
 
-type PanelCategory = "notes" | "theory" | "algorithms" | "code" | "complexities" | "interview" | "support" | "mastery";
+type PanelCategory = "notes" | "revision" | "theory" | "algorithms" | "code" | "complexities" | "interview" | "support" | "mastery";
 
 function TopicDetailPanel({
     topic,
@@ -458,6 +909,7 @@ function TopicDetailPanel({
     // Sidebar navigation configuration
     const sidebarTabs = [
         { id: "notes" as const, label: "Core Notes", icon: FileText, desc: "Key summaries" },
+        { id: "revision" as const, label: "Revision Notes", icon: BookOpen, desc: "Quick revision points" },
         { id: "theory" as const, label: "Theory & Keywords", icon: Lightbulb, desc: "Key facts & tags" },
         { id: "algorithms" as const, label: "Math & Algorithms", icon: Brain, desc: "Formulas & pseudocode" },
         { id: "code" as const, label: "Code & Patterns", icon: Code2, desc: "Examples & problems" },
@@ -472,119 +924,148 @@ function TopicDetailPanel({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-stretch justify-center bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex bg-zinc-950 overflow-hidden"
             onClick={onClose}
         >
             <motion.div
-                initial={{ opacity: 0, scale: 0.96, y: 20 }}
+                initial={{ opacity: 0, scale: 0.98, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: 20 }}
+                exit={{ opacity: 0, scale: 0.98, y: 10 }}
                 transition={{ type: "spring", damping: 30, stiffness: 400 }}
-                className="relative bg-zinc-950 border border-white/[0.08] shadow-2xl shadow-black/50 overflow-hidden flex flex-col font-sans"
-                style={{ width: "80vw", margin: "24px auto" }}
+                className="w-full h-full flex overflow-hidden font-sans"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Sticky Header */}
-                <div className={`shrink-0 px-8 pt-6 pb-5 border-b border-white/[0.06] bg-gradient-to-br ${levelConfig.gradient}`}>
-                    <div className="flex items-start justify-between">
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-3 mb-2">
-                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-md ${levelConfig.bgColor} ${levelConfig.color} ${levelConfig.borderColor} border`}>
-                                    {draft.level}
-                                </span>
-                                <span className="text-xs text-zinc-500 font-mono">#{draft.id}</span>
-                            </div>
-                            <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight font-sans">
-                                {draft.name}
-                            </h2>
-                            <div className="flex flex-wrap items-center gap-x-5 gap-y-1 mt-3 text-xs text-zinc-500 font-sans">
-                                <div className="flex items-center gap-1.5">
-                                    <TrendingUp className="w-3.5 h-3.5" />
-                                    <span>Mastery: {masteryPercent}%</span>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Clock className="w-3.5 h-3.5" />
-                                    <span>
-                                        {draft.lastRevised
-                                            ? `Revised ${new Date(draft.lastRevised).toLocaleDateString()}`
-                                            : "Not revised yet"}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Layers className="w-3.5 h-3.5" />
-                                    <span>{draft.revisionCount} revisions</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0 ml-4">
-                            <button
-                                type="button"
-                                onClick={() => setDraft(prev => ({ ...prev, favorite: !prev.favorite }))}
-                                className={`p-2 rounded-lg transition-all ${draft.favorite
-                                    ? "text-amber-400 bg-amber-400/10"
-                                    : "text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.06]"
-                                    }`}
-                            >
-                                {draft.favorite ? <Star className="w-5 h-5 fill-current" /> : <StarOff className="w-5 h-5" />}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                className="p-2 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.06] transition-all"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
+                {/* Left Sidebar - covers 20vw, full height */}
+                <aside className="w-[20vw] bg-zinc-950 border-r border-white/10 flex flex-col shrink-0 h-full overflow-y-auto">
+                    <div className="p-6 border-b border-white/10 shrink-0">
+                        <h2 className="text-base font-bold tracking-tight text-white flex items-center gap-2 font-sans">
+                            <BookOpen size={18} className="text-zinc-400" /> Topic Notes
+                        </h2>
+                        <p className="text-[10px] text-zinc-500 mt-1 font-sans font-medium uppercase tracking-widest">Navigation & Sections</p>
                     </div>
-                    {/* Mastery bar */}
-                    <div className="mt-4">
-                        <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
-                            <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: `${masteryPercent}%` }}
-                                transition={{ duration: 0.8, ease: "easeOut" }}
-                                className={`h-full rounded-full ${masteryPercent === 100 ? "bg-emerald-400" :
-                                    masteryPercent >= 50 ? "bg-amber-400" : "bg-white/40"
-                                    }`}
-                            />
-                        </div>
-                    </div>
-                </div>
+                    <nav className="flex-1 p-4 space-y-1.5">
+                        {sidebarTabs.map(tab => {
+                            const TabIcon = tab.icon;
+                            const isSelected = activeTab === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    type="button"
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`w-full text-left flex items-start gap-3 px-4 py-3 rounded-xl transition-all ${isSelected
+                                        ? "bg-white/[0.05] border border-white/[0.08] text-white"
+                                        : "border border-transparent text-zinc-400 hover:bg-white/[0.02] hover:text-zinc-200"
+                                        }`}
+                                >
+                                    <TabIcon className={`w-4 h-4 mt-0.5 shrink-0 ${isSelected ? "text-white" : "text-zinc-500"}`} />
+                                    <div className="min-w-0">
+                                        <div className="text-xs font-semibold">{tab.label}</div>
+                                        <div className="text-[9px] text-zinc-500 truncate mt-0.5">{tab.desc}</div>
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </nav>
+                </aside>
 
-                {/* Main Body Area: Sidebar Navigation + Right Content Column */}
-                <div className="flex-1 flex overflow-hidden min-h-0">
-                    {/* Inner Left Sidebar Menu */}
-                    <aside className="w-64 bg-zinc-950 border-r border-white/5 flex flex-col shrink-0 overflow-y-auto">
-                        <div className="p-4 border-b border-white/5">
-                            <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Topic Sections</div>
-                        </div>
-                        <nav className="p-2 space-y-1">
-                            {sidebarTabs.map(tab => {
-                                const TabIcon = tab.icon;
-                                const isSelected = activeTab === tab.id;
-                                return (
+                {/* Right Content Area - covers 80vw, contains header, scrollable content, and footer */}
+                <div className="w-[80vw] flex flex-col h-full overflow-hidden bg-zinc-900/10">
+                    {/* Sticky Header */}
+                    <div className={`shrink-0 px-8 pt-6 pb-5 border-b border-white/[0.06] bg-gradient-to-br ${levelConfig.gradient}`}>
+                        <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-md ${levelConfig.bgColor} ${levelConfig.color} ${levelConfig.borderColor} border`}>
+                                        {draft.level}
+                                    </span>
+                                    <span className="text-xs text-zinc-500 font-mono">#{draft.id}</span>
+                                </div>
+                                <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight font-sans">
+                                    {draft.name}
+                                </h2>
+                                <div className="flex flex-wrap items-center gap-x-5 gap-y-1 mt-3 text-xs text-zinc-500 font-sans">
+                                    <div className="flex items-center gap-1.5">
+                                        <TrendingUp className="w-3.5 h-3.5" />
+                                        <span>Mastery: {masteryPercent}%</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <Clock className="w-3.5 h-3.5" />
+                                        <span>
+                                            {draft.lastRevised
+                                                ? `Revised ${new Date(draft.lastRevised).toLocaleDateString()}`
+                                                : "Not revised yet"}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <Layers className="w-3.5 h-3.5" />
+                                        <span>{draft.revisionCount} revisions</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex flex-col items-end gap-3 shrink-0 ml-4">
+                                <div className="flex items-center gap-2">
                                     <button
-                                        key={tab.id}
                                         type="button"
-                                        onClick={() => setActiveTab(tab.id)}
-                                        className={`w-full text-left flex items-start gap-3 px-3 py-2.5 rounded-xl transition-all ${isSelected
-                                            ? "bg-white/[0.05] border border-white/[0.08] text-white"
-                                            : "border border-transparent text-zinc-400 hover:bg-white/[0.02] hover:text-zinc-200"
+                                        onClick={() => setDraft(prev => ({ ...prev, favorite: !prev.favorite }))}
+                                        className={`p-2 rounded-lg transition-all ${draft.favorite
+                                            ? "text-amber-400 bg-amber-400/10"
+                                            : "text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.06]"
                                             }`}
                                     >
-                                        <TabIcon className={`w-4 h-4 mt-0.5 shrink-0 ${isSelected ? "text-white" : "text-zinc-500"}`} />
-                                        <div className="min-w-0">
-                                            <div className="text-xs font-semibold">{tab.label}</div>
-                                            <div className="text-[9px] text-zinc-500 truncate mt-0.5">{tab.desc}</div>
-                                        </div>
+                                        {draft.favorite ? <Star className="w-5 h-5 fill-current" /> : <StarOff className="w-5 h-5" />}
                                     </button>
-                                );
-                            })}
-                        </nav>
-                    </aside>
+                                    <button
+                                        type="button"
+                                        onClick={onClose}
+                                        className="p-2 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.06] transition-all"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={onClose}
+                                        className="px-4 py-2 text-xs font-semibold text-zinc-400 hover:text-zinc-200 border border-white/[0.06] rounded-xl hover:bg-white/[0.04] transition-all"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <motion.button
+                                        type="button"
+                                        onClick={handleSave}
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold transition-all ${saved
+                                            ? "bg-emerald-400 text-zinc-950"
+                                            : "bg-white text-zinc-950 hover:bg-zinc-200"
+                                            }`}
+                                    >
+                                        {saved ? (
+                                            <><CheckCircle2 className="w-3.5 h-3.5" /> Saved!</>
+                                        ) : (
+                                            <><Save className="w-3.5 h-3.5" /> Save Changes</>
+                                        )}
+                                    </motion.button>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Mastery bar */}
+                        <div className="mt-4">
+                            <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
+                                <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${masteryPercent}%` }}
+                                    transition={{ duration: 0.8, ease: "easeOut" }}
+                                    className={`h-full rounded-full ${masteryPercent === 100 ? "bg-emerald-400" :
+                                        masteryPercent >= 50 ? "bg-amber-400" : "bg-white/40"
+                                        }`}
+                                />
+                            </div>
+                        </div>
+                    </div>
 
                     {/* Scrollable Content Container */}
-                    <div className="flex-1 overflow-y-auto px-8 py-6 bg-zinc-900/10">
+                    <div className="flex-1 overflow-y-auto px-8 py-6">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={activeTab}
@@ -592,23 +1073,24 @@ function TopicDetailPanel({
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -10 }}
                                 transition={{ duration: 0.15 }}
-                                className="space-y-6 max-w-4xl"
+                                className="space-y-6 w-full max-w-none"
                             >
                                 {activeTab === "notes" && (
-                                    <>
-                                        <PaginatedNotesBlock
-                                            label="📝 Notes"
-                                            value={draft.notes}
-                                            onChange={(val) => setDraft(prev => ({ ...prev, notes: val }))}
-                                            placeholder="Paste or type notes here... Lines are formatted nicely and paginated in pages of 15 lines."
-                                        />
-                                        <PaginatedNotesBlock
-                                            label="🔄 Revision Notes"
-                                            value={draft.revisionNotes}
-                                            onChange={(val) => setDraft(prev => ({ ...prev, revisionNotes: val }))}
-                                            placeholder="Paste or type revision summaries here... Paginated in pages of 15 lines."
-                                        />
-                                    </>
+                                    <PaginatedNotesBlock
+                                        label="📝 Core Notes"
+                                        value={draft.notes}
+                                        onChange={(val) => setDraft(prev => ({ ...prev, notes: val }))}
+                                        placeholder="Paste or type notes here... Lines are formatted nicely and paginated in pages of 40 lines."
+                                    />
+                                )}
+
+                                {activeTab === "revision" && (
+                                    <PaginatedNotesBlock
+                                        label="🔄 Revision Notes"
+                                        value={draft.revisionNotes}
+                                        onChange={(val) => setDraft(prev => ({ ...prev, revisionNotes: val }))}
+                                        placeholder="Paste or type revision summaries here... Paginated in pages of 40 lines."
+                                    />
                                 )}
 
                                 {activeTab === "theory" && (
@@ -764,14 +1246,12 @@ function TopicDetailPanel({
                                             }))}
                                             placeholder="Enter pending doubts/questions (one per line)..."
                                         />
-                                        <PaginatedNotesBlock
-                                            label="🔗 Useful Resources"
-                                            value={draft.resources.join("\n")}
-                                            onChange={(val) => setDraft(prev => ({
+                                        <ResourceLinksBlock
+                                            resources={draft.resources}
+                                            onChange={(updated) => setDraft(prev => ({
                                                 ...prev,
-                                                resources: val.split("\n").map(s => s.trim()).filter(Boolean)
+                                                resources: updated
                                             }))}
-                                            placeholder="Paste links to articles, video tutorials, or doc pages..."
                                         />
                                     </>
                                 )}
@@ -897,32 +1377,6 @@ function TopicDetailPanel({
                     </div>
                 </div>
 
-                {/* Sticky Footer */}
-                <div className="shrink-0 px-8 py-4 border-t border-white/[0.06] flex items-center justify-between bg-zinc-950/90 font-sans">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="px-5 py-2.5 text-sm font-semibold text-zinc-400 hover:text-zinc-200 border border-white/[0.06] rounded-xl hover:bg-white/[0.04] transition-all"
-                    >
-                        Cancel
-                    </button>
-                    <motion.button
-                        type="button"
-                        onClick={handleSave}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className={`flex items-center gap-2 px-8 py-2.5 rounded-xl text-sm font-bold transition-all ${saved
-                            ? "bg-emerald-400 text-zinc-950"
-                            : "bg-white text-zinc-950 hover:bg-zinc-200"
-                            }`}
-                    >
-                        {saved ? (
-                            <><CheckCircle2 className="w-4 h-4" /> Saved!</>
-                        ) : (
-                            <><Save className="w-4 h-4" /> Save Changes</>
-                        )}
-                    </motion.button>
-                </div>
             </motion.div>
         </motion.div>
     );
