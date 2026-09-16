@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { CheckCircle2, Circle, Plus, Trash2, Menu, X, LogOut, Loader2, Edit2, RotateCcw, Save, Trash } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import Sidebar from "@/components/Sidebar";
 
 type TimetableRow = {
     time: string;
@@ -183,74 +184,11 @@ export default function Timetable() {
                 </button>
             </div>
 
-            {/* Sidebar Overlay for Mobile */}
-            {isSidebarOpen && (
-                <div
-                    className="fixed inset-0 z-40 bg-zinc-950/80 backdrop-blur-sm md:hidden"
-                    onClick={() => setSidebarOpen(false)}
-                />
-            )}
-
             {/* Sidebar */}
-            <aside
-                className={`fixed md:sticky top-0 h-screen w-64 bg-zinc-950 border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-                    } flex flex-col`}
-            >
-                <div className="p-6 flex items-center justify-between md:justify-start gap-4 border-b border-white/10">
-                    <div className="w-8 h-8 bg-white flex items-center justify-center">
-                        <span className="text-zinc-950 font-bold text-lg">E</span>
-                    </div>
-                    <h2 className="text-xl font-bold tracking-tight">Dashboard.</h2>
-                    <button className="md:hidden p-2 text-zinc-400 hover:text-white" onClick={() => setSidebarOpen(false)}>
-                        <X size={20} />
-                    </button>
-                </div>
-
-                <div className="flex-1 p-6 flex flex-col gap-2">
-                    <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">Navigation</div>
-                    <button
-                        onClick={() => { router.push("/tasks"); setSidebarOpen(false); }}
-                        className={`flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${pathname === "/tasks" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
-                            }`}
-                    >
-                        Tasks
-                    </button>
-                    <button
-                        onClick={() => { router.push("/aptitude"); setSidebarOpen(false); }}
-                        className={`flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${pathname === "/aptitude" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
-                            }`}
-                    >
-                        Aptitude
-                    </button>
-
-                    <button
-                        onClick={() => { router.push("/dsaquestions"); setSidebarOpen(false); }}
-                        className={`flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${pathname === "/dsaquestions" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
-                            }`}
-                    >
-                        DSA Questions
-                    </button>
-                    <button
-                        onClick={() => { router.push("/notes"); setSidebarOpen(false); }}
-                        className={`flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${pathname === "/notes" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
-                            }`}
-                    >
-                        Notes
-                    </button>
-                    <button
-                        onClick={() => { router.push("/timetable"); setSidebarOpen(false); }}
-                        className={`flex items-center justify-between px-4 py-3 text-sm font-bold transition-colors bg-white text-black`}
-                    >
-                        Time Table
-                    </button>
-                </div>
-
-                <div className="p-6 border-t border-white/10">
-                    <button className="flex items-center gap-3 px-4 py-3 w-full text-zinc-400 hover:text-white hover:bg-white/10 text-sm font-medium transition-colors" onClick={handelSignOut}>
-                        <LogOut size={18} /> Sign Out
-                    </button>
-                </div>
-            </aside>
+            <Sidebar
+                isMobileOpen={isSidebarOpen}
+                onMobileClose={() => setSidebarOpen(false)}
+            />
 
             {/* Main Content */}
             <main className="flex-1 p-6 md:p-12 w-full max-w-6xl relative min-h-screen mt-0 overflow-y-auto">

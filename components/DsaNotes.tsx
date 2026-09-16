@@ -8,10 +8,13 @@ import {
     Zap, Flame, Trophy, Award, Plus, Trash2,
     Brain, Target, FileText, Tag,
     TrendingUp, Code2, Layers, GraduationCap, StickyNote,
-    ChevronLeft, ChevronRight, Edit3, Eye, Copy, Check
+    ChevronLeft, ChevronRight, Edit3, Eye, Copy, Check,
+    PanelLeftClose, PanelLeftOpen,
+    ExternalLink, Link as LinkIcon, Video as VideoIcon, PlayCircle
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import Sidebar from "@/components/Sidebar";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -140,7 +143,21 @@ function renderMarkdownLine(line: string) {
         return <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider">{line.substring(4)}</span>;
     }
 
-    // Check for Bullet list items
+    // Check for Blockquote
+    if (line.startsWith("> ")) {
+        return (
+            <span className="border-l-2 border-amber-400/60 pl-2 text-zinc-300 italic inline-block">
+                {line.substring(2)}
+            </span>
+        );
+    }
+
+    // Check for Divider
+    if (line.trim() === "---" || line.trim() === "***") {
+        return <span className="block border-b border-white/10 my-1 w-full" />;
+    }
+
+    // Check for Bullet or Numbered list items
     let prefix = "";
     let content = line;
     if (line.startsWith("- ")) {
@@ -149,18 +166,132 @@ function renderMarkdownLine(line: string) {
     } else if (line.startsWith("* ")) {
         prefix = "• ";
         content = line.substring(2);
+    } else if (/^\d+\.\s/.test(line)) {
+        const match = line.match(/^(\d+\.\s)/);
+        if (match) {
+            prefix = match[1];
+            content = line.substring(prefix.length);
+        }
     }
 
-    // Parse Bold (**bold**), Italic (*italic* or _italic_), Code (`code`)
+    // Parse Highlights (==red:text==, etc.), Links ([text](url)), Raw URLs (https://...), Bold (**bold**), Italic (*italic*), Underline (<u>text</u>), Strikethrough (~~text~~), Code (`code`), Superscript (^text^), Subscript (~text~)
     const parts: (string | ReactNode)[] = [];
     let currentText = content;
 
-    // Regex matching inline formatting
-    const regex = /(\*\*.*?\*\*|\*.*?\*|`.*?`)/g;
+    // Regex matching inline formatting including markdown links and URLs
+    const regex = /(==red:.*?==|==r:.*?==|==green:.*?==|==g:.*?==|==blue:.*?==|==b:.*?==|==yellow:.*?==|==y:.*?==|==purple:.*?==|==p:.*?==|==.*?==|\[.*?\]\(https?:\/\/[^\s)]+\)|https?:\/\/[^\s]+|\*\*.*?\*\*|\*.*?\*|<u>.*?<\/u>|~~.*?~~|`.*?`|\^[^\s^]+\^|~[^\s~]+~)/gi;
     const splitParts = currentText.split(regex);
 
     splitParts.forEach((part, index) => {
-        if (part.startsWith("**") && part.endsWith("**")) {
+        if (!part) return;
+
+        const lower = part.toLowerCase();
+        if (lower.startsWith("==red:") || lower.startsWith("==r:")) {
+            const inner = part.replace(/^==(red|r):/i, "").replace(/==$/, "");
+            parts.push(
+                <mark key={index} className="bg-rose-500/25 text-rose-200 border border-rose-500/40 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm inline-block mx-0.5">
+                    {inner}
+                </mark>
+            );
+        } else if (lower.startsWith("==green:") || lower.startsWith("==g:")) {
+            const inner = part.replace(/^==(green|g):/i, "").replace(/==$/, "");
+            parts.push(
+                <mark key={index} className="bg-emerald-500/25 text-emerald-200 border border-emerald-500/40 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm inline-block mx-0.5">
+                    {inner}
+                </mark>
+            );
+        } else if (lower.startsWith("==blue:") || lower.startsWith("==b:")) {
+            const inner = part.replace(/^==(blue|b):/i, "").replace(/==$/, "");
+            parts.push(
+                <mark key={index} className="bg-sky-500/25 text-sky-200 border border-sky-500/40 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm inline-block mx-0.5">
+                    {inner}
+                </mark>
+            );
+        } else if (lower.startsWith("==yellow:") || lower.startsWith("==y:")) {
+            const inner = part.replace(/^==(yellow|y):/i, "").replace(/==$/, "");
+            parts.push(
+                <mark key={index} className="bg-amber-500/25 text-amber-200 border border-amber-500/40 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm inline-block mx-0.5">
+                    {inner}
+                </mark>
+            );
+        } else if (lower.startsWith("==purple:") || lower.startsWith("==p:")) {
+            const inner = part.replace(/^==(purple|p):/i, "").replace(/==$/, "");
+            parts.push(
+                <mark key={index} className="bg-purple-500/25 text-purple-200 border border-purple-500/40 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm inline-block mx-0.5">
+                    {inner}
+                </mark>
+            );
+        } else if (part.startsWith("==") && part.endsWith("==") && part.length > 4) {
+            const inner = part.slice(2, -2);
+            parts.push(
+                <mark key={index} className="bg-amber-500/25 text-amber-200 border border-amber-500/40 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm inline-block mx-0.5">
+                    {inner}
+                </mark>
+            );
+        } else if (part.startsWith("[") && part.endsWith(")") && part.includes("](")) {
+            const linkMatch = part.match(/^\[(.*?)\]\((https?:\/\/[^\s)]+)\)$/i);
+            if (linkMatch) {
+                const linkText = linkMatch[1];
+                const linkUrl = linkMatch[2];
+                const isVideo = /youtube\.com|youtu\.be|vimeo\.com|loom\.com/i.test(linkUrl) || linkText.includes("🎥") || linkText.toLowerCase().includes("video");
+                parts.push(
+                    <a
+                        key={index}
+                        href={linkUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-medium transition-all mx-0.5 no-underline align-baseline cursor-pointer ${
+                            isVideo
+                                ? "bg-rose-500/15 text-rose-300 border border-rose-500/30 hover:bg-rose-500/25 hover:text-rose-100 hover:border-rose-500/60 shadow-sm"
+                                : "bg-sky-500/15 text-sky-300 border border-sky-500/30 hover:bg-sky-500/25 hover:text-sky-100 hover:border-sky-500/60 shadow-sm"
+                        }`}
+                        title={`Open link: ${linkUrl}`}
+                    >
+                        {isVideo ? <PlayCircle className="w-3 h-3 text-rose-400 shrink-0" /> : <LinkIcon className="w-3 h-3 text-sky-400 shrink-0" />}
+                        <span className="font-semibold">{linkText || linkUrl}</span>
+                        <ExternalLink className="w-2.5 h-2.5 opacity-60 shrink-0 ml-0.5" />
+                    </a>
+                );
+            } else {
+                parts.push(part);
+            }
+        } else if (/^https?:\/\/[^\s]+$/i.test(part)) {
+            const isVideo = /youtube\.com|youtu\.be|vimeo\.com|loom\.com/i.test(part);
+            parts.push(
+                <a
+                    key={index}
+                    href={part}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs transition-all mx-0.5 no-underline align-baseline cursor-pointer ${
+                        isVideo
+                            ? "bg-rose-500/15 text-rose-300 border border-rose-500/30 hover:bg-rose-500/25 hover:text-rose-100"
+                            : "bg-sky-500/15 text-sky-300 border border-sky-500/30 hover:bg-sky-500/25 hover:text-sky-100"
+                    }`}
+                    title={`Open link: ${part}`}
+                >
+                    {isVideo ? <PlayCircle className="w-3 h-3 text-rose-400 shrink-0" /> : <LinkIcon className="w-3 h-3 text-sky-400 shrink-0" />}
+                    <span className="font-mono text-[11px] underline underline-offset-2">
+                        {part.length > 32 ? part.substring(0, 29) + "..." : part}
+                    </span>
+                    <ExternalLink className="w-2.5 h-2.5 opacity-60 shrink-0" />
+                </a>
+            );
+        } else if (part.startsWith("<u>") && part.endsWith("</u>") && part.length >= 7) {
+            parts.push(
+                <u key={index} className="underline decoration-white/50 underline-offset-4 decoration-1">
+                    {part.slice(3, -4)}
+                </u>
+            );
+        } else if (part.startsWith("~~") && part.endsWith("~~") && part.length >= 4) {
+            parts.push(
+                <del key={index} className="line-through text-zinc-400 opacity-80">
+                    {part.slice(2, -2)}
+                </del>
+            );
+        } else if (part.startsWith("**") && part.endsWith("**")) {
             parts.push(<strong key={index} className="font-bold text-zinc-100">{part.slice(2, -2)}</strong>);
         } else if (part.startsWith("*") && part.endsWith("*")) {
             parts.push(<em key={index} className="italic text-zinc-400">{part.slice(1, -1)}</em>);
@@ -169,6 +300,18 @@ function renderMarkdownLine(line: string) {
                 <code key={index} className="bg-white/10 px-1.5 py-0.5 rounded text-xs text-rose-300 font-mono border border-white/5">
                     {part.slice(1, -1)}
                 </code>
+            );
+        } else if (part.startsWith("^") && part.endsWith("^") && part.length > 2) {
+            parts.push(
+                <sup key={index} className="text-[10px] text-amber-300 font-semibold align-super ml-0.5">
+                    {part.slice(1, -1)}
+                </sup>
+            );
+        } else if (part.startsWith("~") && part.endsWith("~") && !part.startsWith("~~") && part.length > 2) {
+            parts.push(
+                <sub key={index} className="text-[10px] text-sky-300 font-semibold align-sub ml-0.5">
+                    {part.slice(1, -1)}
+                </sub>
             );
         } else {
             parts.push(part);
@@ -270,28 +413,64 @@ function PaginatedNotesBlock({
         let replacement = "";
         if (syntax === "bold") replacement = `**${selected || "bold text"}**`;
         else if (syntax === "italic") replacement = `*${selected || "italic text"}*`;
+        else if (syntax === "underline") replacement = `<u>${selected || "underlined text"}</u>`;
+        else if (syntax === "strike") replacement = `~~${selected || "strikethrough text"}~~`;
         else if (syntax === "code") replacement = `\`${selected || "code"}\``;
+        else if (syntax === "superscript") replacement = `^${selected || "super"}^`;
+        else if (syntax === "subscript") replacement = `~${selected || "sub"}~`;
+        else if (syntax === "link") {
+            if (selected.startsWith("http://") || selected.startsWith("https://")) {
+                replacement = `[Resource Link](${selected})`;
+            } else if (selected) {
+                replacement = `[${selected}](https://...)`;
+            } else {
+                replacement = `[Resource Title](https://...)`;
+            }
+        }
+        else if (syntax === "video") {
+            if (selected.startsWith("http://") || selected.startsWith("https://")) {
+                replacement = `[🎥 Video](${selected})`;
+            } else if (selected) {
+                replacement = `[🎥 ${selected}](https://youtube.com/...)`;
+            } else {
+                replacement = `[🎥 Video Title](https://youtube.com/...)`;
+            }
+        }
+        else if (syntax === "hl-red") replacement = `==r:${selected || "highlight"}==`;
+        else if (syntax === "hl-green") replacement = `==g:${selected || "highlight"}==`;
+        else if (syntax === "hl-blue") replacement = `==b:${selected || "highlight"}==`;
+        else if (syntax === "hl-yellow") replacement = `==y:${selected || "highlight"}==`;
+        else if (syntax === "hl-purple") replacement = `==p:${selected || "highlight"}==`;
         else if (syntax === "list") replacement = `\n- ${selected || "list item"}`;
+        else if (syntax === "numlist") replacement = `\n1. ${selected || "numbered item"}`;
         else if (syntax === "h1") replacement = `\n# ${selected || "Heading 1"}`;
         else if (syntax === "h2") replacement = `\n## ${selected || "Heading 2"}`;
+        else if (syntax === "h3") replacement = `\n### ${selected || "Heading 3"}`;
         else if (syntax === "codeblock") replacement = `\n\`\`\`\n${selected || "// code block"}\n\`\`\`\n`;
 
         const newValue = text.substring(0, start) + replacement + text.substring(end);
         onChange(newValue);
 
-        // Refocus and select
+        // Refocus and select placeholder URL if present
         setTimeout(() => {
             textarea.focus();
-            textarea.setSelectionRange(start + replacement.length, start + replacement.length);
+            const urlMatch = replacement.match(/\((https?:\/\/[^\s)]+)\)/);
+            if (urlMatch && urlMatch.index !== undefined) {
+                const urlStart = start + urlMatch.index + 1;
+                const urlEnd = urlStart + urlMatch[1].length;
+                textarea.setSelectionRange(urlStart, urlEnd);
+            } else {
+                textarea.setSelectionRange(start + replacement.length, start + replacement.length);
+            }
         }, 50);
     };
 
     const textSizeClass = fontSize === "sm" ? "text-xs" : fontSize === "base" ? "text-sm" : "text-base";
 
     return (
-        <div className="border border-white/[0.08] rounded-2xl overflow-hidden bg-zinc-900/40 shadow-inner flex flex-col font-sans mb-6">
+        <div className="border border-white/[0.08] rounded-2xl overflow-visible bg-zinc-900/40 shadow-inner flex flex-col font-sans mb-6">
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3.5 bg-white/[0.02] border-b border-white/[0.06]">
+            <div className="flex items-center justify-between px-5 py-3.5 bg-white/[0.02] border-b border-white/[0.06] rounded-t-2xl">
                 <div className="flex items-center gap-3">
                     <span className="text-sm font-semibold text-zinc-200 tracking-wide">{label}</span>
                     {lines.length > 0 && (
@@ -351,38 +530,140 @@ function PaginatedNotesBlock({
             </div>
 
             {/* Body - holds 40 lines of content */}
-            <div className="relative bg-black/[0.15]">
+            <div className="relative bg-black/[0.15] rounded-b-2xl overflow-visible">
                 {isEditing ? (
-                    <div className="p-4 flex flex-col">
-                        {/* Toolbar */}
-                        <div className="flex flex-wrap items-center gap-1.5 p-2 bg-white/[0.02] border border-white/[0.06] border-b-0 rounded-t-xl">
-                            {[
-                                { id: "h1", label: "H1", title: "Heading 1" },
-                                { id: "h2", label: "H2", title: "Heading 2" },
-                                { id: "bold", label: "B", title: "Bold", className: "font-bold" },
-                                { id: "italic", label: "I", title: "Italic", className: "italic" },
-                                { id: "code", label: "`Code`", title: "Inline Code" },
-                                { id: "codeblock", label: "Code Block", title: "Code Block" },
-                                { id: "list", label: "• List", title: "Bullet List" },
-                            ].map((btn) => (
-                                <button
-                                    key={btn.id}
-                                    type="button"
-                                    onClick={() => insertMarkdown(btn.id)}
-                                    className={`text-[10px] font-bold px-2.5 py-1 rounded bg-white/[0.04] text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-all ${btn.className || ""}`}
-                                    title={btn.title}
-                                >
-                                    {btn.label}
-                                </button>
-                            ))}
+                    <div className="p-4 flex flex-row items-start gap-3 relative overflow-visible">
+                        {/* Sticky Left-Side 2-Column Note-Taking Toolbar */}
+                        <div className="sticky top-6 z-30 shrink-0 flex flex-col items-center gap-2 p-2.5 bg-zinc-950/95 backdrop-blur-md border border-white/[0.1] rounded-2xl shadow-2xl">
+                            <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest text-center w-full">Tools</span>
+                            
+                            {/* 2-Column Grid of Tools */}
+                            <div className="grid grid-cols-2 gap-1.5">
+                                {[
+                                    { id: "h1", label: "H1", title: "Heading 1 (#)" },
+                                    { id: "h2", label: "H2", title: "Heading 2 (##)" },
+                                    { id: "h3", label: "H3", title: "Heading 3 (###)" },
+                                    { id: "bold", label: "B", title: "Bold (**text**)", className: "font-bold" },
+                                    { id: "italic", label: "I", title: "Italic (*text*)", className: "italic" },
+                                    { id: "underline", label: "U", title: "Underline (<u>text</u>)", className: "underline underline-offset-2" },
+                                    { id: "strike", label: "S", title: "Strikethrough (~~text~~)", className: "line-through opacity-80" },
+                                    { id: "code", label: "</>", title: "Inline Code (`code`)" },
+                                    { id: "codeblock", label: "{ }", title: "Code Block (```)" },
+                                    { id: "list", label: "•", title: "Bullet List (- item)" },
+                                    { id: "numlist", label: "1.", title: "Numbered List (1. item)" },
+                                    { id: "superscript", label: "X²", title: "Superscript (^text^)" },
+                                    { id: "subscript", label: "X₂", title: "Subscript (~text~)" },
+                                    { id: "link", label: <LinkIcon className="w-3.5 h-3.5 text-sky-400" />, title: "Resource Link ([Title](url))" },
+                                    { id: "video", label: <VideoIcon className="w-3.5 h-3.5 text-rose-400" />, title: "Video Link ([🎥 Video](url))" },
+                                ].map((btn) => (
+                                    <div key={btn.id} className="relative group">
+                                        <button
+                                            type="button"
+                                            onClick={() => insertMarkdown(btn.id)}
+                                            className={`w-7 h-7 flex items-center justify-center text-[11px] font-semibold rounded-lg bg-white/[0.04] border border-white/[0.06] text-zinc-300 hover:text-white hover:bg-white/[0.12] hover:border-white/20 transition-all ${btn.className || ""}`}
+                                            title={btn.title}
+                                        >
+                                            {btn.label}
+                                        </button>
+                                        {/* Tooltip to the right */}
+                                        <div className="absolute left-full ml-2 px-2.5 py-1 bg-zinc-900 text-white text-[11px] font-medium rounded-md shadow-xl border border-white/10 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                                            {btn.title}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Color Highlight Section */}
+                            <div className="w-full h-[1px] bg-white/10 my-0.5" />
+                            <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest text-center w-full">Highlight</span>
+
+                            {/* Color Highlight 2-Column Grid */}
+                            <div className="grid grid-cols-2 gap-1.5">
+                                {/* Red Highlight */}
+                                <div className="relative group">
+                                    <button
+                                        type="button"
+                                        onClick={() => insertMarkdown("hl-red")}
+                                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/25 hover:border-rose-500/60 transition-all"
+                                        title="Red Highlight (==r:text==)"
+                                    >
+                                        <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" />
+                                    </button>
+                                    <div className="absolute left-full ml-2 px-2.5 py-1 bg-zinc-900 text-rose-300 text-[11px] font-medium rounded-md shadow-xl border border-rose-500/20 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                                        Red Highlight (==r:text==)
+                                    </div>
+                                </div>
+
+                                {/* Green Highlight */}
+                                <div className="relative group">
+                                    <button
+                                        type="button"
+                                        onClick={() => insertMarkdown("hl-green")}
+                                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/25 hover:border-emerald-500/60 transition-all"
+                                        title="Green Highlight (==g:text==)"
+                                    >
+                                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                                    </button>
+                                    <div className="absolute left-full ml-2 px-2.5 py-1 bg-zinc-900 text-emerald-300 text-[11px] font-medium rounded-md shadow-xl border border-emerald-500/20 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                                        Green Highlight (==g:text==)
+                                    </div>
+                                </div>
+
+                                {/* Blue Highlight */}
+                                <div className="relative group">
+                                    <button
+                                        type="button"
+                                        onClick={() => insertMarkdown("hl-blue")}
+                                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-sky-500/10 border border-sky-500/30 hover:bg-sky-500/25 hover:border-sky-500/60 transition-all"
+                                        title="Blue Highlight (==b:text==)"
+                                    >
+                                        <span className="w-2.5 h-2.5 rounded-full bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.6)]" />
+                                    </button>
+                                    <div className="absolute left-full ml-2 px-2.5 py-1 bg-zinc-900 text-sky-300 text-[11px] font-medium rounded-md shadow-xl border border-sky-500/20 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                                        Blue Highlight (==b:text==)
+                                    </div>
+                                </div>
+
+                                {/* Yellow Highlight */}
+                                <div className="relative group">
+                                    <button
+                                        type="button"
+                                        onClick={() => insertMarkdown("hl-yellow")}
+                                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/25 hover:border-amber-500/60 transition-all"
+                                        title="Yellow Highlight (==y:text==)"
+                                    >
+                                        <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
+                                    </button>
+                                    <div className="absolute left-full ml-2 px-2.5 py-1 bg-zinc-900 text-amber-300 text-[11px] font-medium rounded-md shadow-xl border border-amber-500/20 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                                        Yellow Highlight (==y:text==)
+                                    </div>
+                                </div>
+
+                                {/* Purple Highlight */}
+                                <div className="relative group">
+                                    <button
+                                        type="button"
+                                        onClick={() => insertMarkdown("hl-purple")}
+                                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/25 hover:border-purple-500/60 transition-all"
+                                        title="Purple Highlight (==p:text==)"
+                                    >
+                                        <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
+                                    </button>
+                                    <div className="absolute left-full ml-2 px-2.5 py-1 bg-zinc-900 text-purple-300 text-[11px] font-medium rounded-md shadow-xl border border-purple-500/20 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                                        Purple Highlight (==p:text==)
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+
+                        {/* Textarea Area */}
                         <textarea
                             id={`textarea-${label}`}
                             value={value}
                             onChange={(e) => onChange(e.target.value)}
                             placeholder={placeholder}
                             rows={40}
-                            className="w-full bg-white/[0.02] border border-white/[0.06] rounded-b-xl rounded-t-none px-4 py-3 text-sm text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-white/20 focus:bg-white/[0.04] transition-all font-mono leading-relaxed resize-y"
+                            className="flex-1 min-w-0 bg-white/[0.02] border border-white/[0.08] rounded-xl p-4 text-sm text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-white/20 focus:bg-white/[0.04] transition-all font-mono leading-relaxed resize-y"
                             style={{
                                 fontFamily: "var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
                                 lineHeight: "1.6"
@@ -919,6 +1200,8 @@ function TopicDetailPanel({
         { id: "mastery" as const, label: "Mastery & Progress", icon: Target, desc: "Checklists & revision stats" },
     ];
 
+    const [isSidebarFolded, setIsSidebarFolded] = useState(false);
+
     return (
         <motion.div
             initial={{ opacity: 0 }}
@@ -935,25 +1218,75 @@ function TopicDetailPanel({
                 className="w-full h-full flex overflow-hidden font-sans"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Left Sidebar - covers 20vw, full height */}
-                <aside className="w-[20vw] bg-zinc-950 border-r border-white/10 flex flex-col shrink-0 h-full overflow-y-auto">
-                    <div className="p-6 border-b border-white/10 shrink-0">
-                        <h2 className="text-base font-bold tracking-tight text-white flex items-center gap-2 font-sans">
-                            <BookOpen size={18} className="text-zinc-400" /> Topic Notes
-                        </h2>
-                        <p className="text-[10px] text-zinc-500 mt-1 font-sans font-medium uppercase tracking-widest">Navigation & Sections</p>
+                {/* Left Sidebar */}
+                <aside
+                    className={`bg-zinc-950 border-r border-white/10 flex flex-col shrink-0 h-full overflow-y-auto transition-all duration-300 ease-in-out ${isSidebarFolded ? "w-16 md:w-20" : "w-64 md:w-[22vw] min-w-[240px]"
+                        }`}
+                >
+                    <div className={`p-4 md:p-5 border-b border-white/10 shrink-0 flex items-center ${isSidebarFolded ? "justify-center" : "justify-between"
+                        }`}>
+                        {!isSidebarFolded ? (
+                            <div className="flex items-center gap-2 overflow-hidden">
+                                <BookOpen size={18} className="text-zinc-400 shrink-0" />
+                                <div className="min-w-0">
+                                    <h2 className="text-base font-bold tracking-tight text-white font-sans truncate">
+                                        Topic Notes
+                                    </h2>
+                                    <p className="text-[10px] text-zinc-500 font-sans font-medium uppercase tracking-widest truncate">
+                                        Navigation & Sections
+                                    </p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="w-8 h-8 flex items-center justify-center">
+                                <BookOpen size={18} className="text-zinc-400" />
+                            </div>
+                        )}
+
+                        <button
+                            type="button"
+                            onClick={() => setIsSidebarFolded(!isSidebarFolded)}
+                            className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+                            title={isSidebarFolded ? "Expand sections" : "Collapse sections"}
+                        >
+                            {isSidebarFolded ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+                        </button>
                     </div>
-                    <nav className="flex-1 p-4 space-y-1.5">
+
+                    <nav className="flex-1 p-2 md:p-3 space-y-1 overflow-x-hidden">
                         {sidebarTabs.map(tab => {
                             const TabIcon = tab.icon;
                             const isSelected = activeTab === tab.id;
+
+                            if (isSidebarFolded) {
+                                return (
+                                    <div key={tab.id} className="relative group flex justify-center py-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => setActiveTab(tab.id)}
+                                            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${isSelected
+                                                ? "bg-white text-zinc-950 font-bold shadow"
+                                                : "text-zinc-400 hover:bg-white/10 hover:text-zinc-200"
+                                                }`}
+                                            aria-label={tab.label}
+                                        >
+                                            <TabIcon className="w-4 h-4" />
+                                        </button>
+                                        <div className="absolute left-full ml-3 px-3 py-1.5 bg-zinc-900 text-white text-xs rounded-lg shadow-xl border border-white/10 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                                            <div className="font-bold">{tab.label}</div>
+                                            <div className="text-[10px] text-zinc-400">{tab.desc}</div>
+                                        </div>
+                                    </div>
+                                );
+                            }
+
                             return (
                                 <button
                                     key={tab.id}
                                     type="button"
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`w-full text-left flex items-start gap-3 px-4 py-3 rounded-xl transition-all ${isSelected
-                                        ? "bg-white/[0.05] border border-white/[0.08] text-white"
+                                        ? "bg-white/[0.08] border border-white/[0.12] text-white font-medium"
                                         : "border border-transparent text-zinc-400 hover:bg-white/[0.02] hover:text-zinc-200"
                                         }`}
                                 >
@@ -968,8 +1301,8 @@ function TopicDetailPanel({
                     </nav>
                 </aside>
 
-                {/* Right Content Area - covers 80vw, contains header, scrollable content, and footer */}
-                <div className="w-[80vw] flex flex-col h-full overflow-hidden bg-zinc-900/10">
+                {/* Right Content Area - dynamically expands to remaining width */}
+                <div className="flex-1 min-w-0 flex flex-col h-full overflow-hidden bg-zinc-900/10">
                     {/* Sticky Header */}
                     <div className={`shrink-0 px-8 pt-6 pb-5 border-b border-white/[0.06] bg-gradient-to-br ${levelConfig.gradient}`}>
                         <div className="flex items-start justify-between">
@@ -1603,6 +1936,74 @@ export default function DsaNotes() {
         );
     }
 
+    const notesFilters = (
+        <>
+            <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest px-3 mb-2 font-sans">Filter by Level</div>
+            {levels.map(level => {
+                const config = level !== "All" ? LEVEL_CONFIG[level] : null;
+                const count = level === "All" ? topics.length : topics.filter(t => t.level === level).length;
+                return (
+                    <button
+                        key={level}
+                        onClick={() => { setFilterLevel(level); setSidebarOpen(false); }}
+                        className={`flex items-center justify-between px-4 py-2 text-sm font-semibold tracking-wide transition-colors rounded ${filterLevel === level
+                            ? config
+                                ? `${config.bgColor} ${config.color} border ${config.borderColor}`
+                                : "bg-white text-zinc-950 font-bold"
+                            : "text-zinc-400 hover:bg-white/10 hover:text-white"
+                            }`}
+                    >
+                        <span>{level}</span>
+                        <span className="text-xs opacity-60 font-mono">{count}</span>
+                    </button>
+                );
+            })}
+
+            <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest px-3 mt-4 mb-2 font-sans">Status</div>
+            {statuses.map(status => (
+                <button
+                    key={status}
+                    onClick={() => { setFilterStatus(status); setSidebarOpen(false); }}
+                    className={`flex items-center justify-between px-4 py-2 text-sm font-semibold tracking-wide transition-colors rounded ${filterStatus === status
+                        ? "bg-white text-zinc-950 font-bold"
+                        : "text-zinc-400 hover:bg-white/10 hover:text-white"
+                        }`}
+                >
+                    <span>{status}</span>
+                    <span className="text-xs opacity-60 font-mono">
+                        {status === "All" ? topics.length :
+                            status === "Completed" ? topics.filter(t => t.completed).length :
+                                status === "Pending" ? topics.filter(t => !t.completed).length :
+                                    topics.filter(t => t.favorite).length}
+                    </span>
+                </button>
+            ))}
+        </>
+    );
+
+    const collapsedNotesFilters = (
+        <div className="flex flex-col gap-1 w-full items-center">
+            {levels.map(level => {
+                const count = level === "All" ? topics.length : topics.filter(t => t.level === level).length;
+                const shortLabel = level === "All" ? "ALL" : level[0];
+                return (
+                    <div key={level} className="relative group">
+                        <button
+                            onClick={() => setFilterLevel(level)}
+                            className={`w-10 h-7 flex items-center justify-center rounded text-xs font-mono transition-colors ${filterLevel === level ? "bg-white text-zinc-950 font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
+                                }`}
+                        >
+                            {shortLabel}
+                        </button>
+                        <div className="absolute left-full ml-3 px-2.5 py-1 bg-zinc-900 text-white text-xs font-medium rounded shadow-xl border border-white/10 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                            {level} ({count})
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+
     return (
         <div className="min-h-screen bg-zinc-950 text-white flex font-sans antialiased tracking-wide">
             {/* Mobile menu button */}
@@ -1614,81 +2015,12 @@ export default function DsaNotes() {
             </button>
 
             {/* Sidebar */}
-            <aside className={`fixed md:static inset-y-0 left-0 z-40 w-64 bg-zinc-950 border-r border-white/10 flex flex-col transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}>
-                <div className="p-6 border-b border-white/10">
-                    <h2 className="text-lg font-bold tracking-tight text-white flex items-center gap-2 font-sans">
-                        <StickyNote size={18} /> DSA Notes
-                    </h2>
-                    <p className="text-xs text-zinc-500 mt-1 font-sans font-medium">Knowledge Base</p>
-                </div>
-
-                <div className="flex-1 p-6 flex flex-col gap-2 overflow-y-auto font-sans">
-                    {/* Filters in sidebar */}
-                    <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 font-sans">Filter by Level</div>
-                    {levels.map(level => {
-                        const config = level !== "All" ? LEVEL_CONFIG[level] : null;
-                        const count = level === "All" ? topics.length : topics.filter(t => t.level === level).length;
-                        return (
-                            <button
-                                key={level}
-                                onClick={() => { setFilterLevel(level); setSidebarOpen(false); }}
-                                className={`flex items-center justify-between px-4 py-2.5 text-sm font-semibold tracking-wide transition-colors rounded-lg ${filterLevel === level
-                                    ? config
-                                        ? `${config.bgColor} ${config.color} border ${config.borderColor}`
-                                        : "bg-white text-zinc-950 font-bold"
-                                    : "text-zinc-400 hover:bg-white/10 hover:text-white"
-                                    }`}
-                            >
-                                <span>{level}</span>
-                                <span className="text-xs opacity-60 font-mono">{count}</span>
-                            </button>
-                        );
-                    })}
-
-                    <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest mt-4 mb-2 font-sans">Status</div>
-                    {statuses.map(status => (
-                        <button
-                            key={status}
-                            onClick={() => { setFilterStatus(status); setSidebarOpen(false); }}
-                            className={`flex items-center justify-between px-4 py-2.5 text-sm font-semibold tracking-wide transition-colors rounded-lg ${filterStatus === status
-                                ? "bg-white text-zinc-950 font-bold"
-                                : "text-zinc-400 hover:bg-white/10 hover:text-white"
-                                }`}
-                        >
-                            <span>{status}</span>
-                            <span className="text-xs opacity-60 font-mono">
-                                {status === "All" ? topics.length :
-                                    status === "Completed" ? topics.filter(t => t.completed).length :
-                                        status === "Pending" ? topics.filter(t => !t.completed).length :
-                                            topics.filter(t => t.favorite).length}
-                            </span>
-                        </button>
-                    ))}
-
-                    <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest mt-6 mb-2 font-sans">Navigation</div>
-                    <button onClick={() => { router.push("/tasks"); setSidebarOpen(false); }} className="flex items-center justify-between px-4 py-3 text-sm font-semibold tracking-wide transition-colors text-zinc-400 hover:bg-white/10 hover:text-white rounded-lg">
-                        Tasks
-                    </button>
-                    <button onClick={() => { router.push("/aptitude"); setSidebarOpen(false); }} className="flex items-center justify-between px-4 py-3 text-sm font-semibold tracking-wide transition-colors text-zinc-400 hover:bg-white/10 hover:text-white rounded-lg">
-                        Aptitude
-                    </button>
-                    <button onClick={() => { router.push("/dsaquestions"); setSidebarOpen(false); }} className="flex items-center justify-between px-4 py-3 text-sm font-semibold tracking-wide transition-colors text-zinc-400 hover:bg-white/10 hover:text-white rounded-lg">
-                        DSA Questions
-                    </button>
-                    <button onClick={() => { router.push("/notes"); setSidebarOpen(false); }} className="flex items-center justify-between px-4 py-3 text-sm font-bold tracking-wide transition-colors bg-white text-zinc-950 rounded-lg">
-                        Notes
-                    </button>
-                    <button onClick={() => { router.push("/timetable"); setSidebarOpen(false); }} className="flex items-center justify-between px-4 py-3 text-sm font-semibold tracking-wide transition-colors text-zinc-400 hover:bg-white/10 hover:text-white rounded-lg">
-                        Time Table
-                    </button>
-                </div>
-
-                <div className="p-6 border-t border-white/10 font-sans">
-                    <button className="flex items-center gap-3 px-4 py-3 w-full text-zinc-400 hover:text-white hover:bg-white/10 text-sm font-semibold tracking-wide transition-colors rounded-lg" onClick={handelSignOut}>
-                        <LogOut size={18} /> Sign Out
-                    </button>
-                </div>
-            </aside>
+            <Sidebar
+                isMobileOpen={sidebarOpen}
+                onMobileClose={() => setSidebarOpen(false)}
+                customFilters={notesFilters}
+                collapsedFilters={collapsedNotesFilters}
+            />
 
             {/* Main Content */}
             <main className="flex-1 p-6 md:p-10 overflow-y-auto min-h-screen">

@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { CheckCircle2, Circle, Plus, Trash2, Menu, X, LogOut, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import Sidebar from "@/components/Sidebar";
 
 type Task = {
     _id?: string;
@@ -157,6 +158,105 @@ export default function TasksPage() {
     const completedTasks = completedTodayTasks.length;
     const progressPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
 
+    const taskFilters = (
+        <>
+            <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest px-3 mb-2">Filters</div>
+            <button
+                onClick={() => { setFilter("today"); setSidebarOpen(false); }}
+                className={`flex items-center justify-between px-4 py-2.5 text-sm font-medium transition-colors ${
+                    filter === "today" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
+                }`}
+            >
+                Today
+                <span className="text-xs">{tasks.filter(t => t.created_at && new Date(t.created_at).toDateString() === new Date().toDateString()).length}</span>
+            </button>
+            <button
+                onClick={() => { setFilter("all"); setSidebarOpen(false); }}
+                className={`flex items-center justify-between px-4 py-2.5 text-sm font-medium transition-colors ${
+                    filter === "all" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
+                }`}
+            >
+                All Tasks
+                <span className="text-xs">{tasks.length}</span>
+            </button>
+            <button
+                onClick={() => { setFilter("pending"); setSidebarOpen(false); }}
+                className={`flex items-center justify-between px-4 py-2.5 text-sm font-medium transition-colors ${
+                    filter === "pending" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
+                }`}
+            >
+                Pending
+                <span className="text-xs">{tasks.filter(t => t.task.status === "pending").length}</span>
+            </button>
+            <button
+                onClick={() => { setFilter("completed"); setSidebarOpen(false); }}
+                className={`flex items-center justify-between px-4 py-2.5 text-sm font-medium transition-colors ${
+                    filter === "completed" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
+                }`}
+            >
+                Completed
+                <span className="text-xs">{tasks.filter(t => t.task.status === "completed").length}</span>
+            </button>
+        </>
+    );
+
+    const collapsedTaskFilters = (
+        <div className="flex flex-col gap-1 w-full items-center">
+            <div className="relative group">
+                <button
+                    onClick={() => setFilter("today")}
+                    className={`w-10 h-8 flex items-center justify-center rounded text-xs font-mono transition-colors ${
+                        filter === "today" ? "bg-white text-zinc-950 font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
+                    }`}
+                >
+                    TD
+                </button>
+                <div className="absolute left-full ml-3 px-2.5 py-1 bg-zinc-900 text-white text-xs font-medium rounded shadow-xl border border-white/10 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                    Today ({tasks.filter(t => t.created_at && new Date(t.created_at).toDateString() === new Date().toDateString()).length})
+                </div>
+            </div>
+            <div className="relative group">
+                <button
+                    onClick={() => setFilter("all")}
+                    className={`w-10 h-8 flex items-center justify-center rounded text-xs font-mono transition-colors ${
+                        filter === "all" ? "bg-white text-zinc-950 font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
+                    }`}
+                >
+                    ALL
+                </button>
+                <div className="absolute left-full ml-3 px-2.5 py-1 bg-zinc-900 text-white text-xs font-medium rounded shadow-xl border border-white/10 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                    All Tasks ({tasks.length})
+                </div>
+            </div>
+            <div className="relative group">
+                <button
+                    onClick={() => setFilter("pending")}
+                    className={`w-10 h-8 flex items-center justify-center rounded text-xs font-mono transition-colors ${
+                        filter === "pending" ? "bg-white text-zinc-950 font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
+                    }`}
+                >
+                    PND
+                </button>
+                <div className="absolute left-full ml-3 px-2.5 py-1 bg-zinc-900 text-white text-xs font-medium rounded shadow-xl border border-white/10 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                    Pending ({tasks.filter(t => t.task.status === "pending").length})
+                </div>
+            </div>
+            <div className="relative group">
+                <button
+                    onClick={() => setFilter("completed")}
+                    className={`w-10 h-8 flex items-center justify-center rounded text-xs font-mono transition-colors ${
+                        filter === "completed" ? "bg-white text-zinc-950 font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
+                    }`}
+                >
+                    CMP
+                </button>
+                <div className="absolute left-full ml-3 px-2.5 py-1 bg-zinc-900 text-white text-xs font-medium rounded shadow-xl border border-white/10 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                    Completed ({tasks.filter(t => t.task.status === "completed").length})
+                </div>
+            </div>
+        </div>
+    );
+
     return (
         <div className="min-h-screen bg-zinc-950 text-white font-sans flex flex-col md:flex-row">
             {/* Mobile Header */}
@@ -167,114 +267,13 @@ export default function TasksPage() {
                 </button>
             </div>
 
-            {/* Sidebar Overlay for Mobile */}
-            {isSidebarOpen && (
-                <div
-                    className="fixed inset-0 z-40 bg-zinc-950/80 backdrop-blur-sm md:hidden"
-                    onClick={() => setSidebarOpen(false)}
-                />
-            )}
-
             {/* Sidebar */}
-            <aside
-                className={`fixed md:sticky top-0 h-screen w-64 bg-zinc-950 border-r border-white/10 z-50 transform transition-transform duration-300 ease-in-out ${
-                    isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-                } flex flex-col`}
-            >
-                <div className="p-6 flex items-center justify-between md:justify-start gap-4 border-b border-white/10">
-                    <div className="w-8 h-8 bg-white flex items-center justify-center">
-                        <span className="text-zinc-950 font-bold text-lg">E</span>
-                    </div>
-                    <h2 className="text-xl font-bold tracking-tight">Dashboard.</h2>
-                    <button className="md:hidden p-2 text-zinc-400 hover:text-white" onClick={() => setSidebarOpen(false)}>
-                        <X size={20} />
-                    </button>
-                </div>
-
-                <div className="flex-1 p-6 flex flex-col gap-2">
-                    <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">Filters</div>
-
-                    <button
-                        onClick={() => { setFilter("today"); setSidebarOpen(false); }}
-                        className={`flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${
-                            filter === "today" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
-                        }`}
-                    >
-                        Today
-                        <span className="text-xs">{tasks.filter(t => t.created_at && new Date(t.created_at).toDateString() === new Date().toDateString()).length}</span>
-                    </button>
-
-                    <button
-                        onClick={() => { setFilter("all"); setSidebarOpen(false); }}
-                        className={`flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${
-                            filter === "all" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
-                        }`}
-                    >
-                        All Tasks
-                        <span className="text-xs">{tasks.length}</span>
-                    </button>
-
-                    <button
-                        onClick={() => { setFilter("pending"); setSidebarOpen(false); }}
-                        className={`flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${
-                            filter === "pending" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
-                        }`}
-                    >
-                        Pending
-                        <span className="text-xs">{tasks.filter(t => t.task.status === "pending").length}</span>
-                    </button>
-
-                    <button
-                        onClick={() => { setFilter("completed"); setSidebarOpen(false); }}
-                        className={`flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${
-                            filter === "completed" ? "bg-white text-black font-bold" : "text-zinc-400 hover:bg-white/10 hover:text-white"
-                        }`}
-                    >
-                        Completed
-                        <span className="text-xs">{tasks.filter(t => t.task.status === "completed").length}</span>
-                    </button>
-
-                    <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest my-4">Navigation</div>
-
-                    <button
-                        onClick={() => { router.push("/tasks"); setSidebarOpen(false); }}
-                        className="flex items-center justify-between px-4 py-3 text-sm font-bold bg-white text-black"
-                    >
-                        Tasks
-                    </button>
-                    <button
-                        onClick={() => { router.push("/aptitude"); setSidebarOpen(false); }}
-                        className="flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors text-zinc-400 hover:bg-white/10 hover:text-white"
-                    >
-                        Aptitude
-                    </button>
-
-                    <button
-                        onClick={() => { router.push("/dsaquestions"); setSidebarOpen(false); }}
-                        className="flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors text-zinc-400 hover:bg-white/10 hover:text-white"
-                    >
-                        DSA Questions
-                    </button>
-                    <button
-                        onClick={() => { router.push("/notes"); setSidebarOpen(false); }}
-                        className="flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors text-zinc-400 hover:bg-white/10 hover:text-white"
-                    >
-                        Notes
-                    </button>
-                    <button
-                        onClick={() => { router.push("/timetable"); setSidebarOpen(false); }}
-                        className="flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors text-zinc-400 hover:bg-white/10 hover:text-white"
-                    >
-                        Time Table
-                    </button>
-                </div>
-
-                <div className="p-6 border-t border-white/10">
-                    <button className="flex items-center gap-3 px-4 py-3 w-full text-zinc-400 hover:text-white hover:bg-white/10 text-sm font-medium transition-colors" onClick={handelSignOut}>
-                        <LogOut size={18} /> Sign Out
-                    </button>
-                </div>
-            </aside>
+            <Sidebar
+                isMobileOpen={isSidebarOpen}
+                onMobileClose={() => setSidebarOpen(false)}
+                customFilters={taskFilters}
+                collapsedFilters={collapsedTaskFilters}
+            />
 
             {/* Main Task Engine Content */}
             <main className="flex-1 p-6 md:p-12 w-full max-w-4xl relative min-h-screen mt-0 overflow-y-auto">
