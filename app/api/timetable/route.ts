@@ -5,11 +5,17 @@ import { ObjectId } from "mongodb";
 import z from "zod";
 
 const rowSchema = z.object({
+    id: z.string().optional(),
     time: z.string(),
     duration: z.string(),
     task: z.string(),
+    description: z.string().optional(),
+    tag: z.string().optional(),
+    sprint: z.string().optional(),
+    energyFocus: z.string().optional(),
+    isActiveNow: z.boolean().optional(),
     completed: z.boolean().default(false),
-});
+}).passthrough();
 
 const timetableSchema = z.object({
     schedule: z.array(rowSchema),

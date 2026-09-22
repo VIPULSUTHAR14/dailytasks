@@ -17,6 +17,8 @@ import {
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "@/components/Sidebar";
+import WorkspaceHeader from "@/components/WorkspaceHeader";
+import IdeMarkdownEditor from "@/components/IdeMarkdownEditor";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -206,11 +208,10 @@ function renderMarkdownLine(line: string) {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-medium transition-all mx-0.5 no-underline align-baseline cursor-pointer ${
-                            isVideo
-                                ? "bg-rose-500/15 text-rose-300 border border-rose-500/30 hover:bg-rose-500/25 hover:text-rose-100 hover:border-rose-500/60 shadow-sm"
-                                : "bg-sky-500/15 text-sky-300 border border-sky-500/30 hover:bg-sky-500/25 hover:text-sky-100 hover:border-sky-500/60 shadow-sm"
-                        }`}
+                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-medium transition-all mx-0.5 no-underline align-baseline cursor-pointer ${isVideo
+                            ? "bg-rose-500/15 text-rose-300 border border-rose-500/30 hover:bg-rose-500/25 hover:text-rose-100 hover:border-rose-500/60 shadow-sm"
+                            : "bg-sky-500/15 text-sky-300 border border-sky-500/30 hover:bg-sky-500/25 hover:text-sky-100 hover:border-sky-500/60 shadow-sm"
+                            }`}
                         title={`Open link: ${linkUrl}`}
                     >
                         {isVideo ? <PlayCircle className="w-3 h-3 text-rose-400 shrink-0" /> : <LinkIcon className="w-3 h-3 text-sky-400 shrink-0" />}
@@ -230,11 +231,10 @@ function renderMarkdownLine(line: string) {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs transition-all mx-0.5 no-underline align-baseline cursor-pointer ${
-                        isVideo
-                            ? "bg-rose-500/15 text-rose-300 border border-rose-500/30 hover:bg-rose-500/25 hover:text-rose-100"
-                            : "bg-sky-500/15 text-sky-300 border border-sky-500/30 hover:bg-sky-500/25 hover:text-sky-100"
-                    }`}
+                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs transition-all mx-0.5 no-underline align-baseline cursor-pointer ${isVideo
+                        ? "bg-rose-500/15 text-rose-300 border border-rose-500/30 hover:bg-rose-500/25 hover:text-rose-100"
+                        : "bg-sky-500/15 text-sky-300 border border-sky-500/30 hover:bg-sky-500/25 hover:text-sky-100"
+                        }`}
                     title={`Open link: ${part}`}
                 >
                     {isVideo ? <PlayCircle className="w-3 h-3 text-rose-400 shrink-0" /> : <LinkIcon className="w-3 h-3 text-sky-400 shrink-0" />}
@@ -494,7 +494,7 @@ function PaginatedNotesBlock({
                         {/* Sticky Left-Side 2-Column Note-Taking Toolbar */}
                         <div className="sticky top-6 z-30 shrink-0 flex flex-col items-center gap-2 p-2.5 bg-zinc-950/95 backdrop-blur-md border border-white/[0.1] rounded-2xl shadow-2xl">
                             <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest text-center w-full">Tools</span>
-                            
+
                             {/* 2-Column Grid */}
                             <div className="grid grid-cols-2 gap-1.5">
                                 {[
@@ -798,7 +798,6 @@ export default function CustomNotes() {
     // Active detail view
     const [activeTopic, setActiveTopic] = useState<CustomTopic | null>(null);
     const [activeSectionId, setActiveSectionId] = useState<string>("");
-    const [isSectionSidebarCollapsed, setIsSectionSidebarCollapsed] = useState(false);
 
     // Modal
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -1132,6 +1131,89 @@ export default function CustomNotes() {
         return activeTopic.sections.find(s => s.id === activeSectionId) || activeTopic.sections[0] || null;
     }, [activeTopic, activeSectionId]);
 
+    // Active Topic Words Telemetry
+    const activeTopicWords = useMemo(() => {
+        if (!activeTopic) return 0;
+        return activeTopic.sections.reduce((sum, sec) => {
+            const count = (sec.content || "").trim().split(/\s+/).filter(Boolean).length;
+            return sum + count;
+        }, 0);
+    }, [activeTopic]);
+
+    // Manual Save State
+    const [manualSaved, setManualSaved] = useState(false);
+
+    const handleManualSave = async () => {
+        if (!activeTopic) return;
+        try {
+            const res = await fetch("/api/custom-notes", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(activeTopic),
+            });
+            if (res.ok) {
+                setManualSaved(true);
+                setTimeout(() => setManualSaved(false), 2000);
+            }
+        } catch (err) {
+            console.error("Failed to manual save topic", err);
+        }
+    };
+
+    // Rename Section
+    const renameSection = async (sectionId: string, currentName: string, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        if (!activeTopic) return;
+        const newName = prompt("Enter new section name:", currentName);
+        if (!newName || !newName.trim() || newName.trim() === currentName) return;
+
+        const updatedSections = activeTopic.sections.map(s =>
+            s.id === sectionId ? { ...s, name: newName.trim() } : s
+        );
+        const updatedTopic = { ...activeTopic, sections: updatedSections, updated_at: new Date() };
+        setActiveTopic(updatedTopic);
+        setTopics(prev => prev.map(t => t.id === updatedTopic.id ? updatedTopic : t));
+
+        try {
+            await fetch("/api/custom-notes", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatedTopic),
+            });
+        } catch (err) {
+            console.error("Failed to rename section", err);
+        }
+    };
+
+    // Delete Section
+    const deleteSection = async (sectionId: string, sectionName: string, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        if (!activeTopic) return;
+        if (activeTopic.sections.length <= 1) {
+            alert("A topic must have at least one section.");
+            return;
+        }
+        if (!confirm(`Are you sure you want to delete section "${sectionName}"?`)) return;
+
+        const updatedSections = activeTopic.sections.filter(s => s.id !== sectionId);
+        const updatedTopic = { ...activeTopic, sections: updatedSections, updated_at: new Date() };
+        setActiveTopic(updatedTopic);
+        if (activeSectionId === sectionId) {
+            setActiveSectionId(updatedSections[0].id);
+        }
+        setTopics(prev => prev.map(t => t.id === updatedTopic.id ? updatedTopic : t));
+
+        try {
+            await fetch("/api/custom-notes", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatedTopic),
+            });
+        } catch (err) {
+            console.error("Failed to delete section", err);
+        }
+    };
+
     // Sidebar custom filters matching DsaNotes style
     const categoryFilters = (
         <>
@@ -1207,218 +1289,511 @@ export default function CustomNotes() {
     }
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-white flex font-sans antialiased tracking-wide">
-            {/* Mobile menu button */}
-            <button
-                className="md:hidden fixed top-4 left-4 z-50 p-2 bg-zinc-900 border border-white/10 rounded-lg text-white"
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-            >
-                {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-
+        <div className="min-h-screen bg-[#0B0F17] text-slate-100 flex font-sans antialiased tracking-wide">
             {/* Sidebar */}
             <Sidebar
                 isMobileOpen={sidebarOpen}
                 onMobileClose={() => setSidebarOpen(false)}
-                customFilters={categoryFilters}
-                collapsedFilters={collapsedCategoryFilters}
             />
 
             {/* Main Content */}
-            <main className="flex-1 p-6 md:p-10 overflow-y-auto min-h-screen">
-                {/* Header */}
-                <header className="mb-8 hidden md:block font-sans">
-                    <div className="flex items-center gap-3 mb-1">
-                        <div className="p-2 bg-white/5 border border-white/10 rounded-lg">
-                            <StickyNote className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                            <h1 className="text-3xl font-bold tracking-tight text-white font-sans">Custom Notes</h1>
-                            <p className="text-zinc-400 mt-1 text-sm font-semibold tracking-wide">
-                                Your personal knowledge base — {stats.total} topics, {stats.totalSections} sections
-                            </p>
-                        </div>
-                    </div>
-                </header>
+            <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+                <WorkspaceHeader onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
 
-                {/* Stats Bar */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 font-sans">
-                    {[
-                        { label: "Total Topics", value: stats.total, icon: BookOpen, color: "text-white" },
-                        { label: "Sections", value: stats.totalSections, icon: Layers, color: "text-violet-400" },
-                        { label: "Favorites", value: stats.favorites, icon: Star, color: "text-amber-400" },
-                        { label: "Total Words", value: stats.totalWords, icon: FileText, color: "text-emerald-400" },
-                    ].map((stat, i) => (
-                        <div
-                            key={i}
-                            className="p-4 rounded-xl border border-white/[0.06] bg-zinc-900/40 flex items-center justify-between"
+                <AnimatePresence mode="wait">
+                    {activeTopic ? (
+                        <motion.div
+                            key={activeTopic.id}
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -6 }}
+                            transition={{ duration: 0.15 }}
+                            className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#0B0F17]"
                         >
-                            <div>
-                                <div className="text-xs text-zinc-500 font-semibold tracking-wider uppercase mb-0.5">{stat.label}</div>
-                                <div className="text-2xl font-bold text-white tracking-tight">{stat.value}</div>
-                            </div>
-                            <div className="p-2.5 rounded-lg bg-white/5 border border-white/[0.06]">
-                                <stat.icon className={`w-5 h-5 ${stat.color}`} />
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Search & Action Row */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6">
-                    <div className="relative flex-1 max-w-md">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search topics, sections, contents..."
-                            className="w-full pl-10 pr-4 py-2.5 bg-zinc-900/40 border border-white/[0.08] rounded-xl text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-white/20 focus:bg-zinc-900/70 transition-all font-sans"
-                        />
-                        {searchQuery && (
-                            <button
-                                onClick={() => setSearchQuery("")}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
-                        )}
-                    </div>
-
-                    <button
-                        type="button"
-                        onClick={openCreateModal}
-                        className="flex items-center justify-center gap-2 px-5 py-2.5 bg-white text-zinc-950 hover:bg-zinc-200 text-sm font-bold rounded-xl transition-all shadow-md active:scale-95 shrink-0"
-                    >
-                        <Plus className="w-4 h-4" />
-                        <span>New Topic</span>
-                    </button>
-                </div>
-
-                {/* Topics Grid */}
-                {filteredTopics.length === 0 ? (
-                    <div className="border border-dashed border-white/[0.08] rounded-2xl p-16 flex flex-col items-center justify-center text-center my-8 bg-zinc-900/20">
-                        <div className="w-14 h-14 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mb-4 text-zinc-400">
-                            <StickyNote className="w-7 h-7" />
-                        </div>
-                        <h3 className="text-base font-bold text-zinc-200">No topics found</h3>
-                        <p className="text-xs text-zinc-500 mt-1 max-w-sm mb-6 font-medium">
-                            {searchQuery ? "No topics match your search query." : "Create your first custom note topic with tailored sections!"}
-                        </p>
-                        <button
-                            type="button"
-                            onClick={openCreateModal}
-                            className="flex items-center gap-2 px-4 py-2 bg-white text-zinc-950 font-bold text-xs rounded-xl shadow-lg hover:bg-zinc-200 transition-all"
-                        >
-                            <Plus className="w-4 h-4" />
-                            <span>Create New Topic</span>
-                        </button>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                        {filteredTopics.map((topic, index) => {
-                            const totalWords = topic.sections.reduce((acc, sec) => {
-                                const words = (sec.content || "").trim().split(/\s+/).filter(Boolean).length;
-                                return acc + words;
-                            }, 0);
-
-                            return (
-                                <motion.div
-                                    key={topic.id}
-                                    initial={{ opacity: 0, y: 15 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.02, duration: 0.25 }}
-                                    onClick={() => openTopicDetail(topic)}
-                                    className="group relative text-left p-5 rounded-2xl border border-white/[0.06] bg-zinc-900/40 hover:bg-zinc-900/70 hover:border-white/[0.12] transition-all duration-300 cursor-pointer overflow-hidden flex flex-col justify-between font-sans"
-                                >
-                                    <div>
-                                        {/* Card Top Row */}
-                                        <div className="flex items-start justify-between mb-3">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
-                                                    <StickyNote className="w-3.5 h-3.5 text-zinc-300" />
-                                                </div>
-                                                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 bg-white/[0.04] px-2 py-0.5 rounded border border-white/[0.06]">
-                                                    {topic.category || "General"}
-                                                </span>
-                                            </div>
-
-                                            <div className="flex items-center gap-1.5 opacity-80 group-hover:opacity-100">
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => toggleFavorite(topic, e)}
-                                                    className="p-1 rounded-lg hover:bg-white/10 text-zinc-500 hover:text-amber-400 transition-all"
-                                                    title="Favorite"
-                                                >
-                                                    {topic.isFavorite ? (
-                                                        <Star className="w-3.5 h-3.5 text-amber-400 fill-current" />
-                                                    ) : (
-                                                        <Star className="w-3.5 h-3.5" />
-                                                    )}
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => openEditModal(topic, e)}
-                                                    className="p-1 rounded-lg hover:bg-white/10 text-zinc-500 hover:text-white transition-all"
-                                                    title="Edit Topic Settings"
-                                                >
-                                                    <Edit3 className="w-3.5 h-3.5" />
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => handleDeleteTopic(topic.id, e)}
-                                                    className="p-1 rounded-lg hover:bg-white/10 text-zinc-500 hover:text-rose-400 transition-all"
-                                                    title="Delete Topic"
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </button>
-                                            </div>
+                            {/* Top IDE Header */}
+                            <header className="shrink-0 px-3.5 py-2.5 sm:px-6 sm:py-3.5 border-b border-[#1E293B] bg-gradient-to-r from-[#10141E] via-[#0D121D] to-[#10141E]">
+                                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                                    <div className="flex-1 min-w-0">
+                                        {/* Breadcrumb row */}
+                                        <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                                            <button
+                                                type="button"
+                                                onClick={() => setActiveTopic(null)}
+                                                className="flex items-center gap-1 px-2 py-0.5 rounded-md border border-[#1E293B] bg-[#141923] text-zinc-400 hover:text-white hover:border-cyan-500/30 transition-all text-[11px] font-semibold cursor-pointer"
+                                            >
+                                                <ChevronLeft className="w-3 h-3 text-cyan-400" />
+                                                <span>All Topics</span>
+                                            </button>
+                                            <span className="text-zinc-600 font-mono text-xs">/</span>
+                                            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded border border-cyan-500/20 bg-cyan-500/10 text-cyan-400 uppercase tracking-wider font-mono">
+                                                {activeTopic.category || "General"}
+                                            </span>
+                                            <span className="text-[11px] text-zinc-500 font-mono">
+                                                #{activeTopic.id.slice(-4)}
+                                            </span>
                                         </div>
 
-                                        {/* Title */}
-                                        <h3 className="text-base font-semibold text-white mb-2 leading-snug group-hover:text-white/95 transition-colors font-sans tracking-wide">
-                                            {topic.title}
-                                        </h3>
+                                        {/* Topic Title */}
+                                        <h1 className="text-lg sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2 font-sans truncate">
+                                            <span className="truncate">{activeTopic.title}</span>
+                                        </h1>
 
                                         {/* Description */}
-                                        {topic.description && (
-                                            <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed mb-3">
-                                                {topic.description}
+                                        {activeTopic.description && (
+                                            <p className="text-xs text-zinc-400 mt-0.5 max-w-3xl leading-relaxed line-clamp-2 sm:line-clamp-none">
+                                                {activeTopic.description}
                                             </p>
                                         )}
 
-                                        {/* Section Badges */}
-                                        <div className="flex flex-wrap gap-1.5 mt-2">
-                                            {topic.sections.slice(0, 4).map((sec, idx) => (
-                                                <span
-                                                    key={idx}
-                                                    className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-white/[0.03] text-zinc-400 border border-white/[0.04] flex items-center gap-1 font-mono"
-                                                >
-                                                    <Hash className="w-2.5 h-2.5 opacity-40" />
-                                                    {sec.name}
-                                                </span>
-                                            ))}
-                                            {topic.sections.length > 4 && (
-                                                <span className="text-[10px] font-semibold text-zinc-500 px-1 py-0.5">
-                                                    +{topic.sections.length - 4} more
-                                                </span>
+                                        {/* Telemetry Row */}
+                                        <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1 mt-1.5 text-[11px] text-zinc-400 font-sans">
+                                            <div className="flex items-center gap-1">
+                                                <Layers className="w-3 h-3 text-cyan-400" />
+                                                <span className="font-mono">{activeTopic.sections.length} Sections</span>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <FileText className="w-3 h-3 text-emerald-400" />
+                                                <span className="font-mono">{activeTopicWords} Words</span>
+                                            </div>
+                                            <div className="flex items-center gap-1 hidden sm:flex">
+                                                <Clock className="w-3 h-3 text-amber-400" />
+                                                <span>~{Math.max(1, Math.ceil(activeTopicWords / 200))} Min Read</span>
+                                            </div>
+                                            {currentSection && (
+                                                <div className="flex items-center gap-1 text-cyan-300 font-medium">
+                                                    <Hash className="w-3 h-3 text-cyan-400" />
+                                                    <span className="font-mono truncate max-w-[120px] sm:max-w-none">{currentSection.name}</span>
+                                                </div>
                                             )}
                                         </div>
                                     </div>
 
-                                    {/* Card Footer */}
-                                    <div className="mt-5 pt-3 border-t border-white/[0.04] flex items-center justify-between text-xs text-zinc-500 font-sans">
-                                        <span>{topic.sections.length} sections • {totalWords} words</span>
-                                        <span className="flex items-center gap-1 text-zinc-300 group-hover:text-white font-semibold transition-colors">
-                                            Open <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                                        </span>
+                                    {/* Action buttons */}
+                                    <div className="flex items-center gap-1.5 self-end sm:self-auto shrink-0">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => toggleFavorite(activeTopic, e)}
+                                            className={`p-1.5 rounded-lg border transition-all cursor-pointer ${activeTopic.isFavorite
+                                                ? "border-amber-400/40 bg-amber-400/10 text-amber-400"
+                                                : "border-[#1E293B] bg-[#141923] text-zinc-400 hover:text-amber-400 hover:border-amber-400/20"
+                                                }`}
+                                            title="Toggle Favorite"
+                                        >
+                                            {activeTopic.isFavorite ? <Star className="w-3.5 h-3.5 fill-current" /> : <StarOff className="w-3.5 h-3.5" />}
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => openEditModal(activeTopic)}
+                                            className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-[#1E293B] bg-[#141923] text-zinc-300 hover:text-white hover:border-cyan-500/30 transition-all cursor-pointer"
+                                            title="Topic Settings"
+                                        >
+                                            <Edit3 className="w-3 h-3 text-zinc-400" />
+                                            <span className="hidden sm:inline">Settings</span>
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={handleManualSave}
+                                            className={`flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg transition-all shadow-md cursor-pointer ${manualSaved
+                                                ? "bg-emerald-400 text-zinc-950 shadow-emerald-500/20"
+                                                : "bg-white hover:bg-zinc-200 text-zinc-950"
+                                                }`}
+                                        >
+                                            {manualSaved ? (
+                                                <>
+                                                    <CheckCircle2 className="w-3 h-3" />
+                                                    <span>Saved!</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Save className="w-3 h-3" />
+                                                    <span>Save Changes</span>
+                                                </>
+                                            )}
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setActiveTopic(null)}
+                                            className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-[#1E293B] border border-transparent hover:border-[#1E293B] transition-all cursor-pointer"
+                                            title="Back to Topics"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
                                     </div>
-                                </motion.div>
-                            );
-                        })}
-                    </div>
-                )}
-            </main>
+                                </div>
+
+                                {/* Progress Bar */}
+                                <div className="mt-2.5">
+                                    <div className="h-1 w-full bg-[#141923] rounded-full overflow-hidden border border-[#1E293B]/40">
+                                        <div
+                                            className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-emerald-400 transition-all duration-500"
+                                            style={{
+                                                width: `${Math.min(100, Math.max(15, activeTopic.sections.length * 20))}%`
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            </header>
+
+                            {/* Section Pill Tabs Bar (Top one - no side section sidebar!) */}
+                            <div className="shrink-0 px-3 py-1.5 sm:px-6 sm:py-2 border-b border-[#1E293B] bg-[#0E131E] flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar font-sans touch-pan-x">
+                                <div className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-500 uppercase tracking-wider shrink-0 mr-1">
+                                    <Layers className="w-3.5 h-3.5 text-cyan-400" />
+                                    <span className="hidden sm:inline">Sections:</span>
+                                </div>
+
+                                {activeTopic.sections.map((sec, idx) => {
+                                    const isActive = (currentSection?.id === sec.id);
+                                    const secWords = (sec.content || "").trim().split(/\s+/).filter(Boolean).length;
+                                    return (
+                                        <div
+                                            key={sec.id}
+                                            className={`group/pill flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl border text-xs transition-all shrink-0 cursor-pointer ${isActive
+                                                ? "bg-cyan-500/15 border-cyan-500/40 text-cyan-300 font-semibold shadow-sm"
+                                                : "bg-[#141923] border-[#1E293B] text-zinc-400 hover:text-zinc-200 hover:border-[#2E3C51]"
+                                                }`}
+                                            onClick={() => setActiveSectionId(sec.id)}
+                                        >
+                                            <span className={`w-4 h-4 rounded flex items-center justify-center text-[10px] font-mono shrink-0 ${isActive ? "bg-cyan-400 text-zinc-950 font-bold" : "bg-[#1E293B] text-zinc-400"
+                                                }`}>
+                                                {idx + 1}
+                                            </span>
+                                            <span className="truncate max-w-[120px] sm:max-w-[150px]">{sec.name}</span>
+                                            <span className="text-[10px] font-mono opacity-60">
+                                                {sec.type === "list" ? `${sec.items?.length || 0}i` : `${secWords}w`}
+                                            </span>
+
+                                            <div className="flex items-center gap-0.5 opacity-0 group-hover/pill:opacity-100 transition-opacity ml-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => renameSection(sec.id, sec.name, e)}
+                                                    className="p-0.5 text-zinc-500 hover:text-cyan-300 rounded"
+                                                    title="Rename Section"
+                                                >
+                                                    <Edit3 className="w-2.5 h-2.5" />
+                                                </button>
+                                                {activeTopic.sections.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => deleteSection(sec.id, sec.name, e)}
+                                                        className="p-0.5 text-zinc-500 hover:text-rose-400 rounded"
+                                                        title="Delete Section"
+                                                    >
+                                                        <Trash2 className="w-2.5 h-2.5" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+
+                                <button
+                                    type="button"
+                                    onClick={addSectionInsideTopic}
+                                    className="flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs font-semibold rounded-lg sm:rounded-xl border border-dashed border-[#1E293B] hover:border-cyan-500/40 bg-[#141923]/60 hover:bg-[#141923] text-zinc-400 hover:text-cyan-300 transition-all shrink-0 cursor-pointer"
+                                >
+                                    <Plus className="w-3 h-3" />
+                                    <span>New</span>
+                                </button>
+                            </div>
+
+                            {/* Section Content Canvas - Directly full width, NO side section sidebar! */}
+                            <main className="flex-1 overflow-y-auto px-2.5 sm:px-6 md:px-8 pb-16 md:pb-8 pt-2.5 sm:pt-4 bg-[#0B0F17]">
+                                {currentSection ? (
+                                    <div className="w-full max-w-7xl mx-auto">
+                                        {currentSection.type === "list" ? (
+                                            <div className="max-w-4xl mx-auto">
+                                                <div className="flex items-center gap-2 mb-4">
+                                                    <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
+                                                        Section
+                                                    </span>
+                                                    <span className="text-xs text-zinc-600">•</span>
+                                                    <h3 className="text-lg font-bold text-white tracking-tight">
+                                                        {currentSection.name}
+                                                    </h3>
+                                                </div>
+                                                <EditableListField
+                                                    label={currentSection.name}
+                                                    items={currentSection.items || []}
+                                                    onChange={(newItems) => updateActiveSectionItems(currentSection.id, newItems)}
+                                                    placeholder="Add list entry..."
+                                                />
+                                            </div>
+                                        ) : (
+                                            <IdeMarkdownEditor
+                                                label={currentSection.name}
+                                                value={currentSection.content || ""}
+                                                onChange={(newContent) => updateActiveSectionContent(currentSection.id, newContent)}
+                                                placeholder={`Write notes for ${currentSection.name}... Formatting tools are sticky and split preview synchronizes automatically.`}
+                                            />
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center h-full text-zinc-500 font-sans">
+                                        <p className="text-xs">Select a section from the tabs or click 'New Section'</p>
+                                    </div>
+                                )}
+                            </main>
+                        </motion.div>
+                    ) : (
+                        <motion.main
+                            key="gallery"
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -6 }}
+                            transition={{ duration: 0.15 }}
+                            className="flex-1 p-3.5 sm:p-6 md:p-8 pb-16 md:pb-8 overflow-y-auto"
+                        >
+                            {/* Header */}
+                            <header className="mb-6 hidden md:block font-sans">
+                                <div className="flex items-center gap-3 mb-1">
+                                    <div className="p-2 bg-white/5 border border-white/10 rounded-lg">
+                                        <StickyNote className="w-5 h-5 text-cyan-400" />
+                                    </div>
+                                    <div>
+                                        <h1 className="text-2xl font-bold tracking-tight text-white font-sans">Custom Knowledge Studio</h1>
+                                        <p className="text-zinc-400 mt-0.5 text-xs font-mono">
+                                            SYS.CUSTOM // {stats.total} topics • {stats.totalSections} sections
+                                        </p>
+                                    </div>
+                                </div>
+                            </header>
+
+                            {/* Stats Bar */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 mb-6 font-sans">
+                                {[
+                                    { label: "Total Topics", value: stats.total, icon: BookOpen, color: "text-white" },
+                                    { label: "Sections", value: stats.totalSections, icon: Layers, color: "text-violet-400" },
+                                    { label: "Favorites", value: stats.favorites, icon: Star, color: "text-amber-400" },
+                                    { label: "Total Words", value: stats.totalWords, icon: FileText, color: "text-emerald-400" },
+                                ].map((stat, i) => (
+                                    <div
+                                        key={i}
+                                        className="p-3 sm:p-4 rounded-xl border border-[#1E293B] bg-[#10141E] flex items-center justify-between shadow-lg"
+                                    >
+                                        <div>
+                                            <div className="text-[10px] text-zinc-500 font-mono font-bold tracking-wider uppercase mb-0.5">{stat.label}</div>
+                                            <div className="text-lg sm:text-2xl font-bold text-white font-mono tracking-tight">{stat.value}</div>
+                                        </div>
+                                        <div className="p-2 sm:p-2.5 rounded-lg bg-[#141923] border border-[#1E293B]">
+                                            <stat.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${stat.color}`} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Search & Action Row */}
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
+                                <div className="relative flex-1 max-w-md">
+                                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                                    <input
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        placeholder="Search topics, sections, keywords..."
+                                        className="w-full pl-10 pr-4 py-2.5 bg-[#10141E] border border-[#1E293B] rounded-xl text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-cyan-500/60 transition-all font-sans"
+                                    />
+                                    {searchQuery && (
+                                        <button
+                                            onClick={() => setSearchQuery("")}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={openCreateModal}
+                                    className="flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-zinc-950 text-xs font-bold rounded-xl transition-all shadow-lg shadow-cyan-500/20 active:scale-95 shrink-0 cursor-pointer"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    <span>New Topic</span>
+                                </button>
+                            </div>
+
+                            {/* Category Filter Pills matching DSA Notes */}
+                            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar mb-6 pb-1">
+                                {["All", "General", "System Design", "Interview", "Work & Study", "DevOps & Bugs", "Favorites"].map((cat) => {
+                                    const isSelected = cat === "Favorites" ? filterStatus === "Favorites" : filterCategory === cat && filterStatus === "All";
+                                    const count = cat === "All"
+                                        ? topics.length
+                                        : cat === "Favorites"
+                                            ? topics.filter(t => t.isFavorite).length
+                                            : topics.filter(t => (t.category || "General").toLowerCase() === cat.toLowerCase()).length;
+
+                                    return (
+                                        <button
+                                            key={cat}
+                                            type="button"
+                                            onClick={() => {
+                                                if (cat === "Favorites") {
+                                                    setFilterStatus("Favorites");
+                                                    setFilterCategory("All");
+                                                } else {
+                                                    setFilterStatus("All");
+                                                    setFilterCategory(cat);
+                                                }
+                                            }}
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${isSelected
+                                                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-semibold shadow-sm"
+                                                : "bg-[#10141E] text-zinc-400 hover:text-white border border-[#1E293B] hover:bg-[#141923]"
+                                                }`}
+                                        >
+                                            <span>{cat}</span>
+                                            <span className="px-1.5 py-0.2 rounded bg-[#141923] text-[10px] font-mono opacity-70">
+                                                {count}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Topics Grid matching DSA Notes Cards */}
+                            {filteredTopics.length === 0 ? (
+                                <div className="border border-dashed border-[#1E293B] rounded-2xl p-16 flex flex-col items-center justify-center text-center my-8 bg-[#10141E]/40">
+                                    <div className="w-14 h-14 rounded-2xl bg-white/[0.04] border border-[#1E293B] flex items-center justify-center mb-4 text-zinc-400">
+                                        <StickyNote className="w-7 h-7 text-cyan-400" />
+                                    </div>
+                                    <h3 className="text-base font-bold text-zinc-200">No custom topics found</h3>
+                                    <p className="text-xs text-zinc-500 mt-1 max-w-sm mb-6 font-medium">
+                                        {searchQuery ? "No topics match your search query." : "Create your first custom note topic with tailored sections and IDE editor!"}
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={openCreateModal}
+                                        className="flex items-center gap-2 px-5 py-2.5 bg-white text-zinc-950 font-bold text-xs rounded-xl shadow-lg hover:bg-zinc-200 transition-all cursor-pointer"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        <span>Create New Topic</span>
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                                    {filteredTopics.map((topic, index) => {
+                                        const totalWords = topic.sections.reduce((acc, sec) => {
+                                            const words = (sec.content || "").trim().split(/\s+/).filter(Boolean).length;
+                                            return acc + words;
+                                        }, 0);
+
+                                        return (
+                                            <motion.div
+                                                key={topic.id}
+                                                initial={{ opacity: 0, y: 15 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: index * 0.02, duration: 0.25 }}
+                                                onClick={() => openTopicDetail(topic)}
+                                                className="group relative text-left p-6 rounded-2xl border border-[#1E293B] bg-[#10141E] hover:bg-[#141923] hover:border-cyan-500/40 shadow-xl transition-all duration-300 cursor-pointer overflow-hidden flex flex-col justify-between font-sans"
+                                            >
+                                                {/* Subtle Gradient Accent */}
+                                                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl pointer-events-none" />
+
+                                                <div className="relative z-10">
+                                                    {/* Card Top Row */}
+                                                    <div className="flex items-start justify-between mb-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 bg-cyan-500/10 px-2.5 py-0.5 rounded border border-cyan-500/20 font-mono">
+                                                                {topic.category || "General"}
+                                                            </span>
+                                                            <span className="text-[10px] text-zinc-500 font-mono">
+                                                                #{topic.id.slice(-4)}
+                                                            </span>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100">
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => toggleFavorite(topic, e)}
+                                                                className="p-1.5 rounded-lg hover:bg-[#1E293B] text-zinc-500 hover:text-amber-400 transition-all cursor-pointer"
+                                                                title="Favorite"
+                                                            >
+                                                                {topic.isFavorite ? (
+                                                                    <Star className="w-4 h-4 text-amber-400 fill-current" />
+                                                                ) : (
+                                                                    <Star className="w-4 h-4" />
+                                                                )}
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => openEditModal(topic, e)}
+                                                                className="p-1.5 rounded-lg hover:bg-[#1E293B] text-zinc-500 hover:text-white transition-all cursor-pointer"
+                                                                title="Settings"
+                                                            >
+                                                                <Edit3 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => handleDeleteTopic(topic.id, e)}
+                                                                className="p-1.5 rounded-lg hover:bg-[#1E293B] text-zinc-500 hover:text-rose-400 transition-all cursor-pointer"
+                                                                title="Delete Topic"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Title */}
+                                                    <h3 className="text-base font-bold text-white mb-2 leading-snug group-hover:text-cyan-300 transition-colors tracking-tight">
+                                                        {topic.title}
+                                                    </h3>
+
+                                                    {/* Description */}
+                                                    {topic.description && (
+                                                        <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed mb-3">
+                                                            {topic.description}
+                                                        </p>
+                                                    )}
+
+                                                    {/* Section Badges */}
+                                                    <div className="flex flex-wrap gap-1.5 mt-2">
+                                                        {topic.sections.slice(0, 4).map((sec, idx) => (
+                                                            <span
+                                                                key={idx}
+                                                                className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-[#0B0F17] text-zinc-400 border border-[#1E293B] flex items-center gap-1 font-mono"
+                                                            >
+                                                                <Hash className="w-2.5 h-2.5 text-cyan-500/60" />
+                                                                {sec.name}
+                                                            </span>
+                                                        ))}
+                                                        {topic.sections.length > 4 && (
+                                                            <span className="text-[10px] font-semibold text-zinc-500 px-1 py-0.5 font-mono">
+                                                                +{topic.sections.length - 4} more
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Progress bar */}
+                                                <div className="relative z-10 mt-4 mb-2">
+                                                    <div className="h-1 w-full bg-[#0B0F17] rounded-full overflow-hidden border border-[#1E293B]/40">
+                                                        <div
+                                                            className="h-full rounded-full bg-cyan-400/80"
+                                                            style={{ width: `${Math.min(100, Math.max(20, topic.sections.length * 20))}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {/* Card Footer */}
+                                                <div className="relative z-10 pt-2 border-t border-[#1E293B]/50 flex items-center justify-between text-xs text-zinc-500 font-sans">
+                                                    <span className="font-mono text-[11px] text-zinc-400">
+                                                        {topic.sections.length} sections • {totalWords} words
+                                                    </span>
+                                                    <span className="flex items-center gap-1 text-cyan-400 group-hover:text-cyan-300 font-semibold text-xs transition-colors">
+                                                        Open Studio <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                                                    </span>
+                                                </div>
+                                            </motion.div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </motion.main>
+                    )}
+                </AnimatePresence>
+            </div>
 
             {/* ── Topic Creation / Settings Modal ─────────────────────────────── */}
             <AnimatePresence>
@@ -1634,186 +2009,6 @@ export default function CustomNotes() {
                 )}
             </AnimatePresence>
 
-            {/* ── Topic Detail & Section Notes Reader / Editor Modal ──────────── */}
-            <AnimatePresence>
-                {activeTopic && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex bg-zinc-950 overflow-hidden font-sans select-text"
-                    >
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.98, y: 10 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.98, y: 10 }}
-                            transition={{ type: "spring", damping: 30, stiffness: 400 }}
-                            className="w-full h-full flex flex-col overflow-hidden"
-                        >
-                            {/* Topic Detail Header */}
-                            <div className="border-b border-white/10 bg-zinc-950/80 px-6 py-4 flex items-center justify-between gap-4 shrink-0">
-                                <div className="flex items-center gap-3 min-w-0">
-                                    <button
-                                        type="button"
-                                        onClick={() => setActiveTopic(null)}
-                                        className="p-1.5 rounded-lg border border-white/10 bg-white/[0.02] text-zinc-400 hover:text-white transition-all flex items-center gap-1 text-xs font-semibold"
-                                    >
-                                        <ChevronLeft className="w-4 h-4" />
-                                        <span>Back</span>
-                                    </button>
-
-                                    <div className="min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <h2 className="text-base font-bold text-white tracking-tight truncate">
-                                                {activeTopic.title}
-                                            </h2>
-                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded border border-white/10 bg-white/5 text-zinc-400 uppercase tracking-wider">
-                                                {activeTopic.category || "General"}
-                                            </span>
-                                        </div>
-                                        {activeTopic.description && (
-                                            <p className="text-xs text-zinc-500 truncate max-w-xl">
-                                                {activeTopic.description}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => openEditModal(activeTopic)}
-                                        className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-white/10 bg-white/[0.04] text-zinc-300 hover:text-white hover:bg-white/[0.08] transition-all"
-                                    >
-                                        <Edit3 className="w-3.5 h-3.5" />
-                                        <span>Settings</span>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => setActiveTopic(null)}
-                                        className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/10 transition-all"
-                                    >
-                                        <X className="w-5 h-5" />
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Modal Body with Foldable Section Sidebar */}
-                            <div className="flex-1 flex overflow-hidden">
-                                {/* Inner Section Sidebar */}
-                                <aside
-                                    className={`border-r border-white/10 bg-zinc-950/90 flex flex-col shrink-0 transition-all duration-300 ease-in-out ${isSectionSidebarCollapsed ? "w-16 md:w-20" : "w-64 md:w-72"
-                                        }`}
-                                >
-                                    {/* Section Header with Fold Button */}
-                                    <div className="p-3 border-b border-white/10 flex items-center justify-between">
-                                        {!isSectionSidebarCollapsed && (
-                                            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                                                Sections ({activeTopic.sections.length})
-                                            </span>
-                                        )}
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsSectionSidebarCollapsed(prev => !prev)}
-                                            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-all ml-auto"
-                                            title={isSectionSidebarCollapsed ? "Expand Section Sidebar" : "Fold Section Sidebar"}
-                                        >
-                                            {isSectionSidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
-                                        </button>
-                                    </div>
-
-                                    {/* Section List Items */}
-                                    <div className="flex-1 p-2 space-y-1 overflow-y-auto">
-                                        {activeTopic.sections.map((sec, idx) => {
-                                            const isActive = (currentSection?.id === sec.id);
-                                            return (
-                                                <button
-                                                    key={sec.id}
-                                                    type="button"
-                                                    onClick={() => setActiveSectionId(sec.id)}
-                                                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all relative group ${isActive
-                                                        ? "bg-white text-zinc-950 font-bold shadow-lg"
-                                                        : "text-zinc-400 hover:text-white hover:bg-white/[0.05]"
-                                                        }`}
-                                                >
-                                                    <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-mono shrink-0 ${isActive ? "bg-zinc-950 text-white font-bold" : "bg-white/10 text-zinc-400"}`}>
-                                                        {idx + 1}
-                                                    </span>
-                                                    {!isSectionSidebarCollapsed && (
-                                                        <div className="flex-1 min-w-0">
-                                                            <span className="text-xs truncate block">
-                                                                {sec.name}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                    {/* Tooltip in collapsed mode */}
-                                                    {isSectionSidebarCollapsed && (
-                                                        <div className="absolute left-full ml-2 px-2.5 py-1 bg-zinc-900 text-white text-xs font-medium rounded-md shadow-xl border border-white/10 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                                                            {sec.name}
-                                                        </div>
-                                                    )}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-
-                                    {/* Add Section Button */}
-                                    <div className="p-3 border-t border-white/10">
-                                        <button
-                                            type="button"
-                                            onClick={addSectionInsideTopic}
-                                            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold border border-dashed border-white/20 text-zinc-300 hover:text-white hover:bg-white/[0.05] transition-all"
-                                        >
-                                            <Plus className="w-3.5 h-3.5" />
-                                            {!isSectionSidebarCollapsed && <span>Add Section</span>}
-                                        </button>
-                                    </div>
-                                </aside>
-
-                                {/* Section Content Area */}
-                                <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-zinc-950">
-                                    {currentSection ? (
-                                        <div className="max-w-5xl mx-auto">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
-                                                        Section
-                                                    </span>
-                                                    <span className="text-xs text-zinc-600">•</span>
-                                                    <h3 className="text-lg font-bold text-white tracking-tight">
-                                                        {currentSection.name}
-                                                    </h3>
-                                                </div>
-                                            </div>
-
-                                            {currentSection.type === "list" ? (
-                                                <EditableListField
-                                                    label={currentSection.name}
-                                                    items={currentSection.items || []}
-                                                    onChange={(newItems) => updateActiveSectionItems(currentSection.id, newItems)}
-                                                    placeholder="Add list entry..."
-                                                />
-                                            ) : (
-                                                <PaginatedNotesBlock
-                                                    label={currentSection.name}
-                                                    value={currentSection.content || ""}
-                                                    onChange={(newContent) => updateActiveSectionContent(currentSection.id, newContent)}
-                                                    placeholder={`Write notes for ${currentSection.name}... Click 'Edit' to start.`}
-                                                />
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <div className="flex flex-col items-center justify-center h-full text-zinc-500">
-                                            <p className="text-xs">Select a section from the sidebar or click 'Add Section'</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
     );
 }

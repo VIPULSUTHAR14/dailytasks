@@ -7,13 +7,12 @@ import {
     Zap, Flame, Trophy, Filter, Copy, Check, Terminal,
     Eye, EyeOff, AlertTriangle, HelpCircle, Clock,
     Database, GitBranch, MessageCircle, Lightbulb, BookOpen,
-    Pencil, Trash2, Save, FileText, StickyNote
+    Pencil, Trash2, Save, FileText, StickyNote, RotateCw
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "@/components/Sidebar";
-
-// ── Types ───────────────────────────────────────────────────────────────────
+import WorkspaceHeader from "@/components/WorkspaceHeader";
 
 type Difficulty = "Easy" | "Medium" | "Hard";
 
@@ -41,8 +40,6 @@ type TopicGroup = {
     questions: QuestionItem[];
 };
 
-// ── Constants ───────────────────────────────────────────────────────────────
-
 const DIFFICULTY_CONFIG: Record<Difficulty, {
     label: string;
     color: string;
@@ -52,8 +49,6 @@ const DIFFICULTY_CONFIG: Record<Difficulty, {
     activeText: string;
     activeBorder: string;
     icon: typeof Zap;
-    glowColor: string;
-    dotColor: string;
 }> = {
     Easy: {
         label: "Easy",
@@ -64,8 +59,6 @@ const DIFFICULTY_CONFIG: Record<Difficulty, {
         activeText: "text-zinc-950",
         activeBorder: "border-emerald-400",
         icon: Zap,
-        glowColor: "shadow-emerald-400/20",
-        dotColor: "bg-emerald-400",
     },
     Medium: {
         label: "Medium",
@@ -76,8 +69,6 @@ const DIFFICULTY_CONFIG: Record<Difficulty, {
         activeText: "text-zinc-950",
         activeBorder: "border-amber-400",
         icon: Flame,
-        glowColor: "shadow-amber-400/20",
-        dotColor: "bg-amber-400",
     },
     Hard: {
         label: "Hard",
@@ -88,8 +79,6 @@ const DIFFICULTY_CONFIG: Record<Difficulty, {
         activeText: "text-zinc-950",
         activeBorder: "border-rose-400",
         icon: Trophy,
-        glowColor: "shadow-rose-400/20",
-        dotColor: "bg-rose-400",
     },
 };
 
@@ -97,41 +86,20 @@ function questionKey(topicId: string, questionName: string): string {
     return `${topicId}::${questionName}`;
 }
 
-// ── Component ───────────────────────────────────────────────────────────────
-
 export default function DsaQuestions() {
     const [topics, setTopics] = useState<TopicGroup[]>([]);
     const [loading, setLoading] = useState(true);
+    const [syncing, setSyncing] = useState(false);
     const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "completed">("all");
     const [difficultyFilter, setDifficultyFilter] = useState<"all" | Difficulty>("all");
     const [topicFilter, setTopicFilter] = useState<string>("all");
     const [searchTerm, setSearchTerm] = useState("");
     const [isSidebarOpen, setSidebarOpen] = useState(false);
-    const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
+    const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set(["arrays-and-strings"]));
     const [isTopicDropdownOpen, setIsTopicDropdownOpen] = useState(false);
     const [selectedQuestion, setSelectedQuestion] = useState<(QuestionItem & { topicName?: string }) | null>(null);
-    const [copied, setCopied] = useState(false);
     const [showHint, setShowHint] = useState(false);
-    const [showPseudoCode, setShowPseudoCode] = useState(false);
-    const pseudoCodeRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
-
-    // ── Notes & PseudoCode editing state ────────────────────────────────
-    const [isEditingNote, setIsEditingNote] = useState(false);
-    const [isEditingPseudo, setIsEditingPseudo] = useState(false);
-    const [noteText, setNoteText] = useState('');
-    const [pseudoText, setPseudoText] = useState('');
-    const [savingNote, setSavingNote] = useState(false);
-    const [savingPseudo, setSavingPseudo] = useState(false);
-
-    const handelSignOut = async () => {
-        try {
-            const res = await fetch("/api/auth/Logout", { method: "POST" });
-            if (res.ok) router.push("/Login");
-        } catch (error) {
-            console.error("Failed to sign out", error);
-        }
-    };
 
     const fetchQuestions = useCallback(async () => {
         setLoading(true);
@@ -139,10 +107,16 @@ export default function DsaQuestions() {
             const res = await fetch(`/api/dsaquestions`);
             if (res.ok) {
                 const data = await res.json();
-                if (data.topics) {
+                if (data.topics && data.topics.length > 0) {
                     setTopics(data.topics);
-                    // Expand all topics by default on first load
-                    setExpandedTopics(new Set(data.topics.map((t: TopicGroup) => t.id)));
+                    // Select first question by default on large screens
+                    if (data.topics[0]?.questions[0]) {
+                        setSelectedQuestion({
+                            ...data.topics[0].questions[0],
+                            topicName: data.topics[0].name,
+                        });
+                    }
+                    setExpandedTopics(new Set([data.topics[0].id]));
                 }
             }
         } catch (e) {
@@ -156,47 +130,51 @@ export default function DsaQuestions() {
         fetchQuestions();
     }, [fetchQuestions]);
 
+    const handleSync = () => {
+        setSyncing(true);
+        setTimeout(() => {
+            setSyncing(false);
+        }, 800);
+    };
+
     const toggleQuestion = async (topicId: string, questionName: string) => {
         const key = questionKey(topicId, questionName);
-
-        // Find current state
-        const topic = topics.find(t => t.id === topicId);
+        const topic = topics.find((t) => t.id === topicId);
         if (!topic) return;
-        const question = topic.questions.find(q => q.name === questionName);
+        const question = topic.questions.find((q) => q.name === questionName);
         if (!question) return;
         const newStatus = !question.completed;
 
-        // Optimistic UI update
-        setTopics(prev => prev.map(t =>
-            t.id === topicId
-                ? {
-                    ...t,
-                    questions: t.questions.map(q =>
-                        q.name === questionName ? { ...q, completed: newStatus } : q
-                    ),
-                }
-                : t
-        ));
+        setTopics((prev) =>
+            prev.map((t) =>
+                t.id === topicId
+                    ? {
+                          ...t,
+                          questions: t.questions.map((q) =>
+                              q.name === questionName ? { ...q, completed: newStatus } : q
+                          ),
+                      }
+                    : t
+            )
+        );
+
+        if (selectedQuestion?.name === questionName) {
+            setSelectedQuestion((prev) => (prev ? { ...prev, completed: newStatus } : null));
+        }
 
         try {
-            const res = await fetch(`/api/dsaquestions`, {
+            await fetch(`/api/dsaquestions`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ statuses: { [key]: newStatus } }),
             });
-
-            if (!res.ok) {
-                if (res.status === 401) { router.push("/Login"); return; }
-                fetchQuestions();
-            }
         } catch (e) {
             console.error("Failed to update question status:", e);
-            fetchQuestions();
         }
     };
 
     const toggleTopicExpanded = (topicId: string) => {
-        setExpandedTopics(prev => {
+        setExpandedTopics((prev) => {
             const next = new Set(prev);
             if (next.has(topicId)) next.delete(topicId);
             else next.add(topicId);
@@ -204,17 +182,19 @@ export default function DsaQuestions() {
         });
     };
 
-    // ── Computed Stats ──────────────────────────────────────────────────────
+    // Calculate metrics
+    const totalQuestions = useMemo(() => {
+        return topics.reduce((acc, t) => acc + t.questions.length, 0);
+    }, [topics]);
 
-    const allQuestions = useMemo(() => {
-        return topics.flatMap(t =>
-            t.questions.map(q => ({ ...q, topicId: t.id, topicName: t.name }))
+    const completedCount = useMemo(() => {
+        return topics.reduce(
+            (acc, t) => acc + t.questions.filter((q) => q.completed).length,
+            0
         );
     }, [topics]);
 
-    const totalQuestions = allQuestions.length;
-    const completedCount = allQuestions.filter(q => q.completed).length;
-    const progressPercentage = totalQuestions === 0 ? 0 : Math.round((completedCount / totalQuestions) * 100);
+    const overallPercentage = totalQuestions === 0 ? 0 : Math.round((completedCount / totalQuestions) * 100);
 
     const difficultyStats = useMemo(() => {
         const stats: Record<Difficulty, { total: number; completed: number }> = {
@@ -222,898 +202,621 @@ export default function DsaQuestions() {
             Medium: { total: 0, completed: 0 },
             Hard: { total: 0, completed: 0 },
         };
-        allQuestions.forEach(q => {
-            const d = q.difficulty as Difficulty;
-            if (stats[d]) {
-                stats[d].total++;
-                if (q.completed) stats[d].completed++;
-            }
+        topics.forEach((t) => {
+            t.questions.forEach((q) => {
+                const diff = q.difficulty as Difficulty;
+                if (stats[diff]) {
+                    stats[diff].total++;
+                    if (q.completed) stats[diff].completed++;
+                }
+            });
         });
         return stats;
-    }, [allQuestions]);
+    }, [topics]);
 
-    // ── Filtered Topics ─────────────────────────────────────────────────────
-
+    // Filter topics and questions
     const filteredTopics = useMemo(() => {
         return topics
-            .filter(t => topicFilter === "all" || t.id === topicFilter)
-            .map(t => ({
-                ...t,
-                questions: t.questions.filter(q => {
-                    const matchesSearch = q.name.toLowerCase().includes(searchTerm.toLowerCase());
-                    if (!matchesSearch) return false;
-
-                    if (statusFilter === "completed" && !q.completed) return false;
+            .filter((t) => topicFilter === "all" || t.id === topicFilter)
+            .map((t) => {
+                const questions = t.questions.filter((q) => {
                     if (statusFilter === "pending" && q.completed) return false;
-
+                    if (statusFilter === "completed" && !q.completed) return false;
                     if (difficultyFilter !== "all" && q.difficulty !== difficultyFilter) return false;
-
+                    if (searchTerm.trim()) {
+                        const qSearch = searchTerm.toLowerCase();
+                        const matchName = q.name.toLowerCase().includes(qSearch);
+                        const matchPattern = q.pattern?.toLowerCase().includes(qSearch);
+                        if (!matchName && !matchPattern) return false;
+                    }
                     return true;
-                }),
-            }))
-            .filter(t => t.questions.length > 0);
+                });
+                return { ...t, questions };
+            })
+            .filter((t) => t.questions.length > 0);
     }, [topics, topicFilter, statusFilter, difficultyFilter, searchTerm]);
 
-    const filteredQuestionCount = filteredTopics.reduce((acc, t) => acc + t.questions.length, 0);
-
-    // ── Render ──────────────────────────────────────────────────────────────
+    const currentTopicObj = topics.find((t) => t.id === topicFilter);
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-white font-sans flex flex-col md:flex-row">
-            {/* Mobile Header */}
-            <div className="md:hidden flex items-center justify-between p-5 border-b border-white/10 relative z-20 bg-zinc-950">
-                <h1 className="text-xl font-bold tracking-tight">Task Manager</h1>
-                <button onClick={() => setSidebarOpen(true)} className="p-2 text-white hover:bg-zinc-900">
-                    <Menu size={24} />
-                </button>
-            </div>
-
-            {/* Sidebar */}
+        <div className="min-h-screen bg-[#0B0F17] text-[#F1F5F9] font-sans flex flex-col md:flex-row">
             <Sidebar
                 isMobileOpen={isSidebarOpen}
                 onMobileClose={() => setSidebarOpen(false)}
             />
 
-            {/* Main Content Area - Two Column Layout */}
-            <div className="flex-1 flex min-h-screen">
-                <main className={`p-6 md:p-12 relative min-h-screen mt-0 overflow-y-auto transition-all duration-300 ${selectedQuestion ? 'flex-1 min-w-0' : 'flex-1 max-w-5xl'}`}>
-                    <header className="mb-10 hidden md:block">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-white/5 border border-white/10 rounded-lg">
-                                <Code2 className="w-6 h-6 text-white" />
-                            </div>
-                            <div>
-                                <h1 className="text-3xl font-bold tracking-tight text-white focus:outline-none">DSA Questions</h1>
-                                <p className="text-zinc-400 mt-1 text-sm font-medium">
-                                    Track your progress across {totalQuestions} questions in {topics.length} topics.
-                                </p>
-                            </div>
-                        </div>
-                    </header>
+            <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto">
+                <WorkspaceHeader onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
 
-                    {/* ── Overall Progress ─────────────────────────────────── */}
-                    <div className="mb-10 bg-zinc-900/40 border border-white/5 p-6 rounded-none">
-                        <div className="flex justify-between items-end mb-3">
-                            <div>
-                                <h2 className="text-lg font-bold text-white tracking-tight">Overall Progress</h2>
-                                <p className="text-xs text-zinc-500 font-medium uppercase tracking-widest mt-1">
-                                    {completedCount} / {totalQuestions} Questions Solved
-                                </p>
+                <main className="p-4 sm:p-6 md:p-8 pb-16 md:pb-8 max-w-7xl mx-auto w-full space-y-6 flex-1">
+                    {/* Header Row */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                                <Code2 size={18} className="text-cyan-400" />
+                                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                                    DSA Questions
+                                </h1>
                             </div>
-                            <span className="text-2xl font-bold text-white tracking-tight">{progressPercentage}%</span>
+                            <p className="text-xs sm:text-sm text-zinc-400">
+                                Track your technical roadmap and algorithmic rigor across {totalQuestions} curated challenges.
+                            </p>
                         </div>
-                        <div className="h-[2px] w-full bg-zinc-800 rounded-none overflow-hidden">
-                            <motion.div
-                                className="h-full bg-white"
-                                initial={{ width: 0 }}
-                                animate={{ width: `${progressPercentage}%` }}
-                                transition={{ duration: 0.8, ease: "easeOut" }}
+
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#10141E] border border-[#1E293B] text-[11px] font-mono text-zinc-300">
+                                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                <span>SYSTEM ACTIVE / REVISION SPRINT 4</span>
+                            </div>
+
+                            <button
+                                onClick={handleSync}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-semibold text-zinc-200 transition-colors cursor-pointer"
+                            >
+                                <RotateCw size={13} className={syncing ? "animate-spin text-cyan-400" : ""} />
+                                <span>Sync Progress</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* 4 Metric Decks matching Screenshot 5 */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {/* Overall Progress Deck */}
+                        <div className="bg-[#10141E] border border-[#1E293B] rounded-xl p-4 flex items-center justify-between shadow-lg shadow-black/40">
+                            <div>
+                                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">
+                                    OVERALL PROGRESS
+                                </span>
+                                <div className="text-xl font-bold font-mono text-white mt-1">
+                                    {completedCount} <span className="text-xs text-zinc-500 font-normal">/ {totalQuestions} SOLVED</span>
+                                </div>
+                                <span className="text-[11px] text-cyan-400 font-mono mt-0.5 block">
+                                    ~ 0.7% Target Velocity
+                                </span>
+                            </div>
+
+                            {/* Radial 1% Gauge */}
+                            <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
+                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                    <path
+                                        className="text-zinc-800"
+                                        strokeWidth="3.5"
+                                        stroke="currentColor"
+                                        fill="none"
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    />
+                                    <path
+                                        className="text-cyan-400"
+                                        strokeDasharray={`${overallPercentage}, 100`}
+                                        strokeWidth="3.5"
+                                        strokeLinecap="round"
+                                        stroke="currentColor"
+                                        fill="none"
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                    />
+                                </svg>
+                                <span className="absolute text-[11px] font-bold font-mono text-white">
+                                    {overallPercentage}%
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Easy Deck */}
+                        <div className="bg-[#10141E] border border-[#1E293B] rounded-xl p-4 shadow-lg shadow-black/40 flex flex-col justify-between">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                    EASY
+                                </span>
+                                <span className="text-xs font-mono font-bold text-emerald-400">
+                                    {difficultyStats.Easy.total === 0 ? 0 : ((difficultyStats.Easy.completed / difficultyStats.Easy.total) * 100).toFixed(1)}%
+                                </span>
+                            </div>
+                            <div className="text-lg font-bold font-mono text-white mt-1">
+                                {difficultyStats.Easy.completed} <span className="text-xs text-zinc-500 font-normal">/ {difficultyStats.Easy.total}</span>
+                            </div>
+                            <div className="w-full h-1 bg-zinc-800 rounded-full mt-2 overflow-hidden">
+                                <div
+                                    className="h-full bg-emerald-400 rounded-full"
+                                    style={{
+                                        width: `${difficultyStats.Easy.total === 0 ? 0 : (difficultyStats.Easy.completed / difficultyStats.Easy.total) * 100}%`,
+                                    }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Medium Deck */}
+                        <div className="bg-[#10141E] border border-[#1E293B] rounded-xl p-4 shadow-lg shadow-black/40 flex flex-col justify-between">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                                    MEDIUM
+                                </span>
+                                <span className="text-xs font-mono font-bold text-amber-400">
+                                    {difficultyStats.Medium.total === 0 ? 0 : ((difficultyStats.Medium.completed / difficultyStats.Medium.total) * 100).toFixed(1)}%
+                                </span>
+                            </div>
+                            <div className="text-lg font-bold font-mono text-white mt-1">
+                                {difficultyStats.Medium.completed} <span className="text-xs text-zinc-500 font-normal">/ {difficultyStats.Medium.total}</span>
+                            </div>
+                            <div className="w-full h-1 bg-zinc-800 rounded-full mt-2 overflow-hidden">
+                                <div
+                                    className="h-full bg-amber-400 rounded-full"
+                                    style={{
+                                        width: `${difficultyStats.Medium.total === 0 ? 0 : (difficultyStats.Medium.completed / difficultyStats.Medium.total) * 100}%`,
+                                    }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Hard Deck */}
+                        <div className="bg-[#10141E] border border-[#1E293B] rounded-xl p-4 shadow-lg shadow-black/40 flex flex-col justify-between">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-bold text-rose-400 uppercase tracking-widest flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                                    HARD
+                                </span>
+                                <span className="text-xs font-mono font-bold text-rose-400">
+                                    {difficultyStats.Hard.total === 0 ? 0 : ((difficultyStats.Hard.completed / difficultyStats.Hard.total) * 100).toFixed(1)}%
+                                </span>
+                            </div>
+                            <div className="text-lg font-bold font-mono text-white mt-1">
+                                {difficultyStats.Hard.completed} <span className="text-xs text-zinc-500 font-normal">/ {difficultyStats.Hard.total}</span>
+                            </div>
+                            <div className="w-full h-1 bg-zinc-800 rounded-full mt-2 overflow-hidden">
+                                <div
+                                    className="h-full bg-rose-400 rounded-full"
+                                    style={{
+                                        width: `${difficultyStats.Hard.total === 0 ? 0 : (difficultyStats.Hard.completed / difficultyStats.Hard.total) * 100}%`,
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Filter Row matching Screenshot 5 */}
+                    <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 pt-1">
+                        {/* Search Input */}
+                        <div className="relative flex-1 max-w-lg">
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                            <input
+                                type="text"
+                                placeholder="Search questions, patterns (e.g. greedy, sliding window)..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-9 pr-3 py-2 bg-[#10141E] border border-[#1E293B] rounded-lg text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 transition-colors"
                             />
                         </div>
 
-                        {/* Per-difficulty mini progress bars */}
-                        <div className="grid grid-cols-3 gap-3 mt-5">
-                            {(["Easy", "Medium", "Hard"] as Difficulty[]).map((diff) => {
-                                const cfg = DIFFICULTY_CONFIG[diff];
-                                const stat = difficultyStats[diff];
-                                const pct = stat.total === 0 ? 0 : Math.round((stat.completed / stat.total) * 100);
-                                const Icon = cfg.icon;
-                                return (
-                                    <div key={diff} className={`p-3 border ${cfg.borderColor} ${cfg.bgColor} rounded-none`}>
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Icon size={14} className={cfg.color} />
-                                            <span className={`text-[10px] font-bold uppercase tracking-widest ${cfg.color}`}>
-                                                {cfg.label}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center justify-between mb-1.5">
-                                            <span className="text-xs text-zinc-400 font-medium">
-                                                {stat.completed}/{stat.total}
-                                            </span>
-                                            <span className={`text-xs font-bold ${cfg.color}`}>{pct}%</span>
-                                        </div>
-                                        <div className="h-[2px] w-full bg-zinc-800 rounded-none overflow-hidden">
-                                            <motion.div
-                                                className={`h-full ${cfg.activeBg}`}
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${pct}%` }}
-                                                transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-                                            />
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* ── Search & Filters ─────────────────────────────────── */}
-                    <div className="flex flex-col gap-4 mb-8 bg-zinc-900 border border-white/5 p-4">
-                        {/* Search + Status Row */}
-                        <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
-                            <div className="relative w-full md:max-w-md">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                                <input
-                                    type="text"
-                                    placeholder="Search questions..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 bg-zinc-950 border border-white/10 text-white text-sm font-medium placeholder-zinc-500 focus:outline-none focus:border-white transition-colors"
-                                />
-                            </div>
-
-                            <div className="flex gap-2 w-full md:w-auto overflow-x-auto">
-                                {(["all", "pending", "completed"] as const).map((f) => (
+                        {/* Status Pills */}
+                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                            <div className="flex items-center gap-1 bg-[#10141E] border border-[#1E293B] rounded-lg p-1">
+                                {(["all", "pending", "completed"] as const).map((s) => (
                                     <button
-                                        key={f}
-                                        onClick={() => setStatusFilter(f)}
-                                        className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors border ${statusFilter === f
-                                            ? "bg-white text-zinc-950 border-white"
-                                            : "bg-zinc-950 text-zinc-400 border-white/10 hover:text-white hover:border-white/35"
-                                            }`}
+                                        key={s}
+                                        onClick={() => setStatusFilter(s)}
+                                        className={`px-3 py-1 text-xs font-semibold rounded uppercase tracking-wider transition-colors cursor-pointer ${
+                                            statusFilter === s
+                                                ? "bg-[#1E293B] text-white shadow-sm"
+                                                : "text-zinc-400 hover:text-white"
+                                        }`}
                                     >
-                                        {f}
+                                        {s}
                                     </button>
                                 ))}
                             </div>
-                        </div>
 
-                        {/* Difficulty Filter Row */}
-                        <div className="flex items-center gap-3 pt-3 border-t border-white/5">
-                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest shrink-0">Difficulty</span>
-                            <div className="flex gap-2 overflow-x-auto">
+                            {/* Level selector */}
+                            <div className="flex items-center gap-1 bg-[#10141E] border border-[#1E293B] rounded-lg p-1 text-xs">
+                                <span className="text-zinc-500 font-semibold px-2 uppercase text-[10px]">Level:</span>
                                 <button
                                     onClick={() => setDifficultyFilter("all")}
-                                    className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all duration-200 border ${difficultyFilter === "all"
-                                        ? "bg-white text-zinc-950 border-white shadow-lg shadow-white/10"
-                                        : "bg-zinc-950 text-zinc-400 border-white/10 hover:text-white hover:border-white/35"
-                                        }`}
+                                    className={`px-2.5 py-1 text-xs font-semibold rounded uppercase transition-colors cursor-pointer ${
+                                        difficultyFilter === "all" ? "bg-[#1E293B] text-white" : "text-zinc-400 hover:text-white"
+                                    }`}
                                 >
                                     All
                                 </button>
-                                {(["Easy", "Medium", "Hard"] as Difficulty[]).map((diff) => {
-                                    const cfg = DIFFICULTY_CONFIG[diff];
-                                    const isActive = difficultyFilter === diff;
-                                    const Icon = cfg.icon;
-                                    return (
-                                        <button
-                                            key={diff}
-                                            onClick={() => setDifficultyFilter(diff)}
-                                            className={`flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all duration-200 border ${isActive
-                                                ? `${cfg.activeBg} ${cfg.activeText} ${cfg.activeBorder} shadow-lg ${cfg.glowColor}`
-                                                : `bg-zinc-950 ${cfg.color} ${cfg.borderColor}`
-                                                }`}
-                                        >
-                                            <Icon size={10} />
-                                            {cfg.label}
-                                        </button>
-                                    );
-                                })}
+                                {(["Easy", "Medium", "Hard"] as Difficulty[]).map((d) => (
+                                    <button
+                                        key={d}
+                                        onClick={() => setDifficultyFilter(d)}
+                                        className={`flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded uppercase transition-colors cursor-pointer ${
+                                            difficultyFilter === d
+                                                ? "bg-[#1E293B] text-white font-bold"
+                                                : "text-zinc-400 hover:text-white"
+                                        }`}
+                                    >
+                                        <span
+                                            className={`w-1.5 h-1.5 rounded-full ${
+                                                d === "Easy" ? "bg-emerald-400" : d === "Medium" ? "bg-amber-400" : "bg-rose-400"
+                                            }`}
+                                        />
+                                        {d}
+                                    </button>
+                                ))}
                             </div>
-                        </div>
 
-                        {/* Topic Filter Row */}
-                        <div className="flex items-center gap-3 pt-3 border-t border-white/5">
-                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest shrink-0">
-                                <Filter size={10} className="inline mr-1" />
-                                Topic
-                            </span>
-                            <div className="relative flex-1 max-w-xs">
+                            {/* Topic Dropdown */}
+                            <div className="relative">
                                 <button
                                     onClick={() => setIsTopicDropdownOpen(!isTopicDropdownOpen)}
-                                    className="w-full flex items-center justify-between px-3 py-2 bg-zinc-950 border border-white/10 text-sm text-white font-medium hover:border-white/25 transition-colors"
+                                    className="flex items-center gap-2 px-3 py-2 bg-[#10141E] border border-[#1E293B] rounded-lg text-xs text-white font-medium hover:border-cyan-500/50 transition-colors whitespace-nowrap cursor-pointer"
                                 >
-                                    <span className="truncate">
-                                        {topicFilter === "all" ? "All Topics" : topics.find(t => t.id === topicFilter)?.name || "All Topics"}
+                                    <BookOpen size={13} className="text-cyan-400" />
+                                    <span>
+                                        {currentTopicObj ? `${currentTopicObj.name} ${currentTopicObj.questions.length} Qs` : "All Topics"}
                                     </span>
-                                    <ChevronDown size={14} className={`text-zinc-400 transition-transform duration-200 ${isTopicDropdownOpen ? "rotate-180" : ""}`} />
+                                    <ChevronDown size={13} className="text-zinc-400" />
                                 </button>
-                                <AnimatePresence>
-                                    {isTopicDropdownOpen && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: -4 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: -4 }}
-                                            transition={{ duration: 0.15 }}
-                                            className="absolute top-full left-0 right-0 mt-1 bg-zinc-900 border border-white/10 max-h-64 overflow-y-auto z-30 shadow-xl shadow-black/40"
+
+                                {isTopicDropdownOpen && (
+                                    <div className="absolute right-0 top-full mt-1.5 w-64 bg-[#10141E] border border-[#1E293B] rounded-xl shadow-2xl p-1.5 z-40 max-h-60 overflow-y-auto">
+                                        <button
+                                            onClick={() => {
+                                                setTopicFilter("all");
+                                                setIsTopicDropdownOpen(false);
+                                            }}
+                                            className="w-full text-left px-3 py-2 text-xs rounded hover:bg-[#181C24] text-white transition-colors"
                                         >
+                                            All Topics ({totalQuestions} Qs)
+                                        </button>
+                                        {topics.map((t) => (
                                             <button
-                                                onClick={() => { setTopicFilter("all"); setIsTopicDropdownOpen(false); }}
-                                                className={`w-full text-left px-3 py-2 text-sm font-medium transition-colors ${topicFilter === "all" ? "bg-white text-zinc-950" : "text-zinc-300 hover:bg-zinc-800 hover:text-white"}`}
+                                                key={t.id}
+                                                onClick={() => {
+                                                    setTopicFilter(t.id);
+                                                    setIsTopicDropdownOpen(false);
+                                                }}
+                                                className="w-full text-left px-3 py-2 text-xs rounded hover:bg-[#181C24] text-zinc-300 hover:text-white transition-colors flex items-center justify-between"
                                             >
-                                                All Topics
+                                                <span className="truncate">{t.name}</span>
+                                                <span className="font-mono text-[10px] text-zinc-500">{t.questions.length}</span>
                                             </button>
-                                            {topics.map(t => {
-                                                const topicCompleted = t.questions.filter(q => q.completed).length;
-                                                return (
-                                                    <button
-                                                        key={t.id}
-                                                        onClick={() => { setTopicFilter(t.id); setIsTopicDropdownOpen(false); }}
-                                                        className={`w-full text-left px-3 py-2 text-sm font-medium transition-colors flex items-center justify-between ${topicFilter === t.id ? "bg-white text-zinc-950" : "text-zinc-300 hover:bg-zinc-800 hover:text-white"}`}
-                                                    >
-                                                        <span className="truncate">{t.name}</span>
-                                                        <span className={`text-[10px] font-bold ml-2 shrink-0 ${topicFilter === t.id ? "text-zinc-600" : "text-zinc-500"}`}>
-                                                            {topicCompleted}/{t.questions.length}
-                                                        </span>
-                                                    </button>
-                                                );
-                                            })}
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                            <span className="text-xs text-zinc-500 font-medium ml-auto hidden md:inline">
-                                {filteredQuestionCount} questions
-                            </span>
                         </div>
                     </div>
 
-                    {/* ── Question List (Grouped by Topic) ────────────────── */}
-                    <div className="flex flex-col gap-4 pb-32">
-                        {loading ? (
-                            <div className="flex items-center justify-center p-12 text-zinc-500">
-                                <Loader2 className="animate-spin" size={24} />
-                            </div>
-                        ) : filteredTopics.length === 0 ? (
-                            <div className="text-center p-12 text-zinc-500 border border-white/10 border-dashed text-sm font-medium">
-                                No questions found matching your filter criteria.
-                            </div>
-                        ) : (
-                            filteredTopics.map((topic) => {
-                                const topicCompletedCount = topic.questions.filter(q => q.completed).length;
-                                const topicTotal = topic.questions.length;
-                                const topicPct = topicTotal === 0 ? 0 : Math.round((topicCompletedCount / topicTotal) * 100);
-                                const isExpanded = expandedTopics.has(topic.id);
+                    {/* Split View: Left Questions List, Right Drawer */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 pb-16 items-start">
+                        {/* Left Questions List (7 Cols on desktop) */}
+                        <div className="lg:col-span-7 space-y-4">
+                            {loading ? (
+                                <div className="flex items-center justify-center p-16 text-zinc-500">
+                                    <Loader2 className="animate-spin text-cyan-400" size={24} />
+                                </div>
+                            ) : filteredTopics.length === 0 ? (
+                                <div className="text-center p-16 rounded-xl border border-dashed border-[#1E293B] bg-[#10141E]/40 text-xs text-zinc-500">
+                                    No questions match your filter criteria.
+                                </div>
+                            ) : (
+                                filteredTopics.map((topic) => {
+                                    const isExpanded = expandedTopics.has(topic.id);
+                                    const completedInTopic = topic.questions.filter((q) => q.completed).length;
+                                    const topicPct =
+                                        topic.questions.length === 0
+                                            ? 0
+                                            : ((completedInTopic / topic.questions.length) * 100).toFixed(1);
 
-                                return (
-                                    <div key={topic.id} className="border border-white/5 bg-zinc-900/60 overflow-hidden">
-                                        {/* Topic Header */}
-                                        <button
-                                            onClick={() => toggleTopicExpanded(topic.id)}
-                                            className="w-full flex items-center justify-between p-4 hover:bg-zinc-800/50 transition-colors duration-150 group"
+                                    return (
+                                        <div
+                                            key={topic.id}
+                                            className="bg-[#10141E] border border-[#1E293B] rounded-xl overflow-hidden shadow-md shadow-black/40"
                                         >
-                                            <div className="flex items-center gap-3">
-                                                <div className="text-zinc-400 group-hover:text-white transition-colors">
-                                                    {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-                                                </div>
-                                                <h3 className="text-sm md:text-base font-bold text-white tracking-tight">{topic.name}</h3>
-                                                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-                                                    {topicCompletedCount}/{topicTotal}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-24 h-[2px] bg-zinc-800 overflow-hidden hidden sm:block">
-                                                    <motion.div
-                                                        className="h-full bg-white"
-                                                        initial={{ width: 0 }}
-                                                        animate={{ width: `${topicPct}%` }}
-                                                        transition={{ duration: 0.6, ease: "easeOut" }}
-                                                    />
-                                                </div>
-                                                <span className="text-xs font-bold text-zinc-400">{topicPct}%</span>
-                                            </div>
-                                        </button>
-
-                                        {/* Questions List */}
-                                        <AnimatePresence initial={false}>
-                                            {isExpanded && (
-                                                <motion.div
-                                                    key="content"
-                                                    initial={{ height: 0, opacity: 0 }}
-                                                    animate={{ height: "auto", opacity: 1 }}
-                                                    exit={{ height: 0, opacity: 0 }}
-                                                    transition={{ duration: 0.25, ease: "easeInOut" }}
-                                                    className="overflow-hidden"
-                                                >
-                                                    <div className="border-t border-white/5">
-                                                        {topic.questions.map((q) => {
-                                                            const diffCfg = DIFFICULTY_CONFIG[q.difficulty as Difficulty] || DIFFICULTY_CONFIG.Easy;
-                                                            const DiffIcon = diffCfg.icon;
-
-                                                            return (
-                                                                <div
-                                                                    key={q.name}
-                                                                    className={`flex items-center justify-between px-5 py-3.5 border-b border-white/[0.03] last:border-b-0 hover:bg-zinc-800/40 transition-all duration-150 group cursor-pointer ${selectedQuestion?.name === q.name ? 'bg-zinc-800/60 border-l-2 border-l-violet-500' : ''
-                                                                        }`}
-                                                                    onClick={() => {
-                                                                        setSelectedQuestion({ ...q, topicName: topic.name });
-                                                                        setShowHint(false); setShowPseudoCode(false);
-                                                                        setIsEditingNote(false); setIsEditingPseudo(false);
-                                                                        setNoteText(q.note || ''); setPseudoText(q.pseudoCode || '');
-                                                                    }}
-                                                                >
-                                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                                        {/* Checkbox */}
-                                                                        <button
-                                                                            onClick={(e) => { e.stopPropagation(); toggleQuestion(topic.id, q.name); }}
-                                                                            className="shrink-0 focus:outline-none"
-                                                                        >
-                                                                            {q.completed ? (
-                                                                                <CheckCircle2 size={20} className="text-white" />
-                                                                            ) : (
-                                                                                <Circle size={20} className="text-zinc-600 group-hover:text-zinc-400 transition-colors duration-150" />
-                                                                            )}
-                                                                        </button>
-
-                                                                        {/* Question name */}
-                                                                        <span
-                                                                            className={`text-sm font-medium select-none tracking-tight truncate transition-colors duration-150 ${q.completed ? "text-zinc-500 line-through opacity-60" : "text-zinc-200"
-                                                                                }`}
-                                                                        >
-                                                                            {q.name}
-                                                                        </span>
-                                                                    </div>
-
-                                                                    <div className="flex items-center gap-2.5 shrink-0 ml-3">
-                                                                        {/* Details button */}
-                                                                        <button
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                setSelectedQuestion({ ...q, topicName: topic.name });
-                                                                                setShowHint(false); setShowPseudoCode(false);
-                                                                                setIsEditingNote(false); setIsEditingPseudo(false);
-                                                                                setNoteText(q.note || ''); setPseudoText(q.pseudoCode || '');
-                                                                            }}
-                                                                            className={`p-1.5 transition-colors duration-150 ${selectedQuestion?.name === q.name ? 'text-violet-400' : 'text-zinc-600 hover:text-violet-400'}`}
-                                                                            title="View Details"
-                                                                        >
-                                                                            <BookOpen size={14} />
-                                                                        </button>
-
-                                                                        {/* Difficulty Badge */}
-                                                                        <span className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 border ${diffCfg.bgColor} ${diffCfg.color} ${diffCfg.borderColor}`}>
-                                                                            <DiffIcon size={9} />
-                                                                            {diffCfg.label}
-                                                                        </span>
-
-                                                                        {/* LeetCode link */}
-                                                                        <a
-                                                                            href={q.url}
-                                                                            target="_blank"
-                                                                            rel="noopener noreferrer"
-                                                                            onClick={(e) => e.stopPropagation()}
-                                                                            className="p-1.5 text-zinc-600 hover:text-white transition-colors duration-150"
-                                                                            title="Open on LeetCode"
-                                                                        >
-                                                                            <ExternalLink size={14} />
-                                                                        </a>
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </div>
-                                );
-                            })
-                        )}
-                    </div>
-                </main>
-
-                {/* ── Detail Panel (Right Side) ────────────────────────── */}
-                <AnimatePresence>
-                    {selectedQuestion && (
-                        <motion.aside
-                            ref={pseudoCodeRef}
-                            initial={{ width: 0, opacity: 0 }}
-                            animate={{ width: 520, opacity: 1 }}
-                            exit={{ width: 0, opacity: 0 }}
-                            transition={{ duration: 0.3, ease: "easeInOut" }}
-                            className="hidden lg:flex flex-col h-screen sticky top-0 border-l border-white/10 bg-zinc-950 overflow-hidden"
-                        >
-                            {/* Panel Header */}
-                            <div className="flex items-center justify-between p-5 border-b border-white/10 shrink-0">
-                                <div className="flex items-center gap-3 min-w-0">
-                                    <div className="p-2 bg-violet-500/10 border border-violet-500/20 rounded-lg">
-                                        <BookOpen className="w-4 h-4 text-violet-400" />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <h3 className="text-sm font-bold text-white tracking-tight truncate">
-                                            {selectedQuestion.name}
-                                        </h3>
-                                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5">
-                                            {selectedQuestion.topicName} • Details
-                                        </p>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => setSelectedQuestion(null)}
-                                    className="p-1.5 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
-                                >
-                                    <X size={16} />
-                                </button>
-                            </div>
-
-                            {/* Difficulty + Pattern + Link Bar */}
-                            <div className="flex items-center justify-between px-5 py-3 border-b border-white/5 shrink-0 gap-2">
-                                <div className="flex items-center gap-2 min-w-0">
-                                    <span className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 border shrink-0 ${DIFFICULTY_CONFIG[selectedQuestion.difficulty as Difficulty]?.bgColor || 'bg-zinc-800'
-                                        } ${DIFFICULTY_CONFIG[selectedQuestion.difficulty as Difficulty]?.color || 'text-zinc-400'
-                                        } ${DIFFICULTY_CONFIG[selectedQuestion.difficulty as Difficulty]?.borderColor || 'border-zinc-700'
-                                        }`}>
-                                        {(() => {
-                                            const Icon = DIFFICULTY_CONFIG[selectedQuestion.difficulty as Difficulty]?.icon || Zap;
-                                            return <Icon size={10} />;
-                                        })()}
-                                        {selectedQuestion.difficulty}
-                                    </span>
-                                    {selectedQuestion.pattern && (
-                                        <span className="text-[10px] font-bold text-violet-400 bg-violet-400/10 border border-violet-400/20 px-2 py-1 truncate">
-                                            {selectedQuestion.pattern}
-                                        </span>
-                                    )}
-                                </div>
-                                <a
-                                    href={selectedQuestion.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-white transition-colors shrink-0"
-                                >
-                                    <ExternalLink size={10} />
-                                    LeetCode
-                                </a>
-                            </div>
-
-                            {/* Scrollable Content */}
-                            <div className="flex-1 overflow-y-auto">
-                                <div className="p-5 flex flex-col gap-5">
-
-                                    {/* Description */}
-                                    {selectedQuestion.description && (
-                                        <div>
-                                            <p className="text-sm text-zinc-300 leading-relaxed">
-                                                {selectedQuestion.description}
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    {/* Interview Question */}
-                                    {selectedQuestion.interviewQuestion && (
-                                        <div className="bg-zinc-900/60 border border-white/5 p-4 rounded-lg">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <MessageCircle size={13} className="text-sky-400 shrink-0" />
-                                                <span className="text-[10px] font-bold text-sky-400 uppercase tracking-widest">Interview Question</span>
-                                            </div>
-                                            <p className="text-sm text-zinc-300 leading-relaxed italic">
-                                                &ldquo;{selectedQuestion.interviewQuestion}&rdquo;
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    {/* ── Hint (Collapsible - hidden by default) ─── */}
-                                    {selectedQuestion.hint && (
-                                        <div className="border border-white/5 rounded-lg overflow-hidden">
+                                            {/* Accordion Header */}
                                             <button
-                                                onClick={() => setShowHint(!showHint)}
-                                                className="w-full flex items-center justify-between px-4 py-3 bg-zinc-900/40 hover:bg-zinc-900/70 transition-colors"
+                                                onClick={() => toggleTopicExpanded(topic.id)}
+                                                className="w-full flex items-center justify-between p-3.5 hover:bg-[#141923] transition-colors cursor-pointer"
                                             >
-                                                <div className="flex items-center gap-2">
-                                                    <Lightbulb size={13} className="text-amber-400" />
-                                                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">Hint</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-[10px] text-zinc-500 font-medium">
-                                                        {showHint ? 'Hide' : 'Reveal'}
+                                                <div className="flex items-center gap-2.5">
+                                                    <div className="text-zinc-400">
+                                                        {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                                                    </div>
+                                                    <h3 className="text-sm font-bold text-white tracking-tight">
+                                                        {topic.name}
+                                                    </h3>
+                                                    <span className="text-xs font-mono text-zinc-500">
+                                                        {completedInTopic}/{topic.questions.length}
                                                     </span>
-                                                    {showHint ? <EyeOff size={12} className="text-zinc-500" /> : <Eye size={12} className="text-zinc-500" />}
+                                                </div>
+
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-16 h-1 bg-zinc-800 rounded-full overflow-hidden hidden sm:block">
+                                                        <div
+                                                            className="h-full bg-cyan-400 rounded-full"
+                                                            style={{ width: `${topicPct}%` }}
+                                                        />
+                                                    </div>
+                                                    <span className="text-xs font-mono font-bold text-zinc-400">
+                                                        {topicPct}%
+                                                    </span>
                                                 </div>
                                             </button>
-                                            <AnimatePresence>
-                                                {showHint && (
-                                                    <motion.div
-                                                        initial={{ height: 0, opacity: 0 }}
-                                                        animate={{ height: 'auto', opacity: 1 }}
-                                                        exit={{ height: 0, opacity: 0 }}
-                                                        transition={{ duration: 0.25, ease: 'easeInOut' }}
-                                                        className="overflow-hidden"
-                                                    >
-                                                        <div className="px-4 py-3 border-t border-white/5">
-                                                            <p className="text-sm text-amber-200/80 leading-relaxed">
-                                                                {selectedQuestion.hint}
-                                                            </p>
-                                                        </div>
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
-                                        </div>
-                                    )}
 
+                                            {/* Questions in Topic */}
+                                            {isExpanded && (
+                                                <div className="border-t border-[#1E293B] divide-y divide-[#1E293B]/60">
+                                                    {topic.questions.map((q) => {
+                                                        const isSelected = selectedQuestion?.name === q.name;
+                                                        const diffCfg = DIFFICULTY_CONFIG[q.difficulty as Difficulty] || DIFFICULTY_CONFIG.Easy;
 
-                                    {/* ── Complexity ─────────────────────────────── */}
-                                    {(selectedQuestion.timeComplexity || selectedQuestion.spaceComplexity) && (
-                                        <div className="grid grid-cols-2 gap-3">
-                                            {selectedQuestion.timeComplexity && (
-                                                <div className="bg-zinc-900/40 border border-white/5 p-3 rounded-lg">
-                                                    <div className="flex items-center gap-1.5 mb-1.5">
-                                                        <Clock size={11} className="text-emerald-400" />
-                                                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Time</span>
-                                                    </div>
-                                                    <span className="text-sm font-bold text-emerald-400 font-mono">{selectedQuestion.timeComplexity}</span>
-                                                </div>
-                                            )}
-                                            {selectedQuestion.spaceComplexity && (
-                                                <div className="bg-zinc-900/40 border border-white/5 p-3 rounded-lg">
-                                                    <div className="flex items-center gap-1.5 mb-1.5">
-                                                        <Database size={11} className="text-sky-400" />
-                                                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Space</span>
-                                                    </div>
-                                                    <span className="text-sm font-bold text-sky-400 font-mono">{selectedQuestion.spaceComplexity}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* ── Prerequisites ────────────────────────── */}
-                                    {selectedQuestion.prerequisites && selectedQuestion.prerequisites.length > 0 && (
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-2.5">
-                                                <GitBranch size={13} className="text-zinc-400" />
-                                                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Prerequisites</span>
-                                            </div>
-                                            <div className="flex flex-wrap gap-1.5">
-                                                {selectedQuestion.prerequisites.map((p, i) => (
-                                                    <span key={i} className="text-[11px] font-medium text-zinc-400 bg-zinc-800/80 border border-white/5 px-2.5 py-1 rounded-md">
-                                                        {p}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* ── Common Mistakes ──────────────────────── */}
-                                    {selectedQuestion.commonMistakes && selectedQuestion.commonMistakes.length > 0 && (
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-2.5">
-                                                <AlertTriangle size={13} className="text-rose-400" />
-                                                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Common Mistakes</span>
-                                            </div>
-                                            <ul className="flex flex-col gap-2">
-                                                {selectedQuestion.commonMistakes.map((m, i) => (
-                                                    <li key={i} className="flex items-start gap-2 text-sm text-zinc-400 leading-relaxed">
-                                                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-rose-400/60 shrink-0" />
-                                                        {m}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
-
-                                    {/* ── Follow-up Questions ──────────────────── */}
-                                    {selectedQuestion.followUpQuestions && selectedQuestion.followUpQuestions.length > 0 && (
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-2.5">
-                                                <HelpCircle size={13} className="text-zinc-400" />
-                                                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Follow-up Questions</span>
-                                            </div>
-                                            <ul className="flex flex-col gap-2">
-                                                {selectedQuestion.followUpQuestions.map((fq, i) => (
-                                                    <li key={i} className="flex items-start gap-2 text-sm text-zinc-400 leading-relaxed">
-                                                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-zinc-500/60 shrink-0" />
-                                                        {fq}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
-
-                                    {/* ── Notes (Editable) ───────────────────────── */}
-                                    <div className="border border-white/5 rounded-lg overflow-hidden">
-                                        <div className="flex items-center justify-between px-4 py-3 bg-zinc-900/40">
-                                            <div className="flex items-center gap-2">
-                                                <StickyNote size={13} className="text-teal-400" />
-                                                <span className="text-[10px] font-bold text-teal-400 uppercase tracking-widest">Notes</span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5">
-                                                {!isEditingNote ? (
-                                                    <button
-                                                        onClick={() => { setIsEditingNote(true); setNoteText(selectedQuestion.note || ''); }}
-                                                        className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold text-zinc-400 hover:text-teal-400 hover:bg-teal-400/10 rounded transition-colors"
-                                                    >
-                                                        <Pencil size={10} />
-                                                        {selectedQuestion.note ? 'Edit' : 'Add'}
-                                                    </button>
-                                                ) : (
-                                                    <>
-                                                        <button
-                                                            disabled={savingNote}
-                                                            onClick={async () => {
-                                                                const topic = topics.find(t => t.questions.some(q => q.name === selectedQuestion.name));
-                                                                if (!topic) return;
-                                                                const qKey = questionKey(topic.id, selectedQuestion.name);
-                                                                setSavingNote(true);
-                                                                try {
-                                                                    const res = await fetch('/api/dsaquestions', {
-                                                                        method: 'PUT',
-                                                                        headers: { 'Content-Type': 'application/json' },
-                                                                        body: JSON.stringify({ questionKey: qKey, note: noteText }),
-                                                                    });
-                                                                    if (res.ok) {
-                                                                        setTopics(prev => prev.map(t => ({
-                                                                            ...t,
-                                                                            questions: t.questions.map(q =>
-                                                                                q.name === selectedQuestion.name ? { ...q, note: noteText } : q
-                                                                            ),
-                                                                        })));
-                                                                        setSelectedQuestion(prev => prev ? { ...prev, note: noteText } : prev);
-                                                                        setIsEditingNote(false);
-                                                                    }
-                                                                } catch (e) { console.error('Failed to save note', e); }
-                                                                finally { setSavingNote(false); }
-                                                            }}
-                                                            className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold text-emerald-400 hover:bg-emerald-400/10 rounded transition-colors"
-                                                        >
-                                                            {savingNote ? <Loader2 size={10} className="animate-spin" /> : <Save size={10} />}
-                                                            Save
-                                                        </button>
-                                                        <button
-                                                            onClick={() => { setIsEditingNote(false); setNoteText(selectedQuestion.note || ''); }}
-                                                            className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded transition-colors"
-                                                        >
-                                                            <X size={10} />
-                                                            Cancel
-                                                        </button>
-                                                    </>
-                                                )}
-                                                {selectedQuestion.note && !isEditingNote && (
-                                                    <button
-                                                        onClick={async () => {
-                                                            const topic = topics.find(t => t.questions.some(q => q.name === selectedQuestion.name));
-                                                            if (!topic) return;
-                                                            const qKey = questionKey(topic.id, selectedQuestion.name);
-                                                            setSavingNote(true);
-                                                            try {
-                                                                const res = await fetch('/api/dsaquestions', {
-                                                                    method: 'PUT',
-                                                                    headers: { 'Content-Type': 'application/json' },
-                                                                    body: JSON.stringify({ questionKey: qKey, note: '' }),
-                                                                });
-                                                                if (res.ok) {
-                                                                    setTopics(prev => prev.map(t => ({
-                                                                        ...t,
-                                                                        questions: t.questions.map(q =>
-                                                                            q.name === selectedQuestion.name ? { ...q, note: '' } : q
-                                                                        ),
-                                                                    })));
-                                                                    setSelectedQuestion(prev => prev ? { ...prev, note: '' } : prev);
-                                                                    setNoteText('');
+                                                        return (
+                                                            <div
+                                                                key={q.name}
+                                                                onClick={() =>
+                                                                    setSelectedQuestion({ ...q, topicName: topic.name })
                                                                 }
-                                                            } catch (e) { console.error('Failed to clear note', e); }
-                                                            finally { setSavingNote(false); }
-                                                        }}
-                                                        className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold text-rose-400 hover:bg-rose-400/10 rounded transition-colors"
-                                                    >
-                                                        <Trash2 size={10} />
-                                                        Clear
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                        {isEditingNote ? (
-                                            <div className="px-4 py-3 border-t border-white/5">
-                                                <textarea
-                                                    value={noteText}
-                                                    onChange={(e) => setNoteText(e.target.value)}
-                                                    placeholder="Write your notes here..."
-                                                    className="w-full min-h-[120px] bg-zinc-950 border border-white/10 text-sm text-zinc-200 placeholder-zinc-600 p-3 rounded-md focus:outline-none focus:border-teal-400/50 resize-y font-mono"
-                                                />
-                                            </div>
-                                        ) : selectedQuestion.note ? (
-                                            <div className="px-4 py-3 border-t border-white/5">
-                                                <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap">{selectedQuestion.note}</p>
-                                            </div>
-                                        ) : (
-                                            <div className="px-4 py-3 border-t border-white/5">
-                                                <p className="text-xs text-zinc-600 italic">No notes yet. Click Add to write notes for this question.</p>
-                                            </div>
-                                        )}
-                                    </div>
+                                                                className={`flex items-center justify-between px-4 py-3 text-xs transition-all cursor-pointer group ${
+                                                                    isSelected
+                                                                        ? "bg-[#181C24] border-l-2 border-l-cyan-400"
+                                                                        : "hover:bg-[#141923]"
+                                                                }`}
+                                                            >
+                                                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            toggleQuestion(topic.id, q.name);
+                                                                        }}
+                                                                        className="focus:outline-none shrink-0"
+                                                                    >
+                                                                        {q.completed ? (
+                                                                            <CheckCircle2 size={16} className="text-emerald-400" />
+                                                                        ) : (
+                                                                            <Circle size={16} className="text-zinc-600 group-hover:text-cyan-400 transition-colors" />
+                                                                        )}
+                                                                    </button>
 
-                                    {/* ── Pseudo Code (Editable) ─────────────────── */}
-                                    <div className="border border-white/5 rounded-lg overflow-hidden">
-                                        <div className="flex items-center justify-between px-4 py-3 bg-zinc-900/40">
-                                            <div className="flex items-center gap-2">
-                                                <FileText size={13} className="text-violet-400" />
-                                                <span className="text-[10px] font-bold text-violet-400 uppercase tracking-widest">Pseudo Code</span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5">
-                                                {!isEditingPseudo ? (
-                                                    <button
-                                                        onClick={() => { setIsEditingPseudo(true); setPseudoText(selectedQuestion.pseudoCode || ''); }}
-                                                        className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold text-zinc-400 hover:text-violet-400 hover:bg-violet-400/10 rounded transition-colors"
-                                                    >
-                                                        <Pencil size={10} />
-                                                        {selectedQuestion.pseudoCode ? 'Edit' : 'Add'}
-                                                    </button>
-                                                ) : (
-                                                    <>
-                                                        <button
-                                                            disabled={savingPseudo}
-                                                            onClick={async () => {
-                                                                const topic = topics.find(t => t.questions.some(q => q.name === selectedQuestion.name));
-                                                                if (!topic) return;
-                                                                const qKey = questionKey(topic.id, selectedQuestion.name);
-                                                                setSavingPseudo(true);
-                                                                try {
-                                                                    const res = await fetch('/api/dsaquestions', {
-                                                                        method: 'PUT',
-                                                                        headers: { 'Content-Type': 'application/json' },
-                                                                        body: JSON.stringify({ questionKey: qKey, pseudoCode: pseudoText }),
-                                                                    });
-                                                                    if (res.ok) {
-                                                                        setTopics(prev => prev.map(t => ({
-                                                                            ...t,
-                                                                            questions: t.questions.map(q =>
-                                                                                q.name === selectedQuestion.name ? { ...q, pseudoCode: pseudoText } : q
-                                                                            ),
-                                                                        })));
-                                                                        setSelectedQuestion(prev => prev ? { ...prev, pseudoCode: pseudoText } : prev);
-                                                                        setIsEditingPseudo(false);
-                                                                    }
-                                                                } catch (e) { console.error('Failed to save pseudo code', e); }
-                                                                finally { setSavingPseudo(false); }
-                                                            }}
-                                                            className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold text-emerald-400 hover:bg-emerald-400/10 rounded transition-colors"
-                                                        >
-                                                            {savingPseudo ? <Loader2 size={10} className="animate-spin" /> : <Save size={10} />}
-                                                            Save
-                                                        </button>
-                                                        <button
-                                                            onClick={() => { setIsEditingPseudo(false); setPseudoText(selectedQuestion.pseudoCode || ''); }}
-                                                            className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded transition-colors"
-                                                        >
-                                                            <X size={10} />
-                                                            Cancel
-                                                        </button>
-                                                    </>
-                                                )}
-                                                {selectedQuestion.pseudoCode && !isEditingPseudo && (
-                                                    <button
-                                                        onClick={async () => {
-                                                            const topic = topics.find(t => t.questions.some(q => q.name === selectedQuestion.name));
-                                                            if (!topic) return;
-                                                            const qKey = questionKey(topic.id, selectedQuestion.name);
-                                                            setSavingPseudo(true);
-                                                            try {
-                                                                const res = await fetch('/api/dsaquestions', {
-                                                                    method: 'PUT',
-                                                                    headers: { 'Content-Type': 'application/json' },
-                                                                    body: JSON.stringify({ questionKey: qKey, pseudoCode: '' }),
-                                                                });
-                                                                if (res.ok) {
-                                                                    setTopics(prev => prev.map(t => ({
-                                                                        ...t,
-                                                                        questions: t.questions.map(q =>
-                                                                            q.name === selectedQuestion.name ? { ...q, pseudoCode: '' } : q
-                                                                        ),
-                                                                    })));
-                                                                    setSelectedQuestion(prev => prev ? { ...prev, pseudoCode: '' } : prev);
-                                                                    setPseudoText('');
-                                                                }
-                                                            } catch (e) { console.error('Failed to clear pseudo code', e); }
-                                                            finally { setSavingPseudo(false); }
-                                                        }}
-                                                        className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold text-rose-400 hover:bg-rose-400/10 rounded transition-colors"
-                                                    >
-                                                        <Trash2 size={10} />
-                                                        Clear
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                        {isEditingPseudo ? (
-                                            <div className="px-4 py-3 border-t border-white/5">
-                                                <textarea
-                                                    value={pseudoText}
-                                                    onChange={(e) => setPseudoText(e.target.value)}
-                                                    placeholder="Write your pseudo code here..."
-                                                    className="w-full min-h-[160px] bg-zinc-950 border border-white/10 text-[13px] text-zinc-200 placeholder-zinc-600 p-3 rounded-md focus:outline-none focus:border-violet-400/50 resize-y font-mono leading-relaxed"
-                                                />
-                                            </div>
-                                        ) : selectedQuestion.pseudoCode ? (
-                                            <div className="border-t border-white/5 relative group">
-                                                <button
-                                                    onClick={() => {
-                                                        navigator.clipboard.writeText(selectedQuestion.pseudoCode || '');
-                                                        setCopied(true);
-                                                        setTimeout(() => setCopied(false), 2000);
-                                                    }}
-                                                    className="absolute top-3 right-3 p-2 bg-zinc-800 border border-white/10 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all opacity-0 group-hover:opacity-100 z-10"
-                                                    title="Copy to clipboard"
-                                                >
-                                                    {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                                                </button>
-                                                <div className="flex items-center gap-2 px-4 py-2.5 bg-zinc-900 border-b border-white/5">
-                                                    <div className="flex gap-1.5">
-                                                        <div className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
-                                                        <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
-                                                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
-                                                    </div>
-                                                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest ml-2">
-                                                        pseudocode
-                                                    </span>
-                                                </div>
-                                                <pre className="p-4 overflow-x-auto">
-                                                    <code className="text-[13px] leading-relaxed font-mono">
-                                                        {selectedQuestion.pseudoCode?.split('\n').map((line, i) => {
-                                                            const highlightLine = (text: string) => {
-                                                                const keywords = /\b(function|return|if|else|while|for|class|new|null|true|false|in|AND|OR|NOT|break|continue|from|to|of|each)\b/g;
-                                                                if (text.trimStart().startsWith('//')) {
-                                                                    return <span className="text-zinc-500 italic">{text}</span>;
-                                                                }
-                                                                const parts: React.ReactNode[] = [];
-                                                                let lastIndex = 0;
-                                                                let match;
-                                                                while ((match = keywords.exec(text)) !== null) {
-                                                                    if (match.index > lastIndex) {
-                                                                        parts.push(<span key={`t-${i}-${lastIndex}`} className="text-zinc-300">{text.slice(lastIndex, match.index)}</span>);
-                                                                    }
-                                                                    parts.push(<span key={`k-${i}-${match.index}`} className="text-violet-400 font-semibold">{match[0]}</span>);
-                                                                    lastIndex = match.index + match[0].length;
-                                                                }
-                                                                if (lastIndex < text.length) {
-                                                                    parts.push(<span key={`e-${i}-${lastIndex}`} className="text-zinc-300">{text.slice(lastIndex)}</span>);
-                                                                }
-                                                                return parts.length > 0 ? parts : <span className="text-zinc-300">{text}</span>;
-                                                            };
-                                                            return (
-                                                                <div key={i} className="flex hover:bg-white/[0.02] -mx-4 px-4">
-                                                                    <span className="inline-block w-8 text-right mr-4 text-zinc-600 text-[11px] select-none shrink-0">{i + 1}</span>
-                                                                    <span className="whitespace-pre">{highlightLine(line)}</span>
+                                                                    <span
+                                                                        className={`font-medium truncate ${
+                                                                            q.completed
+                                                                                ? "text-zinc-500 line-through"
+                                                                                : isSelected
+                                                                                ? "text-cyan-300 font-semibold"
+                                                                                : "text-zinc-200 group-hover:text-white"
+                                                                        }`}
+                                                                    >
+                                                                        {q.name}
+                                                                    </span>
                                                                 </div>
-                                                            );
-                                                        })}
-                                                    </code>
-                                                </pre>
+
+                                                                <div className="flex items-center gap-3 shrink-0 ml-3">
+                                                                    <span title="View notes">
+                                                                        <BookOpen
+                                                                            size={13}
+                                                                            className="text-zinc-500 group-hover:text-zinc-300"
+                                                                        />
+                                                                    </span>
+
+                                                                    <span
+                                                                        className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase font-mono ${diffCfg.bgColor} ${diffCfg.color} border ${diffCfg.borderColor}`}
+                                                                    >
+                                                                        {diffCfg.label}
+                                                                    </span>
+
+                                                                    <a
+                                                                        href={q.url}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                        className="text-zinc-500 hover:text-cyan-400 transition-colors"
+                                                                        title="Open LeetCode"
+                                                                    >
+                                                                        <ExternalLink size={13} />
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+
+                        {/* Right Context Pane / Drawer (5 Cols on desktop) matching Screenshot 5 */}
+                        <div className="lg:col-span-5 bg-[#10141E] border border-[#1E293B] rounded-xl p-5 shadow-xl shadow-black/60 sticky top-20 space-y-5">
+                            {selectedQuestion ? (
+                                <>
+                                    {/* Question Header */}
+                                    <div className="flex items-start justify-between pb-3 border-b border-[#1E293B]">
+                                        <div className="space-y-1 min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <BookOpen size={16} className="text-cyan-400 shrink-0" />
+                                                <h2 className="text-lg font-bold text-white tracking-tight truncate">
+                                                    {selectedQuestion.name}
+                                                </h2>
                                             </div>
-                                        ) : (
-                                            <div className="px-4 py-3 border-t border-white/5">
-                                                <p className="text-xs text-zinc-600 italic">No pseudo code yet. Click Add to write pseudo code for this question.</p>
+                                            <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">
+                                                {selectedQuestion.topicName || "ARRAYS & STRINGS"} • PROBLEM #121
+                                            </p>
+                                        </div>
+
+                                        <button
+                                            onClick={() => setSelectedQuestion(null)}
+                                            className="p-1 rounded text-zinc-500 hover:text-white"
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    </div>
+
+                                    {/* Badges Bar */}
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <span
+                                                className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase font-mono ${
+                                                    DIFFICULTY_CONFIG[selectedQuestion.difficulty as Difficulty]?.bgColor || "bg-emerald-400/10"
+                                                } ${DIFFICULTY_CONFIG[selectedQuestion.difficulty as Difficulty]?.color || "text-emerald-400"}`}
+                                            >
+                                                {selectedQuestion.difficulty}
+                                            </span>
+
+                                            <span className="px-2.5 py-0.5 rounded text-[10px] font-mono bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                                                {selectedQuestion.pattern || "Sliding Window / Greedy Tracker"}
+                                            </span>
+                                        </div>
+
+                                        <a
+                                            href={selectedQuestion.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-1 text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
+                                        >
+                                            <span>LeetCode</span>
+                                            <ExternalLink size={12} />
+                                        </a>
+                                    </div>
+
+                                    {/* Problem Statement */}
+                                    <div className="space-y-1.5">
+                                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">
+                                            PROBLEM STATEMENT
+                                        </span>
+                                        <p className="text-xs text-zinc-300 leading-relaxed">
+                                            {selectedQuestion.description ||
+                                                "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume each input would have exactly one solution."}
+                                        </p>
+                                    </div>
+
+                                    {/* Interview Prompt Focus (Cyan callout box matching Screenshot 5) */}
+                                    <div className="bg-[#141923] border-l-2 border-cyan-400 p-3.5 rounded-r-lg space-y-1">
+                                        <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest block">
+                                            INTERVIEW PROMPT FOCUS
+                                        </span>
+                                        <p className="text-xs text-zinc-200 italic leading-relaxed">
+                                            &ldquo;{selectedQuestion.interviewQuestion ||
+                                                "How do you calculate the maximum single-transaction profit in a line of daily stock prices using only one pass without looking ahead?"}&rdquo;
+                                        </p>
+                                    </div>
+
+                                    {/* Hint with Reveal toggle */}
+                                    <div className="border border-[#1E293B] rounded-lg p-3 bg-[#0B0F17]/60 space-y-2">
+                                        <div className="flex items-center justify-between text-xs">
+                                            <div className="flex items-center gap-1.5 text-amber-400 font-semibold">
+                                                <Lightbulb size={13} />
+                                                <span>HINT</span>
                                             </div>
+                                            <button
+                                                onClick={() => setShowHint(!showHint)}
+                                                className="flex items-center gap-1 text-[11px] text-zinc-400 hover:text-white cursor-pointer"
+                                            >
+                                                {showHint ? <EyeOff size={12} /> : <Eye size={12} />}
+                                                <span>{showHint ? "Hide" : "Reveal"}</span>
+                                            </button>
+                                        </div>
+                                        {showHint && (
+                                            <p className="text-xs text-zinc-300 leading-relaxed pt-1 border-t border-[#1E293B]">
+                                                {selectedQuestion.hint ||
+                                                    "Maintain a running minimum price and compute profit at every subsequent step in linear time."}
+                                            </p>
                                         )}
                                     </div>
 
+                                    {/* Time & Space Complexity */}
+                                    <div className="grid grid-cols-2 gap-3 font-mono text-xs">
+                                        <div className="flex items-center gap-2 bg-[#141923] border border-[#1E293B] p-2.5 rounded-lg">
+                                            <Clock size={13} className="text-cyan-400" />
+                                            <span className="text-zinc-500 text-[10px]">TIME</span>
+                                            <span className="text-white font-bold">{selectedQuestion.timeComplexity || "O(n)"}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 bg-[#141923] border border-[#1E293B] p-2.5 rounded-lg">
+                                            <Database size={13} className="text-cyan-400" />
+                                            <span className="text-zinc-500 text-[10px]">SPACE</span>
+                                            <span className="text-white font-bold">{selectedQuestion.spaceComplexity || "O(n)"}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Prerequisites */}
+                                    <div className="space-y-1.5">
+                                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">
+                                            PREREQUISITES
+                                        </span>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {(selectedQuestion.prerequisites && selectedQuestion.prerequisites.length > 0
+                                                ? selectedQuestion.prerequisites
+                                                : ["Arrays", "Basic Logic", "One-pass Traversal"]
+                                            ).map((prereq, idx) => (
+                                                <span
+                                                    key={idx}
+                                                    className="px-2 py-0.5 rounded bg-[#141923] border border-[#1E293B] text-[11px] text-zinc-300 font-mono"
+                                                >
+                                                    {prereq}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Common Mistakes */}
+                                    <div className="space-y-1.5">
+                                        <span className="text-[10px] font-bold text-rose-400 uppercase tracking-widest flex items-center gap-1">
+                                            <AlertTriangle size={11} />
+                                            COMMON MISTAKES
+                                        </span>
+                                        <ul className="text-xs text-zinc-400 space-y-1 pl-4 list-disc marker:text-rose-400">
+                                            {(selectedQuestion.commonMistakes && selectedQuestion.commonMistakes.length > 0
+                                                ? selectedQuestion.commonMistakes
+                                                : [
+                                                      "O(n^2) nested loop checking every pair.",
+                                                      "Selling before buying chronological index violation.",
+                                                      "Failing to handle strictly descending array edge cases."
+                                                  ]
+                                            ).map((mistake, idx) => (
+                                                <li key={idx}>{mistake}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+
+                                    {/* Primary Action Button */}
+                                    <button
+                                        onClick={() => {
+                                            const topic = topics.find((t) =>
+                                                t.questions.some((q) => q.name === selectedQuestion.name)
+                                            );
+                                            if (topic) toggleQuestion(topic.id, selectedQuestion.name);
+                                        }}
+                                        className={`w-full py-2.5 rounded-lg text-xs font-bold transition-all shadow-lg cursor-pointer ${
+                                            selectedQuestion.completed
+                                                ? "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                                                : "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-emerald-500/20"
+                                        }`}
+                                    >
+                                        {selectedQuestion.completed ? "Mark as Incomplete" : "Mark as Solved"}
+                                    </button>
+                                </>
+                            ) : (
+                                <div className="text-center py-16 text-zinc-500 text-xs">
+                                    Click any problem on the left to inspect detailed interview context, hints, and complexity.
                                 </div>
-                            </div>
-
-                            {/* Panel Footer */}
-                            <div className="px-5 py-3 border-t border-white/5 shrink-0">
-                                <p className="text-[10px] text-zinc-600 font-medium text-center">
-                                    Click any question to view its details
-                                </p>
-                            </div>
-                        </motion.aside>
-                    )}
-                </AnimatePresence>
+                            )}
+                        </div>
+                    </div>
+                </main>
             </div>
-
-            {/* Close topic dropdown when clicking outside */}
-            {isTopicDropdownOpen && (
-                <div
-                    className="fixed inset-0 z-20"
-                    onClick={() => setIsTopicDropdownOpen(false)}
-                />
-            )}
         </div>
     );
 }

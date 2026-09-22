@@ -15,6 +15,8 @@ import {
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "@/components/Sidebar";
+import WorkspaceHeader from "@/components/WorkspaceHeader";
+import IdeMarkdownEditor from "@/components/IdeMarkdownEditor";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -1150,6 +1152,7 @@ function TopicDetailPanel({
     const [draft, setDraft] = useState<NoteTopic>({ ...topic });
     const [saved, setSaved] = useState(false);
     const [activeTab, setActiveTab] = useState<PanelCategory>("notes");
+    const [panelSidebarOpen, setPanelSidebarOpen] = useState(false);
 
     // Reset draft when topic changes
     useEffect(() => {
@@ -1200,517 +1203,289 @@ function TopicDetailPanel({
         { id: "mastery" as const, label: "Mastery & Progress", icon: Target, desc: "Checklists & revision stats" },
     ];
 
-    const [isSidebarFolded, setIsSidebarFolded] = useState(false);
-
     return (
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex bg-zinc-950 overflow-hidden"
-            onClick={onClose}
+            className="fixed inset-0 z-50 flex bg-[#0B0F17] overflow-hidden select-none"
         >
-            <motion.div
-                initial={{ opacity: 0, scale: 0.98, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.98, y: 10 }}
-                transition={{ type: "spring", damping: 30, stiffness: 400 }}
-                className="w-full h-full flex overflow-hidden font-sans"
-                onClick={(e) => e.stopPropagation()}
-            >
-                {/* Left Sidebar */}
-                <aside
-                    className={`bg-zinc-950 border-r border-white/10 flex flex-col shrink-0 h-full overflow-y-auto transition-all duration-300 ease-in-out ${isSidebarFolded ? "w-16 md:w-20" : "w-64 md:w-[22vw] min-w-[240px]"
-                        }`}
-                >
-                    <div className={`p-4 md:p-5 border-b border-white/10 shrink-0 flex items-center ${isSidebarFolded ? "justify-center" : "justify-between"
-                        }`}>
-                        {!isSidebarFolded ? (
-                            <div className="flex items-center gap-2 overflow-hidden">
-                                <BookOpen size={18} className="text-zinc-400 shrink-0" />
-                                <div className="min-w-0">
-                                    <h2 className="text-base font-bold tracking-tight text-white font-sans truncate">
-                                        Topic Notes
-                                    </h2>
-                                    <p className="text-[10px] text-zinc-500 font-sans font-medium uppercase tracking-widest truncate">
-                                        Navigation & Sections
-                                    </p>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="w-8 h-8 flex items-center justify-center">
-                                <BookOpen size={18} className="text-zinc-400" />
-                            </div>
-                        )}
+                <Sidebar
+                    isMobileOpen={panelSidebarOpen}
+                    onMobileClose={() => setPanelSidebarOpen(false)}
+                    hideBottomNav={true}
+                />
 
-                        <button
-                            type="button"
-                            onClick={() => setIsSidebarFolded(!isSidebarFolded)}
-                            className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
-                            title={isSidebarFolded ? "Expand sections" : "Collapse sections"}
-                        >
-                            {isSidebarFolded ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-                        </button>
+                <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+                    {/* Top Workspace Header */}
+                    <WorkspaceHeader onToggleSidebar={() => setPanelSidebarOpen((prev) => !prev)} />
+
+                    {/* Compact, responsive Topic Header */}
+                    <div className="px-3.5 py-2.5 sm:px-6 sm:py-3.5 bg-[#0B0F17] border-b border-[#1E293B] flex flex-col md:flex-row md:items-center justify-between gap-2.5 shrink-0">
+                        <div className="space-y-1 min-w-0">
+                            {/* Top row: Back button on mobile, Level badge, ID */}
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="md:hidden inline-flex items-center gap-1 px-2 py-1 rounded-md bg-[#141923] border border-[#1E293B] text-[11px] font-semibold text-zinc-300 hover:text-white transition-colors cursor-pointer mr-0.5"
+                                >
+                                    <ChevronLeft size={13} />
+                                    <span>Topics</span>
+                                </button>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono uppercase tracking-widest ${levelConfig.bgColor} ${levelConfig.color} border ${levelConfig.borderColor}`}>
+                                    {draft.level.toUpperCase()}
+                                </span>
+                                <span className="text-zinc-500 text-[11px] font-mono">#{draft.id} • Topic Notes</span>
+                            </div>
+
+                            {/* Title & Favorite */}
+                            <div className="flex items-center gap-2.5">
+                                <h1 className="text-lg sm:text-2xl font-bold text-white tracking-tight truncate">{draft.name}</h1>
+                                <button
+                                    onClick={() => setDraft((prev) => ({ ...prev, favorite: !prev.favorite }))}
+                                    className="cursor-pointer shrink-0"
+                                    title={draft.favorite ? "Unfavorite" : "Favorite"}
+                                >
+                                    {draft.favorite ? (
+                                        <Star size={16} className="text-amber-400 fill-current" />
+                                    ) : (
+                                        <Star size={16} className="text-zinc-500 hover:text-zinc-300" />
+                                    )}
+                                </button>
+                            </div>
+
+                            {/* Compact stats line */}
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-mono text-zinc-500 pt-0.5">
+                                <span className="text-amber-400 font-semibold">📈 {masteryPercent}% Mastery</span>
+                                <span className="hidden sm:inline">•</span>
+                                <span>🕒 {draft.lastRevised ? new Date(draft.lastRevised).toLocaleDateString() : "9/18/2026"}</span>
+                                <span className="hidden sm:inline">•</span>
+                                <span>👁 {draft.revisionCount || 0} rev</span>
+                            </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2 self-end md:self-auto shrink-0">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="hidden md:block px-3.5 py-1.5 rounded-lg bg-[#141923] border border-[#1E293B] text-xs font-semibold text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                            >
+                                All Topics
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleSave}
+                                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all cursor-pointer"
+                            >
+                                {saved ? <CheckCircle2 size={13} /> : <Save size={13} />}
+                                <span>{saved ? "Saved!" : "Save Changes"}</span>
+                            </button>
+                        </div>
                     </div>
 
-                    <nav className="flex-1 p-2 md:p-3 space-y-1 overflow-x-hidden">
-                        {sidebarTabs.map(tab => {
-                            const TabIcon = tab.icon;
-                            const isSelected = activeTab === tab.id;
-
-                            if (isSidebarFolded) {
-                                return (
-                                    <div key={tab.id} className="relative group flex justify-center py-1">
-                                        <button
-                                            type="button"
-                                            onClick={() => setActiveTab(tab.id)}
-                                            className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${isSelected
-                                                ? "bg-white text-zinc-950 font-bold shadow"
-                                                : "text-zinc-400 hover:bg-white/10 hover:text-zinc-200"
-                                                }`}
-                                            aria-label={tab.label}
-                                        >
-                                            <TabIcon className="w-4 h-4" />
-                                        </button>
-                                        <div className="absolute left-full ml-3 px-3 py-1.5 bg-zinc-900 text-white text-xs rounded-lg shadow-xl border border-white/10 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
-                                            <div className="font-bold">{tab.label}</div>
-                                            <div className="text-[10px] text-zinc-400">{tab.desc}</div>
-                                        </div>
-                                    </div>
-                                );
-                            }
+                    {/* Horizontal Pill Section Tabs */}
+                    <div className="px-3.5 py-1.5 sm:px-6 sm:py-2.5 bg-[#0F131C] border-b border-[#1E293B] flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0 touch-pan-x">
+                        {sidebarTabs.map((t) => {
+                            const isSelected = activeTab === t.id;
+                            const lineCount = t.id === "notes" ? (draft.notes ? draft.notes.split("\n").length : 87) : undefined;
 
                             return (
                                 <button
-                                    key={tab.id}
-                                    type="button"
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`w-full text-left flex items-start gap-3 px-4 py-3 rounded-xl transition-all ${isSelected
-                                        ? "bg-white/[0.08] border border-white/[0.12] text-white font-medium"
-                                        : "border border-transparent text-zinc-400 hover:bg-white/[0.02] hover:text-zinc-200"
-                                        }`}
+                                    key={t.id}
+                                    onClick={() => setActiveTab(t.id)}
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
+                                        isSelected
+                                            ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-semibold shadow-sm"
+                                            : "text-zinc-400 hover:text-white hover:bg-[#141923] border border-transparent"
+                                    }`}
                                 >
-                                    <TabIcon className={`w-4 h-4 mt-0.5 shrink-0 ${isSelected ? "text-white" : "text-zinc-500"}`} />
-                                    <div className="min-w-0">
-                                        <div className="text-xs font-semibold">{tab.label}</div>
-                                        <div className="text-[9px] text-zinc-500 truncate mt-0.5">{tab.desc}</div>
-                                    </div>
+                                    {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />}
+                                    <span>{t.label}</span>
+                                    {lineCount && (
+                                        <span className="px-1.5 py-0.2 rounded bg-[#181C24] font-mono text-[10px] text-zinc-400">
+                                            {lineCount}
+                                        </span>
+                                    )}
                                 </button>
                             );
                         })}
-                    </nav>
-                </aside>
-
-                {/* Right Content Area - dynamically expands to remaining width */}
-                <div className="flex-1 min-w-0 flex flex-col h-full overflow-hidden bg-zinc-900/10">
-                    {/* Sticky Header */}
-                    <div className={`shrink-0 px-8 pt-6 pb-5 border-b border-white/[0.06] bg-gradient-to-br ${levelConfig.gradient}`}>
-                        <div className="flex items-start justify-between">
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-md ${levelConfig.bgColor} ${levelConfig.color} ${levelConfig.borderColor} border`}>
-                                        {draft.level}
-                                    </span>
-                                    <span className="text-xs text-zinc-500 font-mono">#{draft.id}</span>
-                                </div>
-                                <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight font-sans">
-                                    {draft.name}
-                                </h2>
-                                <div className="flex flex-wrap items-center gap-x-5 gap-y-1 mt-3 text-xs text-zinc-500 font-sans">
-                                    <div className="flex items-center gap-1.5">
-                                        <TrendingUp className="w-3.5 h-3.5" />
-                                        <span>Mastery: {masteryPercent}%</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <Clock className="w-3.5 h-3.5" />
-                                        <span>
-                                            {draft.lastRevised
-                                                ? `Revised ${new Date(draft.lastRevised).toLocaleDateString()}`
-                                                : "Not revised yet"}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <Layers className="w-3.5 h-3.5" />
-                                        <span>{draft.revisionCount} revisions</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex flex-col items-end gap-3 shrink-0 ml-4">
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => setDraft(prev => ({ ...prev, favorite: !prev.favorite }))}
-                                        className={`p-2 rounded-lg transition-all ${draft.favorite
-                                            ? "text-amber-400 bg-amber-400/10"
-                                            : "text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.06]"
-                                            }`}
-                                    >
-                                        {draft.favorite ? <Star className="w-5 h-5 fill-current" /> : <StarOff className="w-5 h-5" />}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={onClose}
-                                        className="p-2 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.06] transition-all"
-                                    >
-                                        <X className="w-5 h-5" />
-                                    </button>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={onClose}
-                                        className="px-4 py-2 text-xs font-semibold text-zinc-400 hover:text-zinc-200 border border-white/[0.06] rounded-xl hover:bg-white/[0.04] transition-all"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <motion.button
-                                        type="button"
-                                        onClick={handleSave}
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold transition-all ${saved
-                                            ? "bg-emerald-400 text-zinc-950"
-                                            : "bg-white text-zinc-950 hover:bg-zinc-200"
-                                            }`}
-                                    >
-                                        {saved ? (
-                                            <><CheckCircle2 className="w-3.5 h-3.5" /> Saved!</>
-                                        ) : (
-                                            <><Save className="w-3.5 h-3.5" /> Save Changes</>
-                                        )}
-                                    </motion.button>
-                                </div>
-                            </div>
-                        </div>
-                        {/* Mastery bar */}
-                        <div className="mt-4">
-                            <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
-                                <motion.div
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${masteryPercent}%` }}
-                                    transition={{ duration: 0.8, ease: "easeOut" }}
-                                    className={`h-full rounded-full ${masteryPercent === 100 ? "bg-emerald-400" :
-                                        masteryPercent >= 50 ? "bg-amber-400" : "bg-white/40"
-                                        }`}
-                                />
-                            </div>
-                        </div>
+                        <button className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs text-zinc-500 hover:text-zinc-300 transition-colors shrink-0">
+                            <Plus size={13} />
+                            <span>Section</span>
+                        </button>
                     </div>
 
-                    {/* Scrollable Content Container */}
-                    <div className="flex-1 overflow-y-auto px-8 py-6">
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key={activeTab}
-                                initial={{ opacity: 0, x: 10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -10 }}
-                                transition={{ duration: 0.15 }}
-                                className="space-y-6 w-full max-w-none"
-                            >
-                                {activeTab === "notes" && (
-                                    <PaginatedNotesBlock
-                                        label="📝 Core Notes"
-                                        value={draft.notes}
-                                        onChange={(val) => setDraft(prev => ({ ...prev, notes: val }))}
-                                        placeholder="Paste or type notes here... Lines are formatted nicely and paginated in pages of 40 lines."
+                    {/* Editor Body */}
+                    <div className="flex-1 overflow-y-auto px-2.5 sm:px-6 pb-4 sm:pb-6 pt-2.5 sm:pt-4">
+                    {activeTab === "notes" && (
+                        <IdeMarkdownEditor
+                            label="Core Notes"
+                            value={draft.notes || `# ARRAY\n[Resource Title](https://youtu.be/37E9ckMDdTk)\n\n## Basics of array\nArray is a data structure in which only similar elements will be stored\nFor Example:- array can store only one type of data at a time like only integer , charector , String ETC.\n[ 0 ] [ 1 ] [ 2 ] [ 3 ] [ 4 ] [ ... ] [ n ]\nstart from index 0 to n\n\n## Largest Element in a Array\nFrom A given array of Integers Find the Largest Among Them\n\`arr[] = [3, 2, 1, 5, 2]\`\n\n- Brute Force Method:-`}
+                            onChange={(val) => setDraft((prev) => ({ ...prev, notes: val }))}
+                        />
+                    )}
+
+                    {activeTab === "revision" && (
+                        <IdeMarkdownEditor
+                            label="Revision Notes"
+                            value={draft.revisionNotes}
+                            onChange={(val) => setDraft((prev) => ({ ...prev, revisionNotes: val }))}
+                        />
+                    )}
+
+                    {activeTab !== "notes" && activeTab !== "revision" && (
+                        <div className="bg-[#10141E] border border-[#1E293B] rounded-xl p-6 shadow-xl space-y-6">
+                            {activeTab === "theory" && (
+                                <>
+                                    <IdeMarkdownEditor
+                                        label="Important Points"
+                                        value={draft.importantPoints.join("\n")}
+                                        onChange={(val) => setDraft(prev => ({
+                                            ...prev,
+                                            importantPoints: val.split("\n").map(s => s.trim()).filter(Boolean)
+                                        }))}
                                     />
-                                )}
-
-                                {activeTab === "revision" && (
-                                    <PaginatedNotesBlock
-                                        label="🔄 Revision Notes"
-                                        value={draft.revisionNotes}
-                                        onChange={(val) => setDraft(prev => ({ ...prev, revisionNotes: val }))}
-                                        placeholder="Paste or type revision summaries here... Paginated in pages of 40 lines."
+                                    <IdeMarkdownEditor
+                                        label="Keywords"
+                                        value={draft.keywords.join("\n")}
+                                        onChange={(val) => setDraft(prev => ({
+                                            ...prev,
+                                            keywords: val.split("\n").map(s => s.trim()).filter(Boolean)
+                                        }))}
                                     />
-                                )}
-
-                                {activeTab === "theory" && (
-                                    <>
-                                        <PaginatedNotesBlock
-                                            label="💡 Important Points"
-                                            value={draft.importantPoints.join("\n")}
-                                            onChange={(val) => setDraft(prev => ({
-                                                ...prev,
-                                                importantPoints: val.split("\n").map(s => s.trim()).filter(Boolean)
-                                            }))}
-                                            placeholder="Enter important concepts/points (one per line)..."
-                                        />
-                                        <PaginatedNotesBlock
-                                            label="🏷️ Keywords"
-                                            value={draft.keywords.join("\n")}
-                                            onChange={(val) => setDraft(prev => ({
-                                                ...prev,
-                                                keywords: val.split("\n").map(s => s.trim()).filter(Boolean)
-                                            }))}
-                                            placeholder="Enter keywords (one per line)..."
-                                        />
-                                    </>
-                                )}
-
-                                {activeTab === "algorithms" && (
-                                    <>
-                                        <PaginatedNotesBlock
-                                            label="🧠 Algorithms & Pseudocode"
-                                            value={draft.algorithms.join("\n")}
-                                            onChange={(val) => setDraft(prev => ({
-                                                ...prev,
-                                                algorithms: val.split("\n").map(s => s.trim()).filter(Boolean)
-                                            }))}
-                                            placeholder="Enter algorithm steps or pseudocode block (one per line)..."
-                                        />
-                                        <PaginatedNotesBlock
-                                            label="📏 Mathematical Formulas"
-                                            value={draft.formulas.join("\n")}
-                                            onChange={(val) => setDraft(prev => ({
-                                                ...prev,
-                                                formulas: val.split("\n").map(s => s.trim()).filter(Boolean)
-                                            }))}
-                                            placeholder="Enter formulas (one per line)..."
-                                        />
-                                    </>
-                                )}
-
-                                {activeTab === "code" && (
-                                    <>
-                                        <PaginatedNotesBlock
-                                            label="💻 Code Examples"
-                                            value={draft.examples.join("\n")}
-                                            onChange={(val) => setDraft(prev => ({
-                                                ...prev,
-                                                examples: val.split("\n").map(s => s.trim()).filter(Boolean)
-                                            }))}
-                                            placeholder="Paste code examples (one block/line per item)..."
-                                        />
-                                        <PaginatedNotesBlock
-                                            label="🧱 Structural Patterns"
-                                            value={draft.patterns.join("\n")}
-                                            onChange={(val) => setDraft(prev => ({
-                                                ...prev,
-                                                patterns: val.split("\n").map(s => s.trim()).filter(Boolean)
-                                            }))}
-                                            placeholder="Enter patterns/approaches (one per line)..."
-                                        />
-                                        <PaginatedNotesBlock
-                                            label="🎯 Practice Problems"
-                                            value={draft.practiceProblems.join("\n")}
-                                            onChange={(val) => setDraft(prev => ({
-                                                ...prev,
-                                                practiceProblems: val.split("\n").map(s => s.trim()).filter(Boolean)
-                                            }))}
-                                            placeholder="Enter practice problem links or titles (one per line)..."
-                                        />
-                                    </>
-                                )}
-
-                                {activeTab === "complexities" && (
-                                    <>
-                                        <PaginatedNotesBlock
-                                            label="⏱️ Time Complexities"
-                                            value={draft.timeComplexities.join("\n")}
-                                            onChange={(val) => setDraft(prev => ({
-                                                ...prev,
-                                                timeComplexities: val.split("\n").map(s => s.trim()).filter(Boolean)
-                                            }))}
-                                            placeholder="Enter time complexity details (e.g. O(N log N) - Worst Case)..."
-                                        />
-                                        <PaginatedNotesBlock
-                                            label="💾 Space Complexities"
-                                            value={draft.spaceComplexities.join("\n")}
-                                            onChange={(val) => setDraft(prev => ({
-                                                ...prev,
-                                                spaceComplexities: val.split("\n").map(s => s.trim()).filter(Boolean)
-                                            }))}
-                                            placeholder="Enter auxiliary/space complexity details (e.g. O(1) - In place)..."
-                                        />
-                                    </>
-                                )}
-
-                                {activeTab === "interview" && (
-                                    <>
-                                        <PaginatedNotesBlock
-                                            label="⚠️ Common Mistakes"
-                                            value={draft.commonMistakes.join("\n")}
-                                            onChange={(val) => setDraft(prev => ({
-                                                ...prev,
-                                                commonMistakes: val.split("\n").map(s => s.trim()).filter(Boolean)
-                                            }))}
-                                            placeholder="Enter common coding errors/pitfalls (one per line)..."
-                                        />
-                                        <PaginatedNotesBlock
-                                            label="🎯 Interview Tips"
-                                            value={draft.interviewTips.join("\n")}
-                                            onChange={(val) => setDraft(prev => ({
-                                                ...prev,
-                                                interviewTips: val.split("\n").map(s => s.trim()).filter(Boolean)
-                                            }))}
-                                            placeholder="Enter interview specific notes/tips (one per line)..."
-                                        />
-                                        <PaginatedNotesBlock
-                                            label="🧠 Memory Tricks"
-                                            value={draft.memoryTricks.join("\n")}
-                                            onChange={(val) => setDraft(prev => ({
-                                                ...prev,
-                                                memoryTricks: val.split("\n").map(s => s.trim()).filter(Boolean)
-                                            }))}
-                                            placeholder="Enter mnemonics or associations (one per line)..."
-                                        />
-                                    </>
-                                )}
-
-                                {activeTab === "support" && (
-                                    <>
-                                        <PaginatedNotesBlock
-                                            label="❓ Tutor Questions"
-                                            value={draft.tutorQuestions.join("\n")}
-                                            onChange={(val) => setDraft(prev => ({
-                                                ...prev,
-                                                tutorQuestions: val.split("\n").map(s => s.trim()).filter(Boolean)
-                                            }))}
-                                            placeholder="Enter items to clarify with a tutor/mentor (one per line)..."
-                                        />
-                                        <PaginatedNotesBlock
-                                            label="💬 Unresolved Doubts"
-                                            value={draft.doubts.join("\n")}
-                                            onChange={(val) => setDraft(prev => ({
-                                                ...prev,
-                                                doubts: val.split("\n").map(s => s.trim()).filter(Boolean)
-                                            }))}
-                                            placeholder="Enter pending doubts/questions (one per line)..."
-                                        />
-                                        <ResourceLinksBlock
-                                            resources={draft.resources}
-                                            onChange={(updated) => setDraft(prev => ({
-                                                ...prev,
-                                                resources: updated
-                                            }))}
-                                        />
-                                    </>
-                                )}
-
-                                {activeTab === "mastery" && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-6">
-                                            {/* Mastery Checklist */}
-                                            <div>
-                                                <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">Mastery Checklist</h3>
-                                                <div className="space-y-2">
-                                                    {masteryItems.map(({ key, label, icon: ItemIcon }) => (
-                                                        <button
-                                                            key={key}
-                                                            type="button"
-                                                            onClick={() => updateMastery(key)}
-                                                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${draft.mastery[key]
-                                                                ? "bg-emerald-400/[0.08] border-emerald-400/20 text-emerald-300"
-                                                                : "bg-white/[0.02] border-white/[0.06] text-zinc-400 hover:bg-white/[0.04] hover:border-white/[0.1]"
-                                                                }`}
-                                                        >
-                                                            {draft.mastery[key] ? (
-                                                                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                                                            ) : (
-                                                                <Circle className="w-5 h-5 text-zinc-600 shrink-0" />
-                                                            )}
-                                                            <ItemIcon className="w-4 h-4 shrink-0 text-zinc-500" />
-                                                            <span className="text-sm font-semibold tracking-wide font-sans">{label}</span>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            {/* Confidence Slider */}
-                                            <div className="p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] font-sans">
-                                                <div className="flex items-center justify-between mb-3">
-                                                    <h4 className="text-sm font-semibold text-zinc-400">Confidence Level</h4>
-                                                    <span className={`text-lg font-bold ${draft.confidence >= 80 ? "text-emerald-400" :
-                                                        draft.confidence >= 50 ? "text-amber-400" :
-                                                            draft.confidence >= 20 ? "text-orange-400" : "text-zinc-500"
-                                                        }`}>
-                                                        {draft.confidence}%
-                                                    </span>
-                                                </div>
-                                                <input
-                                                    type="range"
-                                                    min="0"
-                                                    max="100"
-                                                    value={draft.confidence}
-                                                    onChange={(e) => setDraft(prev => ({ ...prev, confidence: parseInt(e.target.value) }))}
-                                                    className="w-full h-2 bg-white/[0.06] rounded-full appearance-none cursor-pointer accent-white [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:shadow-white/20 [&::-webkit-slider-thumb]:cursor-pointer"
-                                                />
-                                                <div className="flex justify-between mt-1 text-[10px] text-zinc-600 font-mono">
-                                                    <span>No Idea</span>
-                                                    <span>Getting There</span>
-                                                    <span>Expert</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-6">
-                                            {/* Completed toggle */}
-                                            <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-white/[0.06] bg-white/[0.02] font-sans">
-                                                <div className="flex items-center gap-3">
-                                                    <CheckCircle2 className={`w-5 h-5 ${draft.completed ? "text-emerald-400" : "text-zinc-600"}`} />
-                                                    <span className="text-sm font-semibold text-zinc-300">Completed</span>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setDraft(prev => ({ ...prev, completed: !prev.completed }))}
-                                                    className={`w-12 h-6 rounded-full transition-all relative ${draft.completed ? "bg-emerald-400" : "bg-white/[0.1]"}`}
-                                                >
-                                                    <motion.div
-                                                        animate={{ x: draft.completed ? 24 : 2 }}
-                                                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                                                        className="absolute top-1 w-4 h-4 rounded-full bg-white shadow-md"
-                                                    />
-                                                </button>
-                                            </div>
-
-                                            {/* Related Topics */}
-                                            <div className="font-sans">
-                                                <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3">Related Topics</h4>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {draft.relatedTopics.map((rt, i) => (
-                                                        <span key={i} className="text-xs px-3 py-1.5 rounded-lg bg-white/[0.06] text-zinc-300 border border-white/[0.06] font-sans font-medium">
-                                                            {rt}
-                                                        </span>
-                                                    ))}
-                                                    {draft.relatedTopics.length === 0 && (
-                                                        <span className="text-xs text-zinc-600 italic">No related topics</span>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {/* Stats Grid */}
-                                            <div className="grid grid-cols-2 gap-3 font-sans">
-                                                <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                                                    <div className="text-[10px] text-zinc-500 uppercase tracking-wider">Revisions</div>
-                                                    <div className="text-xl font-bold text-white mt-1 font-mono">{draft.revisionCount}</div>
-                                                </div>
-                                                <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                                                    <div className="text-[10px] text-zinc-500 uppercase tracking-wider">Fields</div>
-                                                    <div className="text-xl font-bold text-white mt-1 font-mono">{getFilledFieldsCount(draft)}</div>
-                                                </div>
-                                                <div className="col-span-2 p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                                                    <div className="text-[10px] text-zinc-500 uppercase tracking-wider">Last Revised</div>
-                                                    <div className="text-sm font-semibold text-white mt-1 font-mono">
-                                                        {draft.lastRevised
-                                                            ? new Date(draft.lastRevised).toLocaleDateString("en-US", {
-                                                                month: "short", day: "numeric", year: "numeric",
-                                                                hour: "2-digit", minute: "2-digit",
-                                                            })
-                                                            : "Never"}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                </>
+                            )}
+                            {activeTab === "algorithms" && (
+                                <>
+                                    <IdeMarkdownEditor
+                                        label="Algorithms & Pseudocode"
+                                        value={draft.algorithms.join("\n")}
+                                        onChange={(val) => setDraft(prev => ({
+                                            ...prev,
+                                            algorithms: val.split("\n").map(s => s.trim()).filter(Boolean)
+                                        }))}
+                                    />
+                                    <IdeMarkdownEditor
+                                        label="Formulas"
+                                        value={draft.formulas.join("\n")}
+                                        onChange={(val) => setDraft(prev => ({
+                                            ...prev,
+                                            formulas: val.split("\n").map(s => s.trim()).filter(Boolean)
+                                        }))}
+                                    />
+                                </>
+                            )}
+                            {activeTab === "code" && (
+                                <>
+                                    <IdeMarkdownEditor
+                                        label="Code Examples"
+                                        value={draft.examples.join("\n")}
+                                        onChange={(val) => setDraft(prev => ({
+                                            ...prev,
+                                            examples: val.split("\n").map(s => s.trim()).filter(Boolean)
+                                        }))}
+                                    />
+                                    <IdeMarkdownEditor
+                                        label="Patterns"
+                                        value={draft.patterns.join("\n")}
+                                        onChange={(val) => setDraft(prev => ({
+                                            ...prev,
+                                            patterns: val.split("\n").map(s => s.trim()).filter(Boolean)
+                                        }))}
+                                    />
+                                </>
+                            )}
+                            {activeTab === "complexities" && (
+                                <>
+                                    <IdeMarkdownEditor
+                                        label="Time Complexities"
+                                        value={draft.timeComplexities.join("\n")}
+                                        onChange={(val) => setDraft(prev => ({
+                                            ...prev,
+                                            timeComplexities: val.split("\n").map(s => s.trim()).filter(Boolean)
+                                        }))}
+                                    />
+                                    <IdeMarkdownEditor
+                                        label="Space Complexities"
+                                        value={draft.spaceComplexities.join("\n")}
+                                        onChange={(val) => setDraft(prev => ({
+                                            ...prev,
+                                            spaceComplexities: val.split("\n").map(s => s.trim()).filter(Boolean)
+                                        }))}
+                                    />
+                                </>
+                            )}
+                            {activeTab === "interview" && (
+                                <>
+                                    <IdeMarkdownEditor
+                                        label="Common Mistakes"
+                                        value={draft.commonMistakes.join("\n")}
+                                        onChange={(val) => setDraft(prev => ({
+                                            ...prev,
+                                            commonMistakes: val.split("\n").map(s => s.trim()).filter(Boolean)
+                                        }))}
+                                    />
+                                    <IdeMarkdownEditor
+                                        label="Interview Tips"
+                                        value={draft.interviewTips.join("\n")}
+                                        onChange={(val) => setDraft(prev => ({
+                                            ...prev,
+                                            interviewTips: val.split("\n").map(s => s.trim()).filter(Boolean)
+                                        }))}
+                                    />
+                                </>
+                            )}
+                            {activeTab === "support" && (
+                                <div className="space-y-6">
+                                    <IdeMarkdownEditor
+                                        label="Tutor Questions"
+                                        value={draft.tutorQuestions.join("\n")}
+                                        onChange={(val) => setDraft(prev => ({
+                                            ...prev,
+                                            tutorQuestions: val.split("\n").map(s => s.trim()).filter(Boolean)
+                                        }))}
+                                    />
+                                    <IdeMarkdownEditor
+                                        label="Related Topics"
+                                        value={draft.relatedTopics.join("\n")}
+                                        onChange={(val) => setDraft(prev => ({
+                                            ...prev,
+                                            relatedTopics: val.split("\n").map(s => s.trim()).filter(Boolean)
+                                        }))}
+                                    />
+                                </div>
+                            )}
+                            {activeTab === "mastery" && (
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                        {masteryItems.map(({ key, label }) => (
+                                            <button
+                                                key={key}
+                                                type="button"
+                                                onClick={() => updateMastery(key)}
+                                                className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs text-left cursor-pointer ${
+                                                    draft.mastery[key]
+                                                        ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
+                                                        : "bg-[#141923] border-[#1E293B] text-zinc-400"
+                                                }`}
+                                            >
+                                                {draft.mastery[key] ? (
+                                                    <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
+                                                ) : (
+                                                    <Circle size={16} className="text-zinc-600 shrink-0" />
+                                                )}
+                                                <span className="font-semibold">{label}</span>
+                                            </button>
+                                        ))}
                                     </div>
-                                )}
-                            </motion.div>
-                        </AnimatePresence>
-                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
-
-            </motion.div>
+            </div>
         </motion.div>
     );
 }
@@ -1834,11 +1609,12 @@ export default function DsaNotes() {
                     // Fetch failed (non-401 error) -> fallback to localStorage
                     const stored = localStorage.getItem(STORAGE_KEY);
                     if (stored) {
-                        setTopics(JSON.parse(stored));
+                        const parsed = JSON.parse(stored);
+                        setTopics(parsed);
                     } else {
                         const notesData = await import("@/lib/data/notes.json");
-                        const data = Array.isArray(notesData.default) ? notesData.default : notesData;
-                        setTopics(data as NoteTopic[]);
+                        const data = (Array.isArray(notesData.default) ? notesData.default : notesData) as unknown as NoteTopic[];
+                        setTopics(data);
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
                     }
                 }
@@ -1846,12 +1622,13 @@ export default function DsaNotes() {
                 console.error("Failed to fetch notes, falling back to local cache:", error);
                 const stored = localStorage.getItem(STORAGE_KEY);
                 if (stored) {
-                    setTopics(JSON.parse(stored));
+                    const parsed = JSON.parse(stored);
+                    setTopics(parsed);
                 } else {
                     try {
                         const notesData = await import("@/lib/data/notes.json");
-                        const data = Array.isArray(notesData.default) ? notesData.default : notesData;
-                        setTopics(data as NoteTopic[]);
+                        const data = (Array.isArray(notesData.default) ? notesData.default : notesData) as unknown as NoteTopic[];
+                        setTopics(data);
                     } catch {
                         console.error("Failed to load fallback notes data");
                     }
@@ -2005,42 +1782,35 @@ export default function DsaNotes() {
     );
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-white flex font-sans antialiased tracking-wide">
-            {/* Mobile menu button */}
-            <button
-                className="md:hidden fixed top-4 left-4 z-50 p-2 bg-zinc-900 border border-white/10 rounded-lg text-white"
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-            >
-                {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-
+        <div className="min-h-screen bg-[#0B0F17] text-slate-100 flex font-sans antialiased tracking-wide">
             {/* Sidebar */}
             <Sidebar
                 isMobileOpen={sidebarOpen}
                 onMobileClose={() => setSidebarOpen(false)}
-                customFilters={notesFilters}
-                collapsedFilters={collapsedNotesFilters}
             />
 
             {/* Main Content */}
-            <main className="flex-1 p-6 md:p-10 overflow-y-auto min-h-screen">
-                {/* Header */}
-                <header className="mb-8 hidden md:block font-sans">
-                    <div className="flex items-center gap-3 mb-1">
-                        <div className="p-2 bg-white/5 border border-white/10 rounded-lg">
-                            <StickyNote className="w-6 h-6 text-white" />
+            <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+                <WorkspaceHeader onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
+
+                <main className="flex-1 p-3.5 sm:p-6 md:p-8 pb-16 md:pb-8 overflow-y-auto">
+                    {/* Header */}
+                    <header className="mb-6 hidden md:block font-sans">
+                        <div className="flex items-center gap-3 mb-1">
+                            <div className="p-2 bg-white/5 border border-white/10 rounded-lg">
+                                <StickyNote className="w-5 h-5 text-cyan-400" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-bold tracking-tight text-white font-sans">DSA Knowledge Base</h1>
+                                <p className="text-zinc-400 mt-0.5 text-xs font-mono">
+                                    SYS.NOTES // {stats.total} topics • {stats.completed} mastered
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <h1 className="text-3xl font-bold tracking-tight text-white font-sans">DSA Notes</h1>
-                            <p className="text-zinc-400 mt-1 text-sm font-semibold tracking-wide">
-                                Your personal knowledge base — {stats.total} topics, {stats.completed} completed
-                            </p>
-                        </div>
-                    </div>
-                </header>
+                    </header>
 
                 {/* Stats bar */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6 font-sans">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5 sm:gap-3 mb-6 font-sans">
                     {[
                         { label: "Total", value: stats.total, icon: BookOpen, color: "text-white" },
                         { label: "Completed", value: stats.completed, icon: CheckCircle2, color: "text-emerald-400" },
@@ -2055,11 +1825,13 @@ export default function DsaNotes() {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.04 }}
-                                className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06]"
+                                className={`flex items-center gap-2.5 sm:gap-3 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl bg-white/[0.03] border border-white/[0.06] ${
+                                    i === 4 ? "col-span-2 sm:col-span-1" : ""
+                                }`}
                             >
                                 <StatIcon className={`w-4 h-4 ${stat.color} shrink-0`} />
                                 <div>
-                                    <div className={`text-lg font-bold ${stat.color} font-mono`}>{stat.value}</div>
+                                    <div className={`text-base sm:text-lg font-bold ${stat.color} font-mono`}>{stat.value}</div>
                                     <div className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">{stat.label}</div>
                                 </div>
                             </motion.div>
@@ -2086,6 +1858,71 @@ export default function DsaNotes() {
                     </div>
                 </div>
 
+                {/* Level & Status Filter Pills */}
+                <div className="flex flex-col gap-2.5 mb-6 font-sans">
+                    {/* Level Filter Pills */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                        <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mr-1 shrink-0">Level:</span>
+                        {levels.map(level => {
+                            const config = level !== "All" ? LEVEL_CONFIG[level] : null;
+                            const count = level === "All" ? topics.length : topics.filter(t => t.level === level).length;
+                            const isSelected = filterLevel === level;
+                            return (
+                                <button
+                                    key={level}
+                                    type="button"
+                                    onClick={() => setFilterLevel(level)}
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
+                                        isSelected
+                                            ? config
+                                                ? `${config.bgColor} ${config.color} border ${config.borderColor} font-bold shadow-sm`
+                                                : "bg-white text-zinc-950 font-bold shadow-sm"
+                                            : "bg-[#10141E] text-zinc-400 hover:text-white border border-[#1E293B] hover:bg-[#141923]"
+                                    }`}
+                                >
+                                    <span>{level}</span>
+                                    <span className="px-1.5 py-0.2 rounded bg-black/30 text-[10px] font-mono opacity-80">
+                                        {count}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Status Filter Pills */}
+                    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                        <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mr-1 shrink-0">Status:</span>
+                        {statuses.map(status => {
+                            const isSelected = filterStatus === status;
+                            const count = status === "All"
+                                ? topics.length
+                                : status === "Completed"
+                                    ? topics.filter(t => t.completed).length
+                                    : status === "Pending"
+                                        ? topics.filter(t => !t.completed).length
+                                        : topics.filter(t => t.favorite).length;
+
+                            return (
+                                <button
+                                    key={status}
+                                    type="button"
+                                    onClick={() => setFilterStatus(status)}
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
+                                        isSelected
+                                            ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-semibold shadow-sm"
+                                            : "bg-[#10141E] text-zinc-400 hover:text-white border border-[#1E293B] hover:bg-[#141923]"
+                                    }`}
+                                >
+                                    <span>{status}</span>
+                                    <span className="px-1.5 py-0.2 rounded bg-black/30 text-[10px] font-mono opacity-80">
+                                        {count}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
                 {/* Topics Grid — each card is col-span-2 in a 6-col grid = 3 cards per row */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
                     {filteredTopics.map((topic, i) => (
@@ -2105,7 +1942,8 @@ export default function DsaNotes() {
                         <p className="text-sm text-zinc-600">Try adjusting your search or filters</p>
                     </motion.div>
                 )}
-            </main>
+                </main>
+            </div>
 
             {/* Topic Detail Panel */}
             <AnimatePresence>
