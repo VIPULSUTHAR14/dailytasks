@@ -246,11 +246,11 @@ export default function IdeMarkdownEditor({
             const next = !prev;
             if (next) {
                 if (typeof document !== "undefined" && !document.fullscreenElement && document.documentElement.requestFullscreen) {
-                    document.documentElement.requestFullscreen().catch(() => {});
+                    document.documentElement.requestFullscreen().catch(() => { });
                 }
             } else {
                 if (typeof document !== "undefined" && document.fullscreenElement && document.exitFullscreen) {
-                    document.exitFullscreen().catch(() => {});
+                    document.exitFullscreen().catch(() => { });
                 }
             }
             return next;
@@ -299,16 +299,17 @@ export default function IdeMarkdownEditor({
     // Universal smooth scroll helper that works on textarea, div, and window
     const smoothScrollElement = (element: HTMLElement | null, targetTop: number) => {
         if (!element) return;
-        const startTop = element.scrollTop;
+        const el = element;
+        const startTop = el.scrollTop;
         const distance = targetTop - startTop;
         if (Math.abs(distance) < 2) {
-            element.scrollTop = targetTop;
+            el.scrollTop = targetTop;
             return;
         }
 
         try {
-            element.scrollTo({ top: targetTop, behavior: "smooth" });
-        } catch (e) {}
+            el.scrollTo({ top: targetTop, behavior: "smooth" });
+        } catch (e) { }
 
         const duration = 220;
         const startTime = performance.now();
@@ -317,11 +318,11 @@ export default function IdeMarkdownEditor({
             const elapsed = now - startTime;
             const progress = Math.min(elapsed / duration, 1);
             const ease = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-            element.scrollTop = startTop + distance * ease;
+            el.scrollTop = startTop + distance * ease;
             if (progress < 1) {
                 requestAnimationFrame(step);
             } else {
-                element.scrollTop = targetTop;
+                el.scrollTop = targetTop;
             }
         }
         requestAnimationFrame(step);
@@ -333,7 +334,7 @@ export default function IdeMarkdownEditor({
             smoothScrollElement(textareaRef.current, 0);
             try {
                 textareaRef.current.setSelectionRange(0, 0);
-            } catch (e) {}
+            } catch (e) { }
         }
         // 2. Preview
         if (previewRef.current) {
@@ -379,7 +380,7 @@ export default function IdeMarkdownEditor({
             try {
                 const len = textareaRef.current.value.length;
                 textareaRef.current.setSelectionRange(len, len);
-            } catch (e) {}
+            } catch (e) { }
         }
         // 2. Preview
         if (previewRef.current) {
@@ -476,20 +477,18 @@ export default function IdeMarkdownEditor({
     return (
         <div
             ref={containerRef}
-            className={`font-mono text-xs transition-all ${
-                isFullscreen
-                    ? "fixed inset-0 z-[100] w-screen h-screen w-[100vw] h-[100vh] bg-[#0B0F17] flex flex-col overflow-hidden m-0 p-0 rounded-none border-0 shadow-none"
-                    : "bg-[#10141E] border border-[#1E293B] rounded-xl overflow-visible shadow-2xl flex flex-col relative max-w-full"
-            }`}
+            className={`font-mono text-xs transition-all ${isFullscreen
+                ? "fixed inset-0 z-[100] w-screen h-screen w-[100vw] h-[100vh] bg-[#0B0F17] flex flex-col overflow-hidden m-0 p-0 rounded-none border-0 shadow-none"
+                : "bg-[#10141E] border border-[#1E293B] rounded-xl overflow-visible shadow-2xl flex flex-col relative max-w-full"
+                }`}
         >
             {/* Top Toolbar - Sticky with scroll and responsive design */}
             <div
                 ref={toolbarRef}
-                className={`sticky top-0 z-30 flex flex-col gap-2 bg-[#0B0F17]/98 backdrop-blur-md border-b border-[#1E293B] select-none shadow-[0_4px_20px_rgba(0,0,0,0.5)] transition-all ${
-                    isFullscreen
-                        ? "px-4 py-2.5 sm:px-8 sm:py-3 rounded-none"
-                        : "px-3 py-2 sm:px-4 sm:py-2.5 rounded-t-xl"
-                }`}
+                className={`sticky top-0 z-30 flex flex-col gap-2 bg-[#0B0F17]/98 backdrop-blur-md border-b border-[#1E293B] select-none shadow-[0_4px_20px_rgba(0,0,0,0.5)] transition-all ${isFullscreen
+                    ? "px-4 py-2.5 sm:px-8 sm:py-3 rounded-none"
+                    : "px-3 py-2 sm:px-4 sm:py-2.5 rounded-t-xl"
+                    }`}
             >
                 {/* Upper row: Label, Stats, Copy, and Mode Switchers */}
                 <div className="flex items-center justify-between w-full gap-2">
@@ -545,9 +544,8 @@ export default function IdeMarkdownEditor({
                             <button
                                 type="button"
                                 onClick={() => setMode("edit")}
-                                className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] sm:text-[11px] font-semibold transition-colors ${
-                                    mode === "edit" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
-                                }`}
+                                className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] sm:text-[11px] font-semibold transition-colors ${mode === "edit" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
+                                    }`}
                             >
                                 <Edit3 size={11} />
                                 <span>Edit</span>
@@ -556,9 +554,8 @@ export default function IdeMarkdownEditor({
                             <button
                                 type="button"
                                 onClick={() => setMode("split")}
-                                className={`hidden sm:flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold transition-colors ${
-                                    mode === "split" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
-                                }`}
+                                className={`hidden sm:flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold transition-colors ${mode === "split" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
+                                    }`}
                             >
                                 <Split size={12} />
                                 <span>Split</span>
@@ -567,9 +564,8 @@ export default function IdeMarkdownEditor({
                             <button
                                 type="button"
                                 onClick={() => setMode("preview")}
-                                className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] sm:text-[11px] font-semibold transition-colors ${
-                                    mode === "preview" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
-                                }`}
+                                className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] sm:text-[11px] font-semibold transition-colors ${mode === "preview" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
+                                    }`}
                             >
                                 <Eye size={11} />
                                 <span>Preview</span>
@@ -580,11 +576,10 @@ export default function IdeMarkdownEditor({
                         <button
                             type="button"
                             onClick={toggleFullscreen}
-                            className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[11px] font-semibold transition-all cursor-pointer ${
-                                isFullscreen
-                                    ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm shadow-cyan-500/10"
-                                    : "bg-[#141923] border-[#1E293B] text-zinc-400 hover:text-white hover:bg-[#1E293B]"
-                            }`}
+                            className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[11px] font-semibold transition-all cursor-pointer ${isFullscreen
+                                ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm shadow-cyan-500/10"
+                                : "bg-[#141923] border-[#1E293B] text-zinc-400 hover:text-white hover:bg-[#1E293B]"
+                                }`}
                             title={isFullscreen ? "Exit Full Screen (Esc)" : "Open in Full Screen (100vw × 100vh)"}
                         >
                             {isFullscreen ? (
@@ -626,9 +621,8 @@ export default function IdeMarkdownEditor({
                                 key={b.id}
                                 type="button"
                                 onClick={() => insertSyntax(b.id)}
-                                className={`w-6 h-6 shrink-0 rounded flex items-center justify-center text-[11px] text-zinc-400 hover:text-white hover:bg-[#1E293B] transition-colors ${
-                                    b.className || ""
-                                }`}
+                                className={`w-6 h-6 shrink-0 rounded flex items-center justify-center text-[11px] text-zinc-400 hover:text-white hover:bg-[#1E293B] transition-colors ${b.className || ""
+                                    }`}
                                 title={b.title}
                             >
                                 {b.label}
@@ -678,11 +672,10 @@ export default function IdeMarkdownEditor({
             {/* IDE Canvas Body */}
             <div
                 ref={canvasBodyRef}
-                className={`flex-1 flex overflow-visible bg-[#0B0F17] ${
-                    isFullscreen
-                        ? "min-h-0 h-full w-full rounded-none p-0 m-0 overflow-hidden"
-                        : "min-h-[360px] sm:min-h-[540px] rounded-b-xl"
-                }`}
+                className={`flex-1 flex overflow-visible bg-[#0B0F17] ${isFullscreen
+                    ? "min-h-0 h-full w-full rounded-none p-0 m-0 overflow-hidden"
+                    : "min-h-[360px] sm:min-h-[540px] rounded-b-xl"
+                    }`}
             >
                 {/* Mode: EDIT */}
                 {mode === "edit" && (
@@ -690,9 +683,8 @@ export default function IdeMarkdownEditor({
                         {/* 2-Digit Line Numbers Gutter */}
                         <div
                             ref={editorGutterRef}
-                            className={`w-9 sm:w-12 bg-[#0B0F17] border-r border-[#1E293B] text-zinc-600 select-none py-3 sm:py-4 text-right pr-1.5 sm:pr-3 shrink-0 font-mono text-[10px] sm:text-xs leading-6 ${
-                                isFullscreen ? "overflow-hidden" : ""
-                            }`}
+                            className={`w-9 sm:w-12 bg-[#0B0F17] border-r border-[#1E293B] text-zinc-600 select-none py-3 sm:py-4 text-right pr-1.5 sm:pr-3 shrink-0 font-mono text-[10px] sm:text-xs leading-6 ${isFullscreen ? "overflow-hidden" : ""
+                                }`}
                         >
                             {lines.map((_, i) => (
                                 <div key={i}>{String(i + 1).padStart(2, "0")}</div>
@@ -709,9 +701,8 @@ export default function IdeMarkdownEditor({
                                 if (!isFullscreen) adjustTextareaHeight();
                             }}
                             placeholder={placeholder}
-                            className={`flex-1 bg-[#0B0F17] text-zinc-200 p-2.5 sm:p-4 leading-6 font-mono text-xs focus:outline-none resize-none ${
-                                isFullscreen ? "h-full overflow-y-auto" : "overflow-hidden"
-                            }`}
+                            className={`flex-1 bg-[#0B0F17] text-zinc-200 p-2.5 sm:p-4 leading-6 font-mono text-xs focus:outline-none resize-none ${isFullscreen ? "h-full overflow-y-auto" : "overflow-hidden"
+                                }`}
                             spellCheck={false}
                         />
                     </div>
@@ -723,9 +714,8 @@ export default function IdeMarkdownEditor({
                         {/* Gutter */}
                         <div
                             ref={previewGutterRef}
-                            className={`w-9 sm:w-12 bg-[#0B0F17] border-r border-[#1E293B] text-zinc-600 select-none py-3 sm:py-4 text-right pr-1.5 sm:pr-3 shrink-0 font-mono text-[10px] sm:text-xs leading-6 ${
-                                isFullscreen ? "overflow-hidden" : ""
-                            }`}
+                            className={`w-9 sm:w-12 bg-[#0B0F17] border-r border-[#1E293B] text-zinc-600 select-none py-3 sm:py-4 text-right pr-1.5 sm:pr-3 shrink-0 font-mono text-[10px] sm:text-xs leading-6 ${isFullscreen ? "overflow-hidden" : ""
+                                }`}
                         >
                             {lines.map((_, i) => (
                                 <div key={i}>{String(i + 1).padStart(2, "0")}</div>
@@ -736,9 +726,8 @@ export default function IdeMarkdownEditor({
                         <div
                             ref={previewRef}
                             onScroll={handlePreviewScroll}
-                            className={`flex-1 p-2.5 sm:p-4 leading-6 font-mono text-xs text-zinc-200 select-text overflow-x-auto ${
-                                isFullscreen ? "h-full overflow-y-auto" : ""
-                            }`}
+                            className={`flex-1 p-2.5 sm:p-4 leading-6 font-mono text-xs text-zinc-200 select-text overflow-x-auto ${isFullscreen ? "h-full overflow-y-auto" : ""
+                                }`}
                         >
                             {lines.map((line, i) => (
                                 <div key={i} className="hover:bg-[#141923] rounded px-1 -mx-1">
@@ -751,16 +740,14 @@ export default function IdeMarkdownEditor({
 
                 {/* Mode: SPLIT */}
                 {mode === "split" && (
-                    <div className={`flex-1 min-h-0 w-full flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-[#1E293B] ${
-                        isFullscreen ? "h-full" : "min-h-[560px]"
-                    }`}>
+                    <div className={`flex-1 min-h-0 w-full flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-[#1E293B] ${isFullscreen ? "h-full" : "min-h-[560px]"
+                        }`}>
                         {/* Left: Editor */}
                         <div className="flex-1 min-h-0 flex flex-col min-w-0 bg-[#0B0F17] h-full">
                             <div
                                 style={!isFullscreen ? { top: `${toolbarHeight}px` } : undefined}
-                                className={`${
-                                    !isFullscreen ? "sticky" : ""
-                                } z-20 px-3 sm:px-4 py-1.5 bg-[#0F131C]/95 backdrop-blur-sm border-b border-[#1E293B] text-[10px] font-mono text-zinc-500 uppercase tracking-wider flex items-center justify-between shadow-sm shrink-0`}
+                                className={`${!isFullscreen ? "sticky" : ""
+                                    } z-20 px-3 sm:px-4 py-1.5 bg-[#0F131C]/95 backdrop-blur-sm border-b border-[#1E293B] text-[10px] font-mono text-zinc-500 uppercase tracking-wider flex items-center justify-between shadow-sm shrink-0`}
                             >
                                 <span className="flex items-center gap-1.5">
                                     <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
@@ -771,9 +758,8 @@ export default function IdeMarkdownEditor({
                             <div className={`flex-1 min-h-0 flex ${isFullscreen ? "h-full overflow-hidden" : "min-h-[360px] sm:min-h-[540px]"}`}>
                                 <div
                                     ref={editorGutterRef}
-                                    className={`w-9 sm:w-12 bg-[#0B0F17] border-r border-[#1E293B] text-zinc-600 select-none py-3 sm:py-4 text-right pr-1.5 sm:pr-3 shrink-0 font-mono text-[10px] sm:text-xs leading-6 ${
-                                        isFullscreen ? "overflow-hidden" : ""
-                                    }`}
+                                    className={`w-9 sm:w-12 bg-[#0B0F17] border-r border-[#1E293B] text-zinc-600 select-none py-3 sm:py-4 text-right pr-1.5 sm:pr-3 shrink-0 font-mono text-[10px] sm:text-xs leading-6 ${isFullscreen ? "overflow-hidden" : ""
+                                        }`}
                                 >
                                     {lines.map((_, i) => (
                                         <div key={i}>{String(i + 1).padStart(2, "0")}</div>
@@ -788,9 +774,8 @@ export default function IdeMarkdownEditor({
                                         if (!isFullscreen) adjustTextareaHeight();
                                     }}
                                     placeholder={placeholder}
-                                    className={`flex-1 bg-[#0B0F17] text-zinc-200 p-2.5 sm:p-4 leading-6 font-mono text-xs focus:outline-none resize-none ${
-                                        isFullscreen ? "h-full overflow-y-auto" : "overflow-hidden"
-                                    }`}
+                                    className={`flex-1 bg-[#0B0F17] text-zinc-200 p-2.5 sm:p-4 leading-6 font-mono text-xs focus:outline-none resize-none ${isFullscreen ? "h-full overflow-y-auto" : "overflow-hidden"
+                                        }`}
                                     spellCheck={false}
                                 />
                             </div>
@@ -800,9 +785,8 @@ export default function IdeMarkdownEditor({
                         <div className="flex-1 min-h-0 flex flex-col min-w-0 bg-[#0F131C] h-full">
                             <div
                                 style={!isFullscreen ? { top: `${toolbarHeight}px` } : undefined}
-                                className={`${
-                                    !isFullscreen ? "sticky" : ""
-                                } z-20 px-3 sm:px-4 py-1.5 bg-[#0F131C]/95 backdrop-blur-sm border-b border-[#1E293B] text-[10px] font-mono text-zinc-500 uppercase tracking-wider flex items-center justify-between shadow-sm shrink-0`}
+                                className={`${!isFullscreen ? "sticky" : ""
+                                    } z-20 px-3 sm:px-4 py-1.5 bg-[#0F131C]/95 backdrop-blur-sm border-b border-[#1E293B] text-[10px] font-mono text-zinc-500 uppercase tracking-wider flex items-center justify-between shadow-sm shrink-0`}
                             >
                                 <span className="flex items-center gap-1.5">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
@@ -813,9 +797,8 @@ export default function IdeMarkdownEditor({
                             <div className={`flex-1 min-h-0 flex ${isFullscreen ? "h-full overflow-hidden" : "min-h-[360px] sm:min-h-[540px]"}`}>
                                 <div
                                     ref={previewGutterRef}
-                                    className={`w-9 sm:w-12 bg-[#0F131C] border-r border-[#1E293B] text-zinc-600 select-none py-3 sm:py-4 text-right pr-1.5 sm:pr-3 shrink-0 font-mono text-[10px] sm:text-xs leading-6 ${
-                                        isFullscreen ? "overflow-hidden" : ""
-                                    }`}
+                                    className={`w-9 sm:w-12 bg-[#0F131C] border-r border-[#1E293B] text-zinc-600 select-none py-3 sm:py-4 text-right pr-1.5 sm:pr-3 shrink-0 font-mono text-[10px] sm:text-xs leading-6 ${isFullscreen ? "overflow-hidden" : ""
+                                        }`}
                                 >
                                     {lines.map((_, i) => (
                                         <div key={i}>{String(i + 1).padStart(2, "0")}</div>
@@ -824,9 +807,8 @@ export default function IdeMarkdownEditor({
                                 <div
                                     ref={previewRef}
                                     onScroll={handlePreviewScroll}
-                                    className={`flex-1 p-2.5 sm:p-4 leading-6 font-mono text-xs text-zinc-200 select-text overflow-x-auto ${
-                                        isFullscreen ? "h-full overflow-y-auto" : ""
-                                    }`}
+                                    className={`flex-1 p-2.5 sm:p-4 leading-6 font-mono text-xs text-zinc-200 select-text overflow-x-auto ${isFullscreen ? "h-full overflow-y-auto" : ""
+                                        }`}
                                 >
                                     {lines.map((line, i) => (
                                         <div key={i} className="hover:bg-[#141923] rounded px-1 -mx-1">
