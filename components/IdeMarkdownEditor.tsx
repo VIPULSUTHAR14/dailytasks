@@ -3,7 +3,8 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback, ReactNode } from "react";
 import {
     Copy, Check, Edit3, Eye, Split, FileText, Link as LinkIcon,
-    Image as ImageIcon, PlayCircle, ExternalLink
+    Image as ImageIcon, PlayCircle, ExternalLink, Maximize2, Minimize2,
+    ArrowUp, ArrowDown
 } from "lucide-react";
 
 interface IdeMarkdownEditorProps {
@@ -152,8 +153,13 @@ export default function IdeMarkdownEditor({
 }: IdeMarkdownEditorProps) {
     const [mode, setMode] = useState<"edit" | "split" | "preview">("edit");
     const [copied, setCopied] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const previewRef = useRef<HTMLDivElement>(null);
+    const editorGutterRef = useRef<HTMLDivElement>(null);
+    const previewGutterRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const canvasBodyRef = useRef<HTMLDivElement>(null);
     const toolbarRef = useRef<HTMLDivElement>(null);
     const [toolbarHeight, setToolbarHeight] = useState(48);
     const isScrollingRef = useRef<"editor" | "preview" | null>(null);
@@ -186,28 +192,85 @@ export default function IdeMarkdownEditor({
         return { lineCount, words, readTime };
     }, [lines, value]);
 
-    // Auto-adjust textarea height to content so outer container scrolls and toolbar sticks smoothly
+    // Auto-adjust textarea height to content so outer container scrolls and toolbar sticks smoothly (when not fullscreen)
     const adjustTextareaHeight = useCallback(() => {
         const textarea = textareaRef.current;
         if (!textarea) return;
+        if (isFullscreen) {
+            textarea.style.height = "100%";
+            return;
+        }
         textarea.style.height = "auto";
         const minHeight = typeof window !== "undefined" && window.innerWidth < 640 ? 360 : 540;
         const newHeight = Math.max(textarea.scrollHeight, minHeight);
         textarea.style.height = `${newHeight}px`;
-    }, []);
+    }, [isFullscreen]);
 
     useEffect(() => {
         adjustTextareaHeight();
-    }, [value, mode, adjustTextareaHeight]);
+        window.addEventListener("resize", adjustTextareaHeight);
+        return () => window.removeEventListener("resize", adjustTextareaHeight);
+    }, [value, mode, isFullscreen, adjustTextareaHeight]);
 
-    // Synchronized scrolling in split mode
+    // Fullscreen escape key & body scroll lock
+    useEffect(() => {
+        if (!isFullscreen) return;
+
+        const originalOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") {
+                setIsFullscreen(false);
+            }
+        };
+
+        const handleFullscreenChange = () => {
+            if (!document.fullscreenElement && isFullscreen) {
+                setIsFullscreen(false);
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        document.addEventListener("fullscreenchange", handleFullscreenChange);
+
+        return () => {
+            document.body.style.overflow = originalOverflow;
+            window.removeEventListener("keydown", handleKeyDown);
+            document.removeEventListener("fullscreenchange", handleFullscreenChange);
+        };
+    }, [isFullscreen]);
+
+    const toggleFullscreen = () => {
+        setIsFullscreen((prev) => {
+            const next = !prev;
+            if (next) {
+                if (typeof document !== "undefined" && !document.fullscreenElement && document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(() => {});
+                }
+            } else {
+                if (typeof document !== "undefined" && document.fullscreenElement && document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                }
+            }
+            return next;
+        });
+    };
+
+    // Synchronized scrolling in split mode & gutter sync
     const handleEditorScroll = () => {
+        if (editorGutterRef.current && textareaRef.current) {
+            editorGutterRef.current.scrollTop = textareaRef.current.scrollTop;
+        }
         if (mode !== "split" || isScrollingRef.current === "preview") return;
         isScrollingRef.current = "editor";
         if (textareaRef.current && previewRef.current) {
             const { scrollTop, scrollHeight, clientHeight } = textareaRef.current;
             const scrollRatio = scrollTop / (scrollHeight - clientHeight || 1);
             previewRef.current.scrollTop = scrollRatio * (previewRef.current.scrollHeight - previewRef.current.clientHeight);
+            if (previewGutterRef.current) {
+                previewGutterRef.current.scrollTop = previewRef.current.scrollTop;
+            }
         }
         setTimeout(() => {
             isScrollingRef.current = null;
@@ -215,16 +278,149 @@ export default function IdeMarkdownEditor({
     };
 
     const handlePreviewScroll = () => {
+        if (previewGutterRef.current && previewRef.current) {
+            previewGutterRef.current.scrollTop = previewRef.current.scrollTop;
+        }
         if (mode !== "split" || isScrollingRef.current === "editor") return;
         isScrollingRef.current = "preview";
         if (textareaRef.current && previewRef.current) {
             const { scrollTop, scrollHeight, clientHeight } = previewRef.current;
             const scrollRatio = scrollTop / (scrollHeight - clientHeight || 1);
             textareaRef.current.scrollTop = scrollRatio * (textareaRef.current.scrollHeight - textareaRef.current.clientHeight);
+            if (editorGutterRef.current) {
+                editorGutterRef.current.scrollTop = textareaRef.current.scrollTop;
+            }
         }
         setTimeout(() => {
             isScrollingRef.current = null;
         }, 40);
+    };
+
+    // Universal smooth scroll helper that works on textarea, div, and window
+    const smoothScrollElement = (element: HTMLElement | null, targetTop: number) => {
+        if (!element) return;
+        const startTop = element.scrollTop;
+        const distance = targetTop - startTop;
+        if (Math.abs(distance) < 2) {
+            element.scrollTop = targetTop;
+            return;
+        }
+
+        try {
+            element.scrollTo({ top: targetTop, behavior: "smooth" });
+        } catch (e) {}
+
+        const duration = 220;
+        const startTime = performance.now();
+
+        function step(now: number) {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const ease = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+            element.scrollTop = startTop + distance * ease;
+            if (progress < 1) {
+                requestAnimationFrame(step);
+            } else {
+                element.scrollTop = targetTop;
+            }
+        }
+        requestAnimationFrame(step);
+    };
+
+    const scrollToTop = () => {
+        // 1. Textarea
+        if (textareaRef.current) {
+            smoothScrollElement(textareaRef.current, 0);
+            try {
+                textareaRef.current.setSelectionRange(0, 0);
+            } catch (e) {}
+        }
+        // 2. Preview
+        if (previewRef.current) {
+            smoothScrollElement(previewRef.current, 0);
+        }
+        // 3. Gutters
+        if (editorGutterRef.current) {
+            smoothScrollElement(editorGutterRef.current, 0);
+        }
+        if (previewGutterRef.current) {
+            smoothScrollElement(previewGutterRef.current, 0);
+        }
+        // 4. Editor container & canvas
+        if (containerRef.current) {
+            smoothScrollElement(containerRef.current, 0);
+        }
+        if (canvasBodyRef.current) {
+            smoothScrollElement(canvasBodyRef.current, 0);
+        }
+        // 5. Outer scrolling ancestor
+        const refEl = textareaRef.current || previewRef.current || containerRef.current;
+        if (refEl) {
+            let parent = refEl.parentElement;
+            while (parent) {
+                const style = window.getComputedStyle(parent);
+                if (style.overflowY === "auto" || style.overflowY === "scroll") {
+                    smoothScrollElement(parent, 0);
+                    break;
+                }
+                parent = parent.parentElement;
+            }
+        }
+        if (typeof window !== "undefined") {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+    };
+
+    const scrollToBottom = () => {
+        // 1. Textarea
+        if (textareaRef.current) {
+            const maxScroll = textareaRef.current.scrollHeight - textareaRef.current.clientHeight;
+            smoothScrollElement(textareaRef.current, Math.max(0, maxScroll));
+            try {
+                const len = textareaRef.current.value.length;
+                textareaRef.current.setSelectionRange(len, len);
+            } catch (e) {}
+        }
+        // 2. Preview
+        if (previewRef.current) {
+            const maxScroll = previewRef.current.scrollHeight - previewRef.current.clientHeight;
+            smoothScrollElement(previewRef.current, Math.max(0, maxScroll));
+        }
+        // 3. Gutters
+        if (editorGutterRef.current) {
+            const maxScroll = editorGutterRef.current.scrollHeight - editorGutterRef.current.clientHeight;
+            smoothScrollElement(editorGutterRef.current, Math.max(0, maxScroll));
+        }
+        if (previewGutterRef.current) {
+            const maxScroll = previewGutterRef.current.scrollHeight - previewGutterRef.current.clientHeight;
+            smoothScrollElement(previewGutterRef.current, Math.max(0, maxScroll));
+        }
+        // 4. Editor container & canvas
+        if (containerRef.current) {
+            const maxScroll = containerRef.current.scrollHeight - containerRef.current.clientHeight;
+            if (maxScroll > 0) smoothScrollElement(containerRef.current, maxScroll);
+        }
+        if (canvasBodyRef.current) {
+            const maxScroll = canvasBodyRef.current.scrollHeight - canvasBodyRef.current.clientHeight;
+            if (maxScroll > 0) smoothScrollElement(canvasBodyRef.current, maxScroll);
+        }
+        // 5. Outer scrolling ancestor
+        const refEl = textareaRef.current || previewRef.current || containerRef.current;
+        if (refEl) {
+            let parent = refEl.parentElement;
+            while (parent) {
+                const style = window.getComputedStyle(parent);
+                if (style.overflowY === "auto" || style.overflowY === "scroll") {
+                    const maxScroll = parent.scrollHeight - parent.clientHeight;
+                    smoothScrollElement(parent, Math.max(0, maxScroll));
+                    break;
+                }
+                parent = parent.parentElement;
+            }
+        }
+        if (typeof window !== "undefined") {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+        }
     };
 
     const handleCopy = async () => {
@@ -278,11 +474,22 @@ export default function IdeMarkdownEditor({
     };
 
     return (
-        <div className="bg-[#10141E] border border-[#1E293B] rounded-xl overflow-hidden shadow-2xl flex flex-col font-mono text-xs relative max-w-full">
+        <div
+            ref={containerRef}
+            className={`font-mono text-xs transition-all ${
+                isFullscreen
+                    ? "fixed inset-0 z-[100] w-screen h-screen w-[100vw] h-[100vh] bg-[#0B0F17] flex flex-col overflow-hidden m-0 p-0 rounded-none border-0 shadow-none"
+                    : "bg-[#10141E] border border-[#1E293B] rounded-xl overflow-visible shadow-2xl flex flex-col relative max-w-full"
+            }`}
+        >
             {/* Top Toolbar - Sticky with scroll and responsive design */}
             <div
                 ref={toolbarRef}
-                className="sticky top-0 z-30 flex flex-col gap-2 px-3 py-2 sm:px-4 sm:py-2.5 bg-[#0B0F17]/95 backdrop-blur-md border-b border-[#1E293B] select-none shadow-[0_4px_20px_rgba(0,0,0,0.5)] rounded-t-xl transition-all"
+                className={`sticky top-0 z-30 flex flex-col gap-2 bg-[#0B0F17]/98 backdrop-blur-md border-b border-[#1E293B] select-none shadow-[0_4px_20px_rgba(0,0,0,0.5)] transition-all ${
+                    isFullscreen
+                        ? "px-4 py-2.5 sm:px-8 sm:py-3 rounded-none"
+                        : "px-3 py-2 sm:px-4 sm:py-2.5 rounded-t-xl"
+                }`}
             >
                 {/* Upper row: Label, Stats, Copy, and Mode Switchers */}
                 <div className="flex items-center justify-between w-full gap-2">
@@ -292,12 +499,37 @@ export default function IdeMarkdownEditor({
                         <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase tracking-wider shrink-0">
                             MD
                         </span>
+                        {isFullscreen && (
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hidden md:inline shrink-0">
+                                100vw × 100vh • Press ESC to exit
+                            </span>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
                         <span className="text-zinc-500 text-[11px] font-mono hidden lg:inline">
                             {stats.lineCount} lines • {stats.words} words • {stats.readTime} min read
                         </span>
+
+                        {/* Jump to Top / Bottom Buttons in Toolbar */}
+                        <div className="flex items-center bg-[#141923] border border-[#1E293B] rounded-lg p-0.5">
+                            <button
+                                type="button"
+                                onClick={scrollToTop}
+                                className="p-1 rounded text-zinc-400 hover:text-cyan-300 hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                title="Scroll to Top"
+                            >
+                                <ArrowUp size={13} />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={scrollToBottom}
+                                className="p-1 rounded text-zinc-400 hover:text-cyan-300 hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                title="Scroll to Bottom"
+                            >
+                                <ArrowDown size={13} />
+                            </button>
+                        </div>
 
                         <button
                             type="button"
@@ -343,6 +575,30 @@ export default function IdeMarkdownEditor({
                                 <span>Preview</span>
                             </button>
                         </div>
+
+                        {/* Full Screen 100vw x 100vh Toggle */}
+                        <button
+                            type="button"
+                            onClick={toggleFullscreen}
+                            className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border text-[11px] font-semibold transition-all cursor-pointer ${
+                                isFullscreen
+                                    ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm shadow-cyan-500/10"
+                                    : "bg-[#141923] border-[#1E293B] text-zinc-400 hover:text-white hover:bg-[#1E293B]"
+                            }`}
+                            title={isFullscreen ? "Exit Full Screen (Esc)" : "Open in Full Screen (100vw × 100vh)"}
+                        >
+                            {isFullscreen ? (
+                                <>
+                                    <Minimize2 size={13} className="text-cyan-300 shrink-0" />
+                                    <span className="hidden sm:inline">Exit Full</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Maximize2 size={13} className="shrink-0" />
+                                    <span className="hidden sm:inline">Full Screen</span>
+                                </>
+                            )}
+                        </button>
                     </div>
                 </div>
 
@@ -420,12 +676,24 @@ export default function IdeMarkdownEditor({
             </div>
 
             {/* IDE Canvas Body */}
-            <div className="flex-1 min-h-[360px] sm:min-h-[540px] flex overflow-x-auto bg-[#0B0F17] rounded-b-xl">
+            <div
+                ref={canvasBodyRef}
+                className={`flex-1 flex overflow-visible bg-[#0B0F17] ${
+                    isFullscreen
+                        ? "min-h-0 h-full w-full rounded-none p-0 m-0 overflow-hidden"
+                        : "min-h-[360px] sm:min-h-[540px] rounded-b-xl"
+                }`}
+            >
                 {/* Mode: EDIT */}
                 {mode === "edit" && (
-                    <div className="flex-1 flex min-h-[360px] sm:min-h-[540px]">
+                    <div className={`flex-1 min-h-0 flex w-full ${isFullscreen ? "h-full overflow-hidden" : "min-h-[360px] sm:min-h-[540px]"}`}>
                         {/* 2-Digit Line Numbers Gutter */}
-                        <div className="w-9 sm:w-12 bg-[#0B0F17] border-r border-[#1E293B] text-zinc-600 select-none py-3 sm:py-4 text-right pr-1.5 sm:pr-3 shrink-0 font-mono text-[10px] sm:text-xs leading-6">
+                        <div
+                            ref={editorGutterRef}
+                            className={`w-9 sm:w-12 bg-[#0B0F17] border-r border-[#1E293B] text-zinc-600 select-none py-3 sm:py-4 text-right pr-1.5 sm:pr-3 shrink-0 font-mono text-[10px] sm:text-xs leading-6 ${
+                                isFullscreen ? "overflow-hidden" : ""
+                            }`}
+                        >
                             {lines.map((_, i) => (
                                 <div key={i}>{String(i + 1).padStart(2, "0")}</div>
                             ))}
@@ -435,12 +703,15 @@ export default function IdeMarkdownEditor({
                         <textarea
                             ref={textareaRef}
                             value={value}
+                            onScroll={handleEditorScroll}
                             onChange={(e) => {
                                 onChange(e.target.value);
-                                adjustTextareaHeight();
+                                if (!isFullscreen) adjustTextareaHeight();
                             }}
                             placeholder={placeholder}
-                            className="flex-1 bg-[#0B0F17] text-zinc-200 p-2.5 sm:p-4 leading-6 font-mono text-xs focus:outline-none resize-none overflow-hidden"
+                            className={`flex-1 bg-[#0B0F17] text-zinc-200 p-2.5 sm:p-4 leading-6 font-mono text-xs focus:outline-none resize-none ${
+                                isFullscreen ? "h-full overflow-y-auto" : "overflow-hidden"
+                            }`}
                             spellCheck={false}
                         />
                     </div>
@@ -448,16 +719,27 @@ export default function IdeMarkdownEditor({
 
                 {/* Mode: PREVIEW */}
                 {mode === "preview" && (
-                    <div className="flex-1 flex min-h-[360px] sm:min-h-[540px]">
+                    <div className={`flex-1 min-h-0 flex w-full ${isFullscreen ? "h-full overflow-hidden" : "min-h-[360px] sm:min-h-[540px]"}`}>
                         {/* Gutter */}
-                        <div className="w-9 sm:w-12 bg-[#0B0F17] border-r border-[#1E293B] text-zinc-600 select-none py-3 sm:py-4 text-right pr-1.5 sm:pr-3 shrink-0 font-mono text-[10px] sm:text-xs leading-6">
+                        <div
+                            ref={previewGutterRef}
+                            className={`w-9 sm:w-12 bg-[#0B0F17] border-r border-[#1E293B] text-zinc-600 select-none py-3 sm:py-4 text-right pr-1.5 sm:pr-3 shrink-0 font-mono text-[10px] sm:text-xs leading-6 ${
+                                isFullscreen ? "overflow-hidden" : ""
+                            }`}
+                        >
                             {lines.map((_, i) => (
                                 <div key={i}>{String(i + 1).padStart(2, "0")}</div>
                             ))}
                         </div>
 
                         {/* Formatted Lines */}
-                        <div className="flex-1 p-2.5 sm:p-4 leading-6 font-mono text-xs text-zinc-200 select-text">
+                        <div
+                            ref={previewRef}
+                            onScroll={handlePreviewScroll}
+                            className={`flex-1 p-2.5 sm:p-4 leading-6 font-mono text-xs text-zinc-200 select-text overflow-x-auto ${
+                                isFullscreen ? "h-full overflow-y-auto" : ""
+                            }`}
+                        >
                             {lines.map((line, i) => (
                                 <div key={i} className="hover:bg-[#141923] rounded px-1 -mx-1">
                                     {renderMarkdownLine(line)}
@@ -469,12 +751,16 @@ export default function IdeMarkdownEditor({
 
                 {/* Mode: SPLIT */}
                 {mode === "split" && (
-                    <div className="flex-1 flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-[#1E293B] min-h-[560px]">
+                    <div className={`flex-1 min-h-0 w-full flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-[#1E293B] ${
+                        isFullscreen ? "h-full" : "min-h-[560px]"
+                    }`}>
                         {/* Left: Editor */}
-                        <div className="flex-1 flex flex-col min-w-0">
+                        <div className="flex-1 min-h-0 flex flex-col min-w-0 bg-[#0B0F17] h-full">
                             <div
-                                style={{ top: `${toolbarHeight}px` }}
-                                className="sticky z-20 px-3 sm:px-4 py-1.5 bg-[#0F131C]/95 backdrop-blur-sm border-b border-[#1E293B] text-[10px] font-mono text-zinc-500 uppercase tracking-wider flex items-center justify-between shadow-sm"
+                                style={!isFullscreen ? { top: `${toolbarHeight}px` } : undefined}
+                                className={`${
+                                    !isFullscreen ? "sticky" : ""
+                                } z-20 px-3 sm:px-4 py-1.5 bg-[#0F131C]/95 backdrop-blur-sm border-b border-[#1E293B] text-[10px] font-mono text-zinc-500 uppercase tracking-wider flex items-center justify-between shadow-sm shrink-0`}
                             >
                                 <span className="flex items-center gap-1.5">
                                     <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
@@ -482,8 +768,13 @@ export default function IdeMarkdownEditor({
                                 </span>
                                 <span className="text-zinc-500 text-[9px]">Ln 1 - {lines.length}</span>
                             </div>
-                            <div className="flex-1 flex min-h-[360px] sm:min-h-[540px]">
-                                <div className="w-9 sm:w-12 bg-[#0B0F17] border-r border-[#1E293B] text-zinc-600 select-none py-3 sm:py-4 text-right pr-1.5 sm:pr-3 shrink-0 font-mono text-[10px] sm:text-xs leading-6">
+                            <div className={`flex-1 min-h-0 flex ${isFullscreen ? "h-full overflow-hidden" : "min-h-[360px] sm:min-h-[540px]"}`}>
+                                <div
+                                    ref={editorGutterRef}
+                                    className={`w-9 sm:w-12 bg-[#0B0F17] border-r border-[#1E293B] text-zinc-600 select-none py-3 sm:py-4 text-right pr-1.5 sm:pr-3 shrink-0 font-mono text-[10px] sm:text-xs leading-6 ${
+                                        isFullscreen ? "overflow-hidden" : ""
+                                    }`}
+                                >
                                     {lines.map((_, i) => (
                                         <div key={i}>{String(i + 1).padStart(2, "0")}</div>
                                     ))}
@@ -494,20 +785,24 @@ export default function IdeMarkdownEditor({
                                     onScroll={handleEditorScroll}
                                     onChange={(e) => {
                                         onChange(e.target.value);
-                                        adjustTextareaHeight();
+                                        if (!isFullscreen) adjustTextareaHeight();
                                     }}
                                     placeholder={placeholder}
-                                    className="flex-1 bg-[#0B0F17] text-zinc-200 p-2.5 sm:p-4 leading-6 font-mono text-xs focus:outline-none resize-none overflow-hidden"
+                                    className={`flex-1 bg-[#0B0F17] text-zinc-200 p-2.5 sm:p-4 leading-6 font-mono text-xs focus:outline-none resize-none ${
+                                        isFullscreen ? "h-full overflow-y-auto" : "overflow-hidden"
+                                    }`}
                                     spellCheck={false}
                                 />
                             </div>
                         </div>
 
                         {/* Right: Live Preview */}
-                        <div className="flex-1 flex flex-col min-w-0 bg-[#0F131C]">
+                        <div className="flex-1 min-h-0 flex flex-col min-w-0 bg-[#0F131C] h-full">
                             <div
-                                style={{ top: `${toolbarHeight}px` }}
-                                className="sticky z-20 px-3 sm:px-4 py-1.5 bg-[#0F131C]/95 backdrop-blur-sm border-b border-[#1E293B] text-[10px] font-mono text-zinc-500 uppercase tracking-wider flex items-center justify-between shadow-sm"
+                                style={!isFullscreen ? { top: `${toolbarHeight}px` } : undefined}
+                                className={`${
+                                    !isFullscreen ? "sticky" : ""
+                                } z-20 px-3 sm:px-4 py-1.5 bg-[#0F131C]/95 backdrop-blur-sm border-b border-[#1E293B] text-[10px] font-mono text-zinc-500 uppercase tracking-wider flex items-center justify-between shadow-sm shrink-0`}
                             >
                                 <span className="flex items-center gap-1.5">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
@@ -515,8 +810,13 @@ export default function IdeMarkdownEditor({
                                 </span>
                                 <span className="text-emerald-400 font-bold text-[9px]">SYNCHRONIZED</span>
                             </div>
-                            <div className="flex-1 flex min-h-[360px] sm:min-h-[540px]">
-                                <div className="w-9 sm:w-12 bg-[#0F131C] border-r border-[#1E293B] text-zinc-600 select-none py-3 sm:py-4 text-right pr-1.5 sm:pr-3 shrink-0 font-mono text-[10px] sm:text-xs leading-6">
+                            <div className={`flex-1 min-h-0 flex ${isFullscreen ? "h-full overflow-hidden" : "min-h-[360px] sm:min-h-[540px]"}`}>
+                                <div
+                                    ref={previewGutterRef}
+                                    className={`w-9 sm:w-12 bg-[#0F131C] border-r border-[#1E293B] text-zinc-600 select-none py-3 sm:py-4 text-right pr-1.5 sm:pr-3 shrink-0 font-mono text-[10px] sm:text-xs leading-6 ${
+                                        isFullscreen ? "overflow-hidden" : ""
+                                    }`}
+                                >
                                     {lines.map((_, i) => (
                                         <div key={i}>{String(i + 1).padStart(2, "0")}</div>
                                     ))}
@@ -524,7 +824,9 @@ export default function IdeMarkdownEditor({
                                 <div
                                     ref={previewRef}
                                     onScroll={handlePreviewScroll}
-                                    className="flex-1 p-2.5 sm:p-4 leading-6 font-mono text-xs text-zinc-200 select-text"
+                                    className={`flex-1 p-2.5 sm:p-4 leading-6 font-mono text-xs text-zinc-200 select-text overflow-x-auto ${
+                                        isFullscreen ? "h-full overflow-y-auto" : ""
+                                    }`}
                                 >
                                     {lines.map((line, i) => (
                                         <div key={i} className="hover:bg-[#141923] rounded px-1 -mx-1">
@@ -536,6 +838,29 @@ export default function IdeMarkdownEditor({
                         </div>
                     </div>
                 )}
+            </div>
+
+            {/* Quick Floating Jump Pill (Bottom-Right) */}
+            <div className={`fixed bottom-5 right-5 z-50 flex items-center gap-0.5 bg-[#0F131C]/95 backdrop-blur-md border border-[#1E293B] shadow-2xl rounded-xl p-1 select-none pointer-events-auto`}>
+                <button
+                    type="button"
+                    onClick={scrollToTop}
+                    className="p-1.5 rounded-lg text-zinc-400 hover:text-cyan-300 hover:bg-white/[0.08] transition-all cursor-pointer flex items-center gap-1 text-[10px] font-mono font-medium"
+                    title="Scroll to Top"
+                >
+                    <ArrowUp size={12} />
+                    <span className="hidden sm:inline">Top</span>
+                </button>
+                <div className="w-[1px] h-3 bg-[#1E293B]" />
+                <button
+                    type="button"
+                    onClick={scrollToBottom}
+                    className="p-1.5 rounded-lg text-zinc-400 hover:text-cyan-300 hover:bg-white/[0.08] transition-all cursor-pointer flex items-center gap-1 text-[10px] font-mono font-medium"
+                    title="Scroll to Bottom"
+                >
+                    <ArrowDown size={12} />
+                    <span className="hidden sm:inline">Bottom</span>
+                </button>
             </div>
         </div>
     );
