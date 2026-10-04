@@ -5,7 +5,9 @@ import {
     Copy, Check, Edit3, Eye, Split, FileText, Link as LinkIcon,
     Image as ImageIcon, PlayCircle, ExternalLink, Maximize2, Minimize2,
     ArrowUp, ArrowDown, Save, Settings, Sliders, ChevronDown, CheckCircle2,
-    Layers, X, Sparkles, Columns, Rows
+    Layers, X, Sparkles, Columns, Rows,
+    Bold, Italic, Underline, Strikethrough, Superscript, Subscript,
+    List, ListOrdered, ListChecks, Quote, Minus
 } from "lucide-react";
 
 export interface EditorSection {
@@ -33,131 +35,266 @@ export interface IdeMarkdownEditorProps {
     onToggleFullscreen?: (fullscreen: boolean) => void;
 }
 
-// Inline Markdown Parser for Preview
-function renderMarkdownLine(line: string) {
-    if (!line) return "\u00A0";
+// Inline Markdown Span Parser (handles nested formatting, underline, strike, super/subscript, colors, links, images)
+function renderInlineSpans(content: string, depth = 0): ReactNode[] {
+    if (!content) return [];
+    if (depth > 2) return [content];
 
-    if (line.startsWith("# ")) {
-        return <span className="text-base font-bold text-white tracking-wide">{line.substring(2)}</span>;
-    }
-    if (line.startsWith("## ")) {
-        return <span className="text-sm font-bold text-cyan-300 tracking-wide">{line.substring(3)}</span>;
-    }
-    if (line.startsWith("### ")) {
-        return <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider">{line.substring(4)}</span>;
-    }
-
-    if (line.startsWith("> ")) {
-        return (
-            <span className="border-l-2 border-amber-400/80 pl-2 text-zinc-300 italic inline-block">
-                {line.substring(2)}
-            </span>
-        );
-    }
-
-    if (line.trim() === "---" || line.trim() === "***") {
-        return <span className="block border-b border-[#1E293B] my-1 w-full" />;
-    }
-
-    let prefix = "";
-    let content = line;
-    if (line.startsWith("- ")) {
-        prefix = "• ";
-        content = line.substring(2);
-    } else if (line.startsWith("* ")) {
-        prefix = "• ";
-        content = line.substring(2);
-    } else if (/^\d+\.\s/.test(line)) {
-        const match = line.match(/^(\d+\.\s)/);
-        if (match) {
-            prefix = match[1];
-            content = line.substring(prefix.length);
-        }
-    }
-
-    const parts: (string | ReactNode)[] = [];
-    const regex = /(==red:.*?==|==r:.*?==|==green:.*?==|==g:.*?==|==blue:.*?==|==b:.*?==|==yellow:.*?==|==y:.*?==|==purple:.*?==|==p:.*?==|==.*?==|\[.*?\]\(https?:\/\/[^\s)]+\)|https?:\/\/[^\s]+|\*\*.*?\*\*|\*.*?\*|<u>.*?<\/u>|~~.*?~~|`.*?`|\^[^\s^]+\^|~[^\s~]+~)/gi;
+    const parts: ReactNode[] = [];
+    const regex = /(==(?:red|r|green|g|blue|b|cyan|c|yellow|y|amber|purple|p):.*?==|==.*?==|!\[.*?\]\(https?:\/\/[^\s)]+\)|\[.*?\]\(https?:\/\/[^\s)]+\)|https?:\/\/[^\s]+|\*\*.*?\*\*|\*.*?\*|<u>.*?<\/u>|<ins>.*?<\/ins>|~~.*?~~|<del>.*?<\/del>|`.*?`|\^[^\s^]+\^|<sup>.*?<\/sup>|~[^\s~]+~|<sub>.*?<\/sub>)/gi;
     const splitParts = content.split(regex);
 
     splitParts.forEach((part, index) => {
         if (!part) return;
         const lower = part.toLowerCase();
 
+        // 1. Color Highlights / Tints
         if (lower.startsWith("==red:") || lower.startsWith("==r:")) {
             const inner = part.replace(/^==(red|r):/i, "").replace(/==$/, "");
             parts.push(
-                <mark key={index} className="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
-                    {inner}
+                <mark key={`${depth}-${index}`} className="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
+                    {renderInlineSpans(inner, depth + 1)}
                 </mark>
             );
         } else if (lower.startsWith("==green:") || lower.startsWith("==g:")) {
             const inner = part.replace(/^==(green|g):/i, "").replace(/==$/, "");
             parts.push(
-                <mark key={index} className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
-                    {inner}
+                <mark key={`${depth}-${index}`} className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
+                    {renderInlineSpans(inner, depth + 1)}
                 </mark>
             );
-        } else if (lower.startsWith("==blue:") || lower.startsWith("==b:")) {
-            const inner = part.replace(/^==(blue|b):/i, "").replace(/==$/, "");
+        } else if (lower.startsWith("==blue:") || lower.startsWith("==b:") || lower.startsWith("==cyan:") || lower.startsWith("==c:")) {
+            const inner = part.replace(/^==(blue|b|cyan|c):/i, "").replace(/==$/, "");
             parts.push(
-                <mark key={index} className="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
-                    {inner}
+                <mark key={`${depth}-${index}`} className="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
+                    {renderInlineSpans(inner, depth + 1)}
                 </mark>
             );
-        } else if (lower.startsWith("==yellow:") || lower.startsWith("==y:")) {
-            const inner = part.replace(/^==(yellow|y):/i, "").replace(/==$/, "");
+        } else if (lower.startsWith("==yellow:") || lower.startsWith("==y:") || lower.startsWith("==amber:")) {
+            const inner = part.replace(/^==(yellow|y|amber):/i, "").replace(/==$/, "");
             parts.push(
-                <mark key={index} className="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
-                    {inner}
+                <mark key={`${depth}-${index}`} className="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
+                    {renderInlineSpans(inner, depth + 1)}
                 </mark>
             );
         } else if (lower.startsWith("==purple:") || lower.startsWith("==p:")) {
             const inner = part.replace(/^==(purple|p):/i, "").replace(/==$/, "");
             parts.push(
-                <mark key={index} className="bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
-                    {inner}
+                <mark key={`${depth}-${index}`} className="bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
+                    {renderInlineSpans(inner, depth + 1)}
                 </mark>
             );
-        } else if (part.startsWith("[") && part.endsWith(")") && part.includes("](")) {
+        } else if (part.startsWith("==") && part.endsWith("==") && part.length > 4) {
+            const inner = part.slice(2, -2);
+            parts.push(
+                <mark key={`${depth}-${index}`} className="bg-amber-500/20 text-amber-200 border border-amber-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
+                    {renderInlineSpans(inner, depth + 1)}
+                </mark>
+            );
+        }
+        // 2. Images: ![alt](url)
+        else if (part.startsWith("![") && part.endsWith(")") && part.includes("](")) {
+            const imgMatch = part.match(/^!\[(.*?)\]\((https?:\/\/[^\s)]+)\)$/i);
+            if (imgMatch) {
+                const alt = imgMatch[1];
+                const url = imgMatch[2];
+                parts.push(
+                    <span key={`${depth}-${index}`} className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-mono my-0.5 align-baseline">
+                        <ImageIcon size={12} className="text-purple-400 shrink-0" />
+                        <span className="font-semibold">{alt || "Image"}</span>
+                        <a href={url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline text-[10px] ml-1 inline-flex items-center gap-0.5">
+                            <span>Open</span>
+                            <ExternalLink size={9} />
+                        </a>
+                    </span>
+                );
+            } else {
+                parts.push(part);
+            }
+        }
+        // 3. Links: [text](url)
+        else if (part.startsWith("[") && part.endsWith(")") && part.includes("](")) {
             const linkMatch = part.match(/^\[(.*?)\]\((https?:\/\/[^\s)]+)\)$/i);
             if (linkMatch) {
                 const linkText = linkMatch[1];
                 const linkUrl = linkMatch[2];
-                const isVideo = /youtube\.com|youtu\.be/i.test(linkUrl);
+                const isVideo = /youtube\.com|youtu\.be|vimeo\.com|loom\.com/i.test(linkUrl) || /🎥|video/i.test(linkText);
                 parts.push(
                     <a
-                        key={index}
+                        key={`${depth}-${index}`}
                         href={linkUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-cyan-400 hover:text-cyan-300 underline font-mono text-xs mx-0.5"
+                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-mono mx-0.5 transition-colors no-underline align-baseline cursor-pointer ${
+                            isVideo
+                                ? "bg-rose-500/10 text-rose-300 border border-rose-500/30 hover:bg-rose-500/20"
+                                : "bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/20"
+                        }`}
                     >
-                        {isVideo ? <PlayCircle size={12} className="text-rose-400" /> : <LinkIcon size={12} />}
-                        <span>{linkText}</span>
+                        {isVideo ? <PlayCircle size={12} className="text-rose-400 shrink-0" /> : <LinkIcon size={12} className="text-cyan-400 shrink-0" />}
+                        <span className="underline underline-offset-2">{linkText}</span>
+                        <ExternalLink size={10} className="opacity-60 shrink-0 ml-0.5" />
                     </a>
                 );
             } else {
                 parts.push(part);
             }
-        } else if (part.startsWith("`") && part.endsWith("`")) {
+        }
+        // 4. Raw URLs
+        else if (/^https?:\/\/[^\s]+$/i.test(part)) {
+            const isVideo = /youtube\.com|youtu\.be|vimeo\.com|loom\.com/i.test(part);
             parts.push(
-                <code key={index} className="bg-[#181C24] text-amber-300 px-1.5 py-0.5 rounded font-mono text-xs border border-[#1E293B]">
+                <a
+                    key={`${depth}-${index}`}
+                    href={part}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-cyan-400 hover:text-cyan-300 underline font-mono text-xs mx-0.5"
+                >
+                    {isVideo ? <PlayCircle size={12} className="text-rose-400 shrink-0" /> : <LinkIcon size={12} className="shrink-0" />}
+                    <span>{part.length > 35 ? part.substring(0, 32) + "..." : part}</span>
+                    <ExternalLink size={10} className="opacity-60 shrink-0" />
+                </a>
+            );
+        }
+        // 5. Underline: <u>text</u> or <ins>text</ins>
+        else if ((part.startsWith("<u>") && part.endsWith("</u>")) || (part.startsWith("<ins>") && part.endsWith("</ins>"))) {
+            const inner = part.replace(/^<(u|ins)>/i, "").replace(/<\/(u|ins)>$/i, "");
+            parts.push(
+                <u key={`${depth}-${index}`} className="underline decoration-cyan-400/70 underline-offset-4 decoration-1 text-zinc-100">
+                    {renderInlineSpans(inner, depth + 1)}
+                </u>
+            );
+        }
+        // 6. Strikethrough: ~~text~~ or <del>text</del>
+        else if ((part.startsWith("~~") && part.endsWith("~~") && part.length >= 4) || (part.startsWith("<del>") && part.endsWith("</del>"))) {
+            const inner = part.startsWith("~~") ? part.slice(2, -2) : part.replace(/^<del>/i, "").replace(/<\/del>$/i, "");
+            parts.push(
+                <del key={`${depth}-${index}`} className="line-through text-zinc-400 decoration-rose-400/80 opacity-80">
+                    {renderInlineSpans(inner, depth + 1)}
+                </del>
+            );
+        }
+        // 7. Superscript: ^text^ or <sup>text</sup>
+        else if ((part.startsWith("^") && part.endsWith("^") && part.length > 2) || (part.startsWith("<sup>") && part.endsWith("</sup>"))) {
+            const inner = part.startsWith("^") ? part.slice(1, -1) : part.replace(/^<sup>/i, "").replace(/<\/sup>$/i, "");
+            parts.push(
+                <sup key={`${depth}-${index}`} className="text-[10px] text-amber-300 font-semibold align-super ml-0.5">
+                    {renderInlineSpans(inner, depth + 1)}
+                </sup>
+            );
+        }
+        // 8. Subscript: ~text~ or <sub>text</sub>
+        else if ((part.startsWith("~") && part.endsWith("~") && !part.startsWith("~~") && part.length > 2) || (part.startsWith("<sub>") && part.endsWith("</sub>"))) {
+            const inner = part.startsWith("~") ? part.slice(1, -1) : part.replace(/^<sub>/i, "").replace(/<\/sub>$/i, "");
+            parts.push(
+                <sub key={`${depth}-${index}`} className="text-[10px] text-cyan-300 font-semibold align-sub ml-0.5">
+                    {renderInlineSpans(inner, depth + 1)}
+                </sub>
+            );
+        }
+        // 9. Inline code: `code`
+        else if (part.startsWith("`") && part.endsWith("`")) {
+            parts.push(
+                <code key={`${depth}-${index}`} className="bg-[#181C24] text-amber-300 px-1.5 py-0.5 rounded font-mono text-xs border border-[#1E293B]">
                     {part.slice(1, -1)}
                 </code>
             );
-        } else if (part.startsWith("**") && part.endsWith("**")) {
-            parts.push(<strong key={index} className="font-bold text-white">{part.slice(2, -2)}</strong>);
-        } else if (part.startsWith("*") && part.endsWith("*")) {
-            parts.push(<em key={index} className="italic text-zinc-300">{part.slice(1, -1)}</em>);
-        } else {
+        }
+        // 10. Bold: **text**
+        else if (part.startsWith("**") && part.endsWith("**")) {
+            parts.push(
+                <strong key={`${depth}-${index}`} className="font-bold text-white">
+                    {renderInlineSpans(part.slice(2, -2), depth + 1)}
+                </strong>
+            );
+        }
+        // 11. Italic: *text*
+        else if (part.startsWith("*") && part.endsWith("*")) {
+            parts.push(
+                <em key={`${depth}-${index}`} className="italic text-zinc-300">
+                    {renderInlineSpans(part.slice(1, -1), depth + 1)}
+                </em>
+            );
+        }
+        // Default text
+        else {
             parts.push(part);
         }
     });
 
+    return parts;
+}
+
+// Inline Markdown Parser for Preview
+function renderMarkdownLine(line: string) {
+    if (!line) return "\u00A0";
+
+    if (line.startsWith("# ")) {
+        return <span className="text-base font-bold text-white tracking-wide block my-1">{renderInlineSpans(line.substring(2))}</span>;
+    }
+    if (line.startsWith("## ")) {
+        return <span className="text-sm font-bold text-cyan-300 tracking-wide block my-0.5">{renderInlineSpans(line.substring(3))}</span>;
+    }
+    if (line.startsWith("### ")) {
+        return <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider block my-0.5">{renderInlineSpans(line.substring(4))}</span>;
+    }
+    if (line.startsWith("#### ")) {
+        return <span className="text-xs font-semibold text-zinc-400 block my-0.5">{renderInlineSpans(line.substring(5))}</span>;
+    }
+
+    if (line.startsWith("> ")) {
+        return (
+            <span className="border-l-2 border-amber-400/80 pl-2 text-zinc-300 italic inline-block my-0.5">
+                {renderInlineSpans(line.substring(2))}
+            </span>
+        );
+    }
+
+    if (line.trim() === "---" || line.trim() === "***") {
+        return <span className="block border-b border-[#1E293B] my-2 w-full opacity-80" />;
+    }
+
+    if (line.trim().startsWith("```")) {
+        return (
+            <span className="block bg-[#161B26] text-amber-300/90 px-2 py-0.5 rounded border border-[#1E293B] text-[11px] font-mono font-semibold my-0.5">
+                {line}
+            </span>
+        );
+    }
+
+    let prefix: ReactNode = "";
+    let content = line;
+
+    // Check for task list checkboxes
+    if (/^[-*]\s\[[ xX]\]\s/.test(line)) {
+        const isChecked = /^[-*]\s\[[xX]\]\s/.test(line);
+        prefix = isChecked ? (
+            <span className="inline-flex items-center justify-center w-3.5 h-3.5 mr-1.5 rounded bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 text-[10px] font-bold align-middle shrink-0 select-none">
+                ✓
+            </span>
+        ) : (
+            <span className="inline-block w-3.5 h-3.5 mr-1.5 rounded border border-zinc-600 bg-zinc-800/80 align-middle shrink-0 select-none" />
+        );
+        content = line.substring(6);
+    } else if (line.startsWith("- ")) {
+        prefix = <span className="text-cyan-400 font-bold mr-1.5 select-none">•</span>;
+        content = line.substring(2);
+    } else if (line.startsWith("* ")) {
+        prefix = <span className="text-cyan-400 font-bold mr-1.5 select-none">•</span>;
+        content = line.substring(2);
+    } else if (/^\d+\.\s/.test(line)) {
+        const match = line.match(/^(\d+\.\s)/);
+        if (match) {
+            prefix = <span className="text-cyan-400 font-semibold mr-1 font-mono text-[11px] select-none">{match[1]}</span>;
+            content = line.substring(match[1].length);
+        }
+    }
+
     return (
         <span>
-            {prefix && <span className="text-zinc-500 font-bold mr-1">{prefix}</span>}
-            {parts}
+            {prefix}
+            {renderInlineSpans(content)}
         </span>
     );
 }
@@ -694,40 +831,151 @@ export default function IdeMarkdownEditor({
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
         const text = textarea.value;
+        const hasSelection = start !== end;
         const selected = text.substring(start, end);
 
-        let replacement = "";
-        if (syntax === "h1") replacement = `\n# ${selected || "Heading 1"}`;
-        else if (syntax === "h2") replacement = `\n## ${selected || "Heading 2"}`;
-        else if (syntax === "h3") replacement = `\n### ${selected || "Heading 3"}`;
-        else if (syntax === "bold") replacement = `**${selected || "bold text"}**`;
-        else if (syntax === "italic") replacement = `*${selected || "italic text"}*`;
-        else if (syntax === "underline") replacement = `<u>${selected || "underlined text"}</u>`;
-        else if (syntax === "strike") replacement = `~~${selected || "strikethrough text"}~~`;
-        else if (syntax === "code") replacement = `\`${selected || "code"}\``;
-        else if (syntax === "codeblock") replacement = `\n\`\`\`\n${selected || "// Code block"}\n\`\`\`\n`;
-        else if (syntax === "bullet") replacement = `\n- ${selected || "item"}`;
-        else if (syntax === "number") replacement = `\n1. ${selected || "item"}`;
-        else if (syntax === "sup") replacement = `^${selected || "2"}^`;
-        else if (syntax === "link") replacement = `[${selected || "Resource Title"}](https://...)`;
-        else if (syntax === "img") replacement = `![${selected || "Diagram"}](https://...)`;
-        else if (syntax === "t-mint") replacement = `==g:${selected || "optimal"}==`;
-        else if (syntax === "t-rose") replacement = `==r:${selected || "warning"}==`;
-        else if (syntax === "t-cyan") replacement = `==b:${selected || "complexity"}==`;
-        else if (syntax === "t-amber") replacement = `==y:${selected || "key term"}==`;
-        else if (syntax === "t-purple") replacement = `==p:${selected || "note"}==`;
+        let prefix = "";
+        let suffix = "";
+        let defaultText = "";
 
+        switch (syntax) {
+            case "h1":
+                prefix = "\n# ";
+                defaultText = "Heading 1";
+                break;
+            case "h2":
+                prefix = "\n## ";
+                defaultText = "Heading 2";
+                break;
+            case "h3":
+                prefix = "\n### ";
+                defaultText = "Heading 3";
+                break;
+            case "bold":
+                prefix = "**";
+                suffix = "**";
+                defaultText = "bold text";
+                break;
+            case "italic":
+                prefix = "*";
+                suffix = "*";
+                defaultText = "italic text";
+                break;
+            case "underline":
+                prefix = "<u>";
+                suffix = "</u>";
+                defaultText = "underlined text";
+                break;
+            case "strike":
+                prefix = "~~";
+                suffix = "~~";
+                defaultText = "strikethrough text";
+                break;
+            case "sup":
+                prefix = "^";
+                suffix = "^";
+                defaultText = "superscript";
+                break;
+            case "sub":
+                prefix = "~";
+                suffix = "~";
+                defaultText = "subscript";
+                break;
+            case "code":
+                prefix = "`";
+                suffix = "`";
+                defaultText = "code";
+                break;
+            case "codeblock":
+                prefix = "\n```\n";
+                suffix = "\n```\n";
+                defaultText = "// Code block";
+                break;
+            case "quote":
+                prefix = "\n> ";
+                defaultText = "Quote text";
+                break;
+            case "divider":
+                prefix = "\n---\n";
+                defaultText = "";
+                break;
+            case "bullet":
+                prefix = "\n- ";
+                defaultText = "item";
+                break;
+            case "number":
+                prefix = "\n1. ";
+                defaultText = "item";
+                break;
+            case "task":
+                prefix = "\n- [ ] ";
+                defaultText = "task item";
+                break;
+            case "link":
+                prefix = "[";
+                suffix = "](https://...)";
+                defaultText = "Resource Title";
+                break;
+            case "img":
+                prefix = "![";
+                suffix = "](https://...)";
+                defaultText = "Image Description";
+                break;
+            case "t-mint":
+                prefix = "==g:";
+                suffix = "==";
+                defaultText = "optimal";
+                break;
+            case "t-rose":
+                prefix = "==r:";
+                suffix = "==";
+                defaultText = "warning";
+                break;
+            case "t-cyan":
+                prefix = "==b:";
+                suffix = "==";
+                defaultText = "complexity";
+                break;
+            case "t-amber":
+                prefix = "==y:";
+                suffix = "==";
+                defaultText = "key term";
+                break;
+            case "t-purple":
+                prefix = "==p:";
+                suffix = "==";
+                defaultText = "note";
+                break;
+            case "t-default":
+                prefix = "==";
+                suffix = "==";
+                defaultText = "highlight";
+                break;
+            default:
+                return;
+        }
+
+        const contentToInsert = hasSelection ? selected : defaultText;
+        const replacement = `${prefix}${contentToInsert}${suffix}`;
         const updated = text.substring(0, start) + replacement + text.substring(end);
         onChange(updated);
 
-        const newCursor = start + replacement.length;
+        // Smart selection & cursor positioning:
+        // If text was selected, place cursor right after replacement
+        // If no text was selected, highlight/select the placeholder text so user can immediately type over it!
+        const selectionStart = hasSelection
+            ? start + replacement.length
+            : start + prefix.length;
+        const selectionEnd = hasSelection
+            ? start + replacement.length
+            : start + prefix.length + contentToInsert.length;
 
         const restoreFocusAndScroll = () => {
             const ta = textareaRef.current;
             if (!ta) return;
             ta.focus({ preventScroll: true });
             try {
-                ta.setSelectionRange(newCursor, newCursor);
+                ta.setSelectionRange(selectionStart, selectionEnd);
             } catch (e) { }
             adjustTextareaHeight();
 
@@ -757,28 +1005,28 @@ export default function IdeMarkdownEditor({
             {/* Top Toolbar - Sticky with scroll and responsive design */}
             <div
                 ref={toolbarRef}
-                className={`sticky top-0 z-30 flex flex-col gap-2 bg-[#0B0F17]/98 backdrop-blur-md border-b border-[#1E293B] select-none shadow-[0_4px_20px_rgba(0,0,0,0.5)] transition-all ${isFullscreen
-                    ? "px-4 py-2.5 sm:px-8 sm:py-3 rounded-none"
-                    : "px-3 py-2 sm:px-4 sm:py-2.5 rounded-t-xl"
+                className={`sticky top-0 z-30 flex flex-col gap-1.5 sm:gap-2 bg-[#0B0F17]/98 backdrop-blur-md border-b border-[#1E293B] select-none shadow-[0_4px_20px_rgba(0,0,0,0.5)] transition-all ${isFullscreen
+                    ? "px-3 py-2 sm:px-6 sm:py-2.5 rounded-none"
+                    : "px-2.5 py-2 sm:px-4 sm:py-2 rounded-t-xl"
                     }`}
             >
-                {/* Upper row: Sections Dropdown, Stats, Save, Settings, Copy, and Mode Switchers */}
-                <div className="flex items-center justify-between w-full gap-1.5 sm:gap-2">
-                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                        {/* Sections Dropdown List (always prominent in fullscreen or when sections are provided) */}
+                {/* Row 1: Header / Navigation & Core Controls */}
+                <div className="flex items-center justify-between w-full gap-1.5 sm:gap-2 min-h-[34px]">
+                    {/* Left Side: Document / Section Selector & Status Badges */}
+                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink">
                         {(isFullscreen || (sections && sections.length > 0)) ? (
                             <div className="relative shrink-0" ref={sectionsDropdownRef}>
                                 <button
                                     type="button"
                                     onClick={() => setIsSectionsOpen(prev => !prev)}
-                                    className="flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] border border-[#1E293B] hover:border-cyan-500/40 text-xs font-semibold text-white transition-all shadow-sm cursor-pointer"
+                                    className="flex items-center gap-1.5 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] border border-[#1E293B] hover:border-cyan-500/40 text-xs font-semibold text-white transition-all shadow-sm cursor-pointer max-w-[150px] sm:max-w-[240px]"
                                     title={`Section: ${activeSectionObj?.label || label} (Click to switch)`}
                                 >
                                     <Layers size={13} className="text-cyan-400 shrink-0" />
-                                    <span className="truncate max-w-[120px] sm:max-w-[200px] text-zinc-100 hidden sm:inline">
+                                    <span className="truncate text-zinc-100 text-[11px] sm:text-xs">
                                         {activeSectionObj?.label || label}
                                     </span>
-                                    <ChevronDown size={11} className={`text-zinc-400 transition-transform duration-150 ${isSectionsOpen ? "rotate-180 text-cyan-300" : ""}`} />
+                                    <ChevronDown size={11} className={`text-zinc-400 transition-transform duration-150 shrink-0 ${isSectionsOpen ? "rotate-180 text-cyan-300" : ""}`} />
                                 </button>
 
                                 {isSectionsOpen && (
@@ -860,34 +1108,100 @@ export default function IdeMarkdownEditor({
                                 )}
                             </div>
                         ) : (
-                            <div className="flex items-center gap-1.5 min-w-0 shrink-0">
+                            <div className="flex items-center gap-1.5 min-w-0 shrink">
                                 <FileText size={14} className="text-cyan-400 shrink-0" />
-                                <span className="text-white font-semibold truncate text-xs hidden sm:inline">{label}</span>
+                                <span className="text-white font-semibold truncate text-xs max-w-[120px] sm:max-w-[200px]">{label}</span>
                             </div>
                         )}
 
-                        <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase tracking-wider shrink-0 hidden sm:inline">
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase tracking-wider shrink-0 hidden sm:inline">
                             MD
                         </span>
 
                         {isFullscreen && (
-                            <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hidden md:inline shrink-0">
-                                Fullscreen • Press ESC to exit
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hidden lg:inline shrink-0">
+                                Fullscreen (Esc)
                             </span>
                         )}
                     </div>
 
-                    <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 flex-wrap">
-                        <span className="text-zinc-500 text-[11px] font-mono hidden lg:inline">
-                            {stats.lineCount} lines • {stats.words} words • {stats.readTime} min read
+                    {/* Center: Mode Switcher & Orientation Controls */}
+                    <div className="flex items-center gap-1 shrink-0">
+                        <div className="flex items-center bg-[#141923] border border-[#1E293B] rounded-lg p-0.5 shadow-inner">
+                            <button
+                                type="button"
+                                onClick={() => setMode("edit")}
+                                className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold transition-colors cursor-pointer ${
+                                    mode === "edit" ? "bg-[#1E293B] text-cyan-300 shadow-sm" : "text-zinc-400 hover:text-white"
+                                }`}
+                                title="Edit Mode (Code only)"
+                            >
+                                <Edit3 size={12} />
+                                <span className="hidden sm:inline">Edit</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setMode("split")}
+                                className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold transition-colors cursor-pointer ${
+                                    mode === "split" ? "bg-[#1E293B] text-cyan-300 shadow-sm" : "text-zinc-400 hover:text-white"
+                                }`}
+                                title="Split Mode (Live Preview)"
+                            >
+                                <Split size={12} />
+                                <span className="hidden sm:inline">Split</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setMode("preview")}
+                                className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold transition-colors cursor-pointer ${
+                                    mode === "preview" ? "bg-[#1E293B] text-cyan-300 shadow-sm" : "text-zinc-400 hover:text-white"
+                                }`}
+                                title="Preview Mode (Compiled View)"
+                            >
+                                <Eye size={12} />
+                                <span className="hidden sm:inline">Preview</span>
+                            </button>
+                        </div>
+
+                        {/* Split Orientation toggle when in split mode */}
+                        {mode === "split" && (
+                            <button
+                                type="button"
+                                onClick={toggleSplitOrientation}
+                                className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[11px] font-semibold transition-all cursor-pointer ${
+                                    splitOrientation !== "auto"
+                                        ? "bg-cyan-500/15 text-cyan-300 border-cyan-500/30"
+                                        : "bg-[#141923] text-zinc-300 border-[#1E293B] hover:text-white hover:border-[#2E3C51]"
+                                }`}
+                                title={`Split View: currently ${effectiveSplitOrientation === "horizontal" ? "Side-by-Side (Columns)" : "Stacked (Rows)"}. Click to switch.`}
+                            >
+                                {effectiveSplitOrientation === "horizontal" ? (
+                                    <>
+                                        <Columns size={12} className="text-cyan-400 shrink-0" />
+                                        <span className="hidden md:inline text-[10px]">Columns</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Rows size={12} className="text-cyan-400 shrink-0" />
+                                        <span className="hidden md:inline text-[10px]">Rows</span>
+                                    </>
+                                )}
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Right Side: Save, Utilities, Fullscreen */}
+                    <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+                        <span className="text-zinc-500 text-[10px] font-mono hidden xl:inline mr-1">
+                            {stats.lineCount}L • {stats.words}W
                         </span>
 
-                        {/* Save Changes Button */}
+                        {/* Save Button */}
                         {(isFullscreen || onSave) && (
                             <button
                                 type="button"
                                 onClick={handleSaveClick}
-                                className={`flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 rounded-lg text-xs font-bold transition-all shadow-md cursor-pointer ${
+                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all shadow-md cursor-pointer ${
                                     isSaveActive
                                         ? "bg-emerald-400 text-zinc-950 shadow-emerald-500/25 ring-2 ring-emerald-300"
                                         : "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-emerald-500/20 active:scale-95"
@@ -895,7 +1209,7 @@ export default function IdeMarkdownEditor({
                                 title={isSaveActive ? "Changes Saved!" : "Save Changes (Ctrl+S)"}
                             >
                                 {isSaveActive ? <CheckCircle2 size={13} className="shrink-0" /> : <Save size={13} className="shrink-0" />}
-                                <span className="hidden sm:inline">{isSaveActive ? "Saved!" : "Save Changes"}</span>
+                                <span className="hidden sm:inline">{isSaveActive ? "Saved!" : "Save"}</span>
                             </button>
                         )}
 
@@ -904,23 +1218,22 @@ export default function IdeMarkdownEditor({
                             <button
                                 type="button"
                                 onClick={() => setIsSettingsOpen(true)}
-                                className="flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] border border-[#1E293B] hover:border-cyan-500/30 text-zinc-300 hover:text-white text-xs font-semibold transition-all cursor-pointer"
-                                title="Editor & Note Settings"
+                                className="p-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] border border-[#1E293B] hover:border-cyan-500/30 text-zinc-400 hover:text-white transition-all cursor-pointer"
+                                title="Editor Settings"
                             >
-                                <Settings size={13} className="text-zinc-400 hover:text-cyan-300 shrink-0" />
-                                <span className="hidden sm:inline">Settings</span>
+                                <Settings size={13} />
                             </button>
                         )}
 
-                        {/* Jump to Top / Bottom Buttons in Toolbar */}
-                        <div className="flex items-center bg-[#141923] border border-[#1E293B] rounded-lg p-0.5">
+                        {/* Scroll Top / Bottom */}
+                        <div className="hidden sm:flex items-center bg-[#141923] border border-[#1E293B] rounded-lg p-0.5">
                             <button
                                 type="button"
                                 onClick={scrollToTop}
                                 className="p-1 rounded text-zinc-400 hover:text-cyan-300 hover:bg-[#1E293B] transition-colors cursor-pointer"
                                 title="Scroll to Top"
                             >
-                                <ArrowUp size={13} />
+                                <ArrowUp size={12} />
                             </button>
                             <button
                                 type="button"
@@ -928,7 +1241,7 @@ export default function IdeMarkdownEditor({
                                 className="p-1 rounded text-zinc-400 hover:text-cyan-300 hover:bg-[#1E293B] transition-colors cursor-pointer"
                                 title="Scroll to Bottom"
                             >
-                                <ArrowDown size={13} />
+                                <ArrowDown size={12} />
                             </button>
                         </div>
 
@@ -942,170 +1255,252 @@ export default function IdeMarkdownEditor({
                             {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
                         </button>
 
-                        {/* Mode Toggle Pills: Edit / Split / Preview */}
-                        <div className="flex items-center bg-[#141923] border border-[#1E293B] rounded-lg p-0.5">
-                            <button
-                                type="button"
-                                onClick={() => setMode("edit")}
-                                className={`flex items-center gap-1 p-1.5 sm:px-2.5 sm:py-1 rounded text-[10px] sm:text-[11px] font-semibold transition-colors cursor-pointer ${
-                                    mode === "edit" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
-                                }`}
-                                title="Edit Mode"
-                            >
-                                <Edit3 size={12} />
-                                <span className="hidden sm:inline">Edit</span>
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => setMode("split")}
-                                className={`flex items-center gap-1 p-1.5 sm:px-2.5 sm:py-1 rounded text-[10px] sm:text-[11px] font-semibold transition-colors cursor-pointer ${
-                                    mode === "split" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
-                                }`}
-                                title="Split Mode"
-                            >
-                                <Split size={12} />
-                                <span className="hidden sm:inline">Split</span>
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => setMode("preview")}
-                                className={`flex items-center gap-1 p-1.5 sm:px-2.5 sm:py-1 rounded text-[10px] sm:text-[11px] font-semibold transition-colors cursor-pointer ${
-                                    mode === "preview" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
-                                }`}
-                                title="Preview Mode"
-                            >
-                                <Eye size={12} />
-                                <span className="hidden sm:inline">Preview</span>
-                            </button>
-                        </div>
-
-                        {/* Split Orientation Toggle button (visible in Split mode) */}
-                        {mode === "split" && (
-                            <button
-                                type="button"
-                                onClick={toggleSplitOrientation}
-                                className={`flex items-center gap-1 p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border text-[10px] sm:text-[11px] font-semibold transition-all cursor-pointer ${
-                                    splitOrientation !== "auto"
-                                        ? "bg-cyan-500/15 text-cyan-300 border-cyan-500/30"
-                                        : "bg-[#141923] text-zinc-300 border-[#1E293B] hover:text-white hover:border-[#2E3C51]"
-                                }`}
-                                title={`Split Orientation: currently ${effectiveSplitOrientation === "horizontal" ? "Side-by-Side (Columns)" : "Stacked (Rows)"}. Click to switch.`}
-                            >
-                                {effectiveSplitOrientation === "horizontal" ? (
-                                    <>
-                                        <Columns size={13} className="text-cyan-400 shrink-0" />
-                                        <span className="hidden sm:inline">Side-by-Side</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Rows size={13} className="text-cyan-400 shrink-0" />
-                                        <span className="hidden sm:inline">Stacked</span>
-                                    </>
-                                )}
-                            </button>
-                        )}
-
-                        {/* Full Screen 100vw x 100vh Toggle */}
+                        {/* Full Screen Toggle */}
                         <button
                             type="button"
                             onClick={toggleFullscreen}
-                            className={`flex items-center gap-1.5 p-1.5 sm:px-2 sm:py-1.5 rounded-lg border text-[11px] font-semibold transition-all cursor-pointer ${isFullscreen
+                            className={`p-1.5 rounded-lg border transition-all cursor-pointer ${isFullscreen
                                 ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm shadow-cyan-500/10"
                                 : "bg-[#141923] border-[#1E293B] text-zinc-400 hover:text-white hover:bg-[#1E293B]"
                                 }`}
-                            title={isFullscreen ? "Exit Full Screen (Esc)" : "Open in Full Screen (100vw × 100vh)"}
+                            title={isFullscreen ? "Exit Full Screen (Esc)" : "Full Screen (100vw × 100vh)"}
                         >
-                            {isFullscreen ? (
-                                <>
-                                    <Minimize2 size={13} className="text-cyan-300 shrink-0" />
-                                    <span className="hidden sm:inline">Exit Full</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Maximize2 size={13} className="shrink-0" />
-                                    <span className="hidden sm:inline">Full Screen</span>
-                                </>
-                            )}
+                            {isFullscreen ? <Minimize2 size={13} className="text-cyan-300" /> : <Maximize2 size={13} />}
                         </button>
                     </div>
                 </div>
 
-                {/* Lower row: Horizontally scrollable Action Toolbox & Tints (Never overflows!) */}
-                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 w-full touch-pan-x">
-                    {/* Quick Formatting Buttons */}
-                    <div className="flex items-center gap-1 bg-[#141923] border border-[#1E293B] rounded-lg p-0.5 shrink-0">
-                        {[
-                            { id: "h1", label: "H1", title: "Heading 1" },
-                            { id: "h2", label: "H2", title: "Heading 2" },
-                            { id: "h3", label: "H3", title: "Heading 3" },
-                            { id: "bold", label: "B", title: "Bold", className: "font-bold" },
-                            { id: "italic", label: "/", title: "Italic", className: "italic" },
-                            { id: "underline", label: "U", title: "Underline", className: "underline" },
-                            { id: "strike", label: "S", title: "Strikethrough", className: "line-through" },
-                            { id: "code", label: "</>", title: "Inline Code" },
-                            { id: "codeblock", label: "{}", title: "Code Block" },
-                            { id: "bullet", label: "•", title: "Bullet List" },
-                            { id: "number", label: "1.", title: "Numbered List" },
-                            { id: "sup", label: "x²", title: "Superscript" },
-                            { id: "link", label: "🔗", title: "Link" },
-                            { id: "img", label: "🖼", title: "Image" },
-                        ].map((b) => (
+                {/* Row 2: Formatting Toolbar - Clearly grouped, responsive with touch scroll */}
+                <div className="relative w-full border-t border-[#1E293B]/70 pt-1.5">
+                    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 w-full touch-pan-x scroll-smooth">
+                        {/* Group 1: Headings */}
+                        <div className="flex items-center gap-0.5 bg-[#141923] border border-[#1E293B] rounded-lg p-0.5 shrink-0 shadow-sm">
                             <button
-                                key={b.id}
                                 type="button"
                                 onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => insertSyntax(b.id)}
-                                className={`w-6 h-6 shrink-0 rounded flex items-center justify-center text-[11px] text-zinc-400 hover:text-white hover:bg-[#1E293B] transition-colors ${b.className || ""
-                                    }`}
-                                title={b.title}
+                                onClick={() => insertSyntax("h1")}
+                                className="px-1.5 h-6 rounded flex items-center justify-center text-[10px] font-bold text-zinc-300 hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                title="Heading 1 (# Heading)"
                             >
-                                {b.label}
+                                H1
                             </button>
-                        ))}
-                    </div>
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("h2")}
+                                className="px-1.5 h-6 rounded flex items-center justify-center text-[10px] font-bold text-zinc-300 hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                title="Heading 2 (## Heading)"
+                            >
+                                H2
+                            </button>
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("h3")}
+                                className="px-1.5 h-6 rounded flex items-center justify-center text-[10px] font-bold text-zinc-300 hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                title="Heading 3 (### Heading)"
+                            >
+                                H3
+                            </button>
+                        </div>
 
-                    <div className="h-4 w-[1px] bg-[#1E293B] shrink-0 mx-0.5" />
+                        {/* Group 2: Typography & Text Styling (Bold, Italic, Underline, Strike, Sup, Sub) */}
+                        <div className="flex items-center gap-0.5 bg-[#141923] border border-[#1E293B] rounded-lg p-0.5 shrink-0 shadow-sm">
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("bold")}
+                                className="w-6 h-6 rounded flex items-center justify-center text-zinc-300 hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                title="Bold (**text**)"
+                            >
+                                <Bold size={12} />
+                            </button>
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("italic")}
+                                className="w-6 h-6 rounded flex items-center justify-center text-zinc-300 hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                title="Italic (*text*)"
+                            >
+                                <Italic size={12} />
+                            </button>
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("underline")}
+                                className="w-6 h-6 rounded flex items-center justify-center text-zinc-300 hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                title="Underline (<u>text</u>)"
+                            >
+                                <Underline size={12} />
+                            </button>
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("strike")}
+                                className="w-6 h-6 rounded flex items-center justify-center text-zinc-300 hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                title="Strikethrough (~~text~~)"
+                            >
+                                <Strikethrough size={12} />
+                            </button>
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("sup")}
+                                className="w-6 h-6 rounded flex items-center justify-center text-zinc-300 hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer font-sans"
+                                title="Superscript (^text^)"
+                            >
+                                <Superscript size={12} />
+                            </button>
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("sub")}
+                                className="w-6 h-6 rounded flex items-center justify-center text-zinc-300 hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer font-sans"
+                                title="Subscript (~text~)"
+                            >
+                                <Subscript size={12} />
+                            </button>
+                        </div>
 
-                    {/* Color Tints Picker */}
-                    <div className="flex items-center gap-1.5 px-2 py-1 bg-[#141923] border border-[#1E293B] rounded-lg text-[10px] shrink-0">
-                        <span className="text-zinc-500 font-bold uppercase tracking-wider text-[9px]">TINTS:</span>
-                        <button
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertSyntax("t-mint")}
-                            className="w-3 h-3 rounded-full bg-emerald-400 hover:scale-125 transition-transform shrink-0 cursor-pointer"
-                            title="Mint / Optimal"
-                        />
-                        <button
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertSyntax("t-rose")}
-                            className="w-3 h-3 rounded-full bg-rose-400 hover:scale-125 transition-transform shrink-0 cursor-pointer"
-                            title="Rose / Pitfall"
-                        />
-                        <button
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertSyntax("t-cyan")}
-                            className="w-3 h-3 rounded-full bg-cyan-400 hover:scale-125 transition-transform shrink-0 cursor-pointer"
-                            title="Cyan / Complexity"
-                        />
-                        <button
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertSyntax("t-amber")}
-                            className="w-3 h-3 rounded-full bg-amber-400 hover:scale-125 transition-transform shrink-0 cursor-pointer"
-                            title="Amber / Key Term"
-                        />
-                        <button
-                            type="button"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => insertSyntax("t-purple")}
-                            className="w-3 h-3 rounded-full bg-purple-400 hover:scale-125 transition-transform shrink-0 cursor-pointer"
-                            title="Purple / Tip"
-                        />
+                        {/* Group 3: Code & Blocks */}
+                        <div className="flex items-center gap-0.5 bg-[#141923] border border-[#1E293B] rounded-lg p-0.5 shrink-0 shadow-sm">
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("code")}
+                                className="px-1.5 h-6 rounded flex items-center justify-center text-[10px] font-mono text-zinc-300 hover:text-amber-300 hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                title="Inline Code (`code`)"
+                            >
+                                {"</>"}
+                            </button>
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("codeblock")}
+                                className="px-1.5 h-6 rounded flex items-center justify-center text-[11px] font-mono text-zinc-300 hover:text-amber-300 hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                title="Code Block (```)"
+                            >
+                                {"{ }"}
+                            </button>
+                        </div>
+
+                        {/* Group 4: Lists, Checklists, Quotes & Dividers */}
+                        <div className="flex items-center gap-0.5 bg-[#141923] border border-[#1E293B] rounded-lg p-0.5 shrink-0 shadow-sm">
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("bullet")}
+                                className="w-6 h-6 rounded flex items-center justify-center text-zinc-300 hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                title="Bullet List (- item)"
+                            >
+                                <List size={12} />
+                            </button>
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("number")}
+                                className="w-6 h-6 rounded flex items-center justify-center text-zinc-300 hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                title="Numbered List (1. item)"
+                            >
+                                <ListOrdered size={12} />
+                            </button>
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("task")}
+                                className="w-6 h-6 rounded flex items-center justify-center text-zinc-300 hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                title="Task Checklist (- [ ] item)"
+                            >
+                                <ListChecks size={12} />
+                            </button>
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("quote")}
+                                className="w-6 h-6 rounded flex items-center justify-center text-zinc-300 hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                title="Blockquote (> quote)"
+                            >
+                                <Quote size={12} />
+                            </button>
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("divider")}
+                                className="w-6 h-6 rounded flex items-center justify-center text-zinc-300 hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                title="Divider (---)"
+                            >
+                                <Minus size={12} />
+                            </button>
+                        </div>
+
+                        {/* Group 5: Inserts (Link & Image) */}
+                        <div className="flex items-center gap-0.5 bg-[#141923] border border-[#1E293B] rounded-lg p-0.5 shrink-0 shadow-sm">
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("link")}
+                                className="w-6 h-6 rounded flex items-center justify-center text-zinc-300 hover:text-cyan-300 hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                title="Insert Link [text](url)"
+                            >
+                                <LinkIcon size={12} />
+                            </button>
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("img")}
+                                className="w-6 h-6 rounded flex items-center justify-center text-zinc-300 hover:text-cyan-300 hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                title="Insert Image ![alt](url)"
+                            >
+                                <ImageIcon size={12} />
+                            </button>
+                        </div>
+
+                        {/* Group 6: Highlights / Color Tints */}
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-[#141923] border border-[#1E293B] rounded-lg text-[10px] shrink-0 shadow-sm">
+                            <span className="text-zinc-500 font-bold uppercase tracking-wider text-[9px] select-none">TINTS:</span>
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("t-mint")}
+                                className="w-3.5 h-3.5 rounded-full bg-emerald-400 hover:scale-125 transition-transform shrink-0 cursor-pointer shadow-sm shadow-emerald-500/20"
+                                title="Green / Optimal (==g:text==)"
+                            />
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("t-rose")}
+                                className="w-3.5 h-3.5 rounded-full bg-rose-400 hover:scale-125 transition-transform shrink-0 cursor-pointer shadow-sm shadow-rose-500/20"
+                                title="Rose / Warning (==r:text==)"
+                            />
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("t-cyan")}
+                                className="w-3.5 h-3.5 rounded-full bg-cyan-400 hover:scale-125 transition-transform shrink-0 cursor-pointer shadow-sm shadow-cyan-500/20"
+                                title="Cyan / Complexity (==b:text==)"
+                            />
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("t-amber")}
+                                className="w-3.5 h-3.5 rounded-full bg-amber-400 hover:scale-125 transition-transform shrink-0 cursor-pointer shadow-sm shadow-amber-500/20"
+                                title="Amber / Key Term (==y:text==)"
+                            />
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("t-purple")}
+                                className="w-3.5 h-3.5 rounded-full bg-purple-400 hover:scale-125 transition-transform shrink-0 cursor-pointer shadow-sm shadow-purple-500/20"
+                                title="Purple / Note (==p:text==)"
+                            />
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => insertSyntax("t-default")}
+                                className="w-3.5 h-3.5 rounded-full bg-yellow-300 hover:scale-125 transition-transform shrink-0 cursor-pointer shadow-sm shadow-yellow-500/20"
+                                title="Yellow / Highlight (==text==)"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1271,8 +1666,8 @@ export default function IdeMarkdownEditor({
                 )}
             </div>
 
-            {/* Quick Floating Jump Pill (Bottom-Right) */}
-            <div className={`fixed bottom-5 right-5 z-50 flex items-center gap-0.5 bg-[#0F131C]/95 backdrop-blur-md border border-[#1E293B] shadow-2xl rounded-xl p-1 select-none pointer-events-auto`}>
+            {/* Quick Floating Jump Pill (Bottom-Right, safe above mobile nav) */}
+            <div className={`fixed ${isFullscreen ? "bottom-5 right-5" : "bottom-20 md:bottom-6 right-4 md:right-6"} z-50 flex items-center gap-0.5 bg-[#0F131C]/95 backdrop-blur-md border border-[#1E293B] shadow-2xl rounded-xl p-1 select-none pointer-events-auto`}>
                 <button
                     type="button"
                     onClick={scrollToTop}
