@@ -763,22 +763,22 @@ export default function IdeMarkdownEditor({
                     }`}
             >
                 {/* Upper row: Sections Dropdown, Stats, Save, Settings, Copy, and Mode Switchers */}
-                <div className="flex items-center justify-between w-full gap-2 flex-wrap">
-                    <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center justify-between w-full gap-1.5 sm:gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                         {/* Sections Dropdown List (always prominent in fullscreen or when sections are provided) */}
                         {(isFullscreen || (sections && sections.length > 0)) ? (
-                            <div className="relative" ref={sectionsDropdownRef}>
+                            <div className="relative shrink-0" ref={sectionsDropdownRef}>
                                 <button
                                     type="button"
                                     onClick={() => setIsSectionsOpen(prev => !prev)}
-                                    className="flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] border border-[#1E293B] hover:border-cyan-500/40 text-xs font-semibold text-white transition-all shadow-sm cursor-pointer"
-                                    title="Click to view and switch sections or document headings"
+                                    className="flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] border border-[#1E293B] hover:border-cyan-500/40 text-xs font-semibold text-white transition-all shadow-sm cursor-pointer"
+                                    title={`Section: ${activeSectionObj?.label || label} (Click to switch)`}
                                 >
                                     <Layers size={13} className="text-cyan-400 shrink-0" />
-                                    <span className="truncate max-w-[120px] sm:max-w-[200px] text-zinc-100">
+                                    <span className="truncate max-w-[120px] sm:max-w-[200px] text-zinc-100 hidden sm:inline">
                                         {activeSectionObj?.label || label}
                                     </span>
-                                    <ChevronDown size={12} className={`text-zinc-400 transition-transform duration-150 ${isSectionsOpen ? "rotate-180 text-cyan-300" : ""}`} />
+                                    <ChevronDown size={11} className={`text-zinc-400 transition-transform duration-150 ${isSectionsOpen ? "rotate-180 text-cyan-300" : ""}`} />
                                 </button>
 
                                 {isSectionsOpen && (
@@ -860,9 +860,9 @@ export default function IdeMarkdownEditor({
                                 )}
                             </div>
                         ) : (
-                            <div className="flex items-center gap-1.5 min-w-0">
+                            <div className="flex items-center gap-1.5 min-w-0 shrink-0">
                                 <FileText size={14} className="text-cyan-400 shrink-0" />
-                                <span className="text-white font-semibold truncate text-xs">{label}</span>
+                                <span className="text-white font-semibold truncate text-xs hidden sm:inline">{label}</span>
                             </div>
                         )}
 
@@ -877,34 +877,34 @@ export default function IdeMarkdownEditor({
                         )}
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                    <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 flex-wrap">
                         <span className="text-zinc-500 text-[11px] font-mono hidden lg:inline">
                             {stats.lineCount} lines • {stats.words} words • {stats.readTime} min read
                         </span>
 
-                        {/* Save Changes Button (Prominent in Fullscreen or when onSave provided) */}
+                        {/* Save Changes Button */}
                         {(isFullscreen || onSave) && (
                             <button
                                 type="button"
                                 onClick={handleSaveClick}
-                                className={`flex items-center gap-1.5 px-3 py-1 sm:py-1.5 rounded-lg text-xs font-bold transition-all shadow-md cursor-pointer ${
+                                className={`flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 rounded-lg text-xs font-bold transition-all shadow-md cursor-pointer ${
                                     isSaveActive
                                         ? "bg-emerald-400 text-zinc-950 shadow-emerald-500/25 ring-2 ring-emerald-300"
                                         : "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-emerald-500/20 active:scale-95"
                                 }`}
-                                title="Save Changes (Ctrl+S)"
+                                title={isSaveActive ? "Changes Saved!" : "Save Changes (Ctrl+S)"}
                             >
                                 {isSaveActive ? <CheckCircle2 size={13} className="shrink-0" /> : <Save size={13} className="shrink-0" />}
-                                <span>{isSaveActive ? "Saved!" : "Save Changes"}</span>
+                                <span className="hidden sm:inline">{isSaveActive ? "Saved!" : "Save Changes"}</span>
                             </button>
                         )}
 
-                        {/* Settings Button (In Fullscreen or always available) */}
+                        {/* Settings Button */}
                         {(isFullscreen || onOpenSettings) && (
                             <button
                                 type="button"
                                 onClick={() => setIsSettingsOpen(true)}
-                                className="flex items-center gap-1.5 px-2.5 py-1 sm:py-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] border border-[#1E293B] hover:border-cyan-500/30 text-zinc-300 hover:text-white text-xs font-semibold transition-all cursor-pointer"
+                                className="flex items-center gap-1.5 p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] border border-[#1E293B] hover:border-cyan-500/30 text-zinc-300 hover:text-white text-xs font-semibold transition-all cursor-pointer"
                                 title="Editor & Note Settings"
                             >
                                 <Settings size={13} className="text-zinc-400 hover:text-cyan-300 shrink-0" />
@@ -932,6 +932,7 @@ export default function IdeMarkdownEditor({
                             </button>
                         </div>
 
+                        {/* Copy Button */}
                         <button
                             type="button"
                             onClick={handleCopy}
@@ -946,31 +947,37 @@ export default function IdeMarkdownEditor({
                             <button
                                 type="button"
                                 onClick={() => setMode("edit")}
-                                className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded text-[10px] sm:text-[11px] font-semibold transition-colors cursor-pointer ${mode === "edit" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
-                                    }`}
+                                className={`flex items-center gap-1 p-1.5 sm:px-2.5 sm:py-1 rounded text-[10px] sm:text-[11px] font-semibold transition-colors cursor-pointer ${
+                                    mode === "edit" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
+                                }`}
+                                title="Edit Mode"
                             >
-                                <Edit3 size={11} />
-                                <span>Edit</span>
+                                <Edit3 size={12} />
+                                <span className="hidden sm:inline">Edit</span>
                             </button>
 
                             <button
                                 type="button"
                                 onClick={() => setMode("split")}
-                                className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded text-[10px] sm:text-[11px] font-semibold transition-colors cursor-pointer ${mode === "split" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
-                                    }`}
+                                className={`flex items-center gap-1 p-1.5 sm:px-2.5 sm:py-1 rounded text-[10px] sm:text-[11px] font-semibold transition-colors cursor-pointer ${
+                                    mode === "split" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
+                                }`}
+                                title="Split Mode"
                             >
                                 <Split size={12} />
-                                <span>Split</span>
+                                <span className="hidden sm:inline">Split</span>
                             </button>
 
                             <button
                                 type="button"
                                 onClick={() => setMode("preview")}
-                                className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded text-[10px] sm:text-[11px] font-semibold transition-colors cursor-pointer ${mode === "preview" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
-                                    }`}
+                                className={`flex items-center gap-1 p-1.5 sm:px-2.5 sm:py-1 rounded text-[10px] sm:text-[11px] font-semibold transition-colors cursor-pointer ${
+                                    mode === "preview" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
+                                }`}
+                                title="Preview Mode"
                             >
-                                <Eye size={11} />
-                                <span>Preview</span>
+                                <Eye size={12} />
+                                <span className="hidden sm:inline">Preview</span>
                             </button>
                         </div>
 
@@ -979,7 +986,7 @@ export default function IdeMarkdownEditor({
                             <button
                                 type="button"
                                 onClick={toggleSplitOrientation}
-                                className={`flex items-center gap-1.5 px-2 py-1 sm:py-1.5 rounded-lg border text-[10px] sm:text-[11px] font-semibold transition-all cursor-pointer ${
+                                className={`flex items-center gap-1 p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border text-[10px] sm:text-[11px] font-semibold transition-all cursor-pointer ${
                                     splitOrientation !== "auto"
                                         ? "bg-cyan-500/15 text-cyan-300 border-cyan-500/30"
                                         : "bg-[#141923] text-zinc-300 border-[#1E293B] hover:text-white hover:border-[#2E3C51]"
@@ -988,15 +995,13 @@ export default function IdeMarkdownEditor({
                             >
                                 {effectiveSplitOrientation === "horizontal" ? (
                                     <>
-                                        <Columns size={12} className="text-cyan-400 shrink-0" />
-                                        <span className="hidden md:inline">Side-by-Side</span>
-                                        <span className="md:hidden">Columns</span>
+                                        <Columns size={13} className="text-cyan-400 shrink-0" />
+                                        <span className="hidden sm:inline">Side-by-Side</span>
                                     </>
                                 ) : (
                                     <>
-                                        <Rows size={12} className="text-cyan-400 shrink-0" />
-                                        <span className="hidden md:inline">Stacked</span>
-                                        <span className="md:hidden">Rows</span>
+                                        <Rows size={13} className="text-cyan-400 shrink-0" />
+                                        <span className="hidden sm:inline">Stacked</span>
                                     </>
                                 )}
                             </button>
@@ -1006,7 +1011,7 @@ export default function IdeMarkdownEditor({
                         <button
                             type="button"
                             onClick={toggleFullscreen}
-                            className={`flex items-center gap-1.5 px-2 py-1 sm:py-1.5 rounded-lg border text-[11px] font-semibold transition-all cursor-pointer ${isFullscreen
+                            className={`flex items-center gap-1.5 p-1.5 sm:px-2 sm:py-1.5 rounded-lg border text-[11px] font-semibold transition-all cursor-pointer ${isFullscreen
                                 ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-sm shadow-cyan-500/10"
                                 : "bg-[#141923] border-[#1E293B] text-zinc-400 hover:text-white hover:bg-[#1E293B]"
                                 }`}
