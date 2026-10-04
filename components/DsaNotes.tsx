@@ -407,6 +407,25 @@ function PaginatedNotesBlock({
         const textarea = document.getElementById(`textarea-${label}`) as HTMLTextAreaElement;
         if (!textarea) return;
 
+        let scrollParent: HTMLElement | null = null;
+        let prevScrollTop = 0;
+        let prevWindowScrollY = 0;
+        const prevTextareaScrollTop = textarea.scrollTop;
+
+        if (typeof window !== "undefined") {
+            let curr = textarea.parentElement;
+            while (curr) {
+                const overflowY = window.getComputedStyle(curr).overflowY;
+                if (overflowY === "auto" || overflowY === "scroll") {
+                    scrollParent = curr;
+                    break;
+                }
+                curr = curr.parentElement;
+            }
+            prevScrollTop = scrollParent ? scrollParent.scrollTop : 0;
+            prevWindowScrollY = window.scrollY;
+        }
+
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
         const text = textarea.value;
@@ -453,18 +472,29 @@ function PaginatedNotesBlock({
         const newValue = text.substring(0, start) + replacement + text.substring(end);
         onChange(newValue);
 
-        // Refocus and select placeholder URL if present
-        setTimeout(() => {
-            textarea.focus();
+        const restoreFocusAndScroll = () => {
+            const ta = document.getElementById(`textarea-${label}`) as HTMLTextAreaElement;
+            if (!ta) return;
+            ta.focus({ preventScroll: true });
             const urlMatch = replacement.match(/\((https?:\/\/[^\s)]+)\)/);
             if (urlMatch && urlMatch.index !== undefined) {
                 const urlStart = start + urlMatch.index + 1;
                 const urlEnd = urlStart + urlMatch[1].length;
-                textarea.setSelectionRange(urlStart, urlEnd);
+                ta.setSelectionRange(urlStart, urlEnd);
             } else {
-                textarea.setSelectionRange(start + replacement.length, start + replacement.length);
+                ta.setSelectionRange(start + replacement.length, start + replacement.length);
             }
-        }, 50);
+
+            if (scrollParent) {
+                scrollParent.scrollTop = prevScrollTop;
+            } else if (typeof window !== "undefined") {
+                window.scrollTo({ top: prevWindowScrollY });
+            }
+            ta.scrollTop = prevTextareaScrollTop;
+        };
+
+        requestAnimationFrame(restoreFocusAndScroll);
+        setTimeout(restoreFocusAndScroll, 20);
     };
 
     const textSizeClass = fontSize === "sm" ? "text-xs" : fontSize === "base" ? "text-sm" : "text-base";
@@ -561,6 +591,7 @@ function PaginatedNotesBlock({
                                     <div key={btn.id} className="relative group">
                                         <button
                                             type="button"
+                                            onMouseDown={(e) => e.preventDefault()}
                                             onClick={() => insertMarkdown(btn.id)}
                                             className={`w-7 h-7 flex items-center justify-center text-[11px] font-semibold rounded-lg bg-white/[0.04] border border-white/[0.06] text-zinc-300 hover:text-white hover:bg-white/[0.12] hover:border-white/20 transition-all ${btn.className || ""}`}
                                             title={btn.title}
@@ -585,6 +616,7 @@ function PaginatedNotesBlock({
                                 <div className="relative group">
                                     <button
                                         type="button"
+                                        onMouseDown={(e) => e.preventDefault()}
                                         onClick={() => insertMarkdown("hl-red")}
                                         className="w-7 h-7 flex items-center justify-center rounded-lg bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/25 hover:border-rose-500/60 transition-all"
                                         title="Red Highlight (==r:text==)"
@@ -600,6 +632,7 @@ function PaginatedNotesBlock({
                                 <div className="relative group">
                                     <button
                                         type="button"
+                                        onMouseDown={(e) => e.preventDefault()}
                                         onClick={() => insertMarkdown("hl-green")}
                                         className="w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/25 hover:border-emerald-500/60 transition-all"
                                         title="Green Highlight (==g:text==)"
@@ -615,6 +648,7 @@ function PaginatedNotesBlock({
                                 <div className="relative group">
                                     <button
                                         type="button"
+                                        onMouseDown={(e) => e.preventDefault()}
                                         onClick={() => insertMarkdown("hl-blue")}
                                         className="w-7 h-7 flex items-center justify-center rounded-lg bg-sky-500/10 border border-sky-500/30 hover:bg-sky-500/25 hover:border-sky-500/60 transition-all"
                                         title="Blue Highlight (==b:text==)"
@@ -630,6 +664,7 @@ function PaginatedNotesBlock({
                                 <div className="relative group">
                                     <button
                                         type="button"
+                                        onMouseDown={(e) => e.preventDefault()}
                                         onClick={() => insertMarkdown("hl-yellow")}
                                         className="w-7 h-7 flex items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/25 hover:border-amber-500/60 transition-all"
                                         title="Yellow Highlight (==y:text==)"
@@ -645,6 +680,7 @@ function PaginatedNotesBlock({
                                 <div className="relative group">
                                     <button
                                         type="button"
+                                        onMouseDown={(e) => e.preventDefault()}
                                         onClick={() => insertMarkdown("hl-purple")}
                                         className="w-7 h-7 flex items-center justify-center rounded-lg bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/25 hover:border-purple-500/60 transition-all"
                                         title="Purple Highlight (==p:text==)"

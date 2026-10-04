@@ -200,10 +200,36 @@ export default function IdeMarkdownEditor({
             textarea.style.height = "100%";
             return;
         }
+
+        // Preserve scroll position of any scrolling ancestor and window
+        let scrollParent: HTMLElement | null = null;
+        let prevScrollTop = 0;
+        let prevWindowScrollY = 0;
+
+        if (typeof window !== "undefined") {
+            let curr = textarea.parentElement;
+            while (curr) {
+                const overflowY = window.getComputedStyle(curr).overflowY;
+                if (overflowY === "auto" || overflowY === "scroll") {
+                    scrollParent = curr;
+                    break;
+                }
+                curr = curr.parentElement;
+            }
+            prevScrollTop = scrollParent ? scrollParent.scrollTop : 0;
+            prevWindowScrollY = window.scrollY;
+        }
+
         textarea.style.height = "auto";
         const minHeight = typeof window !== "undefined" && window.innerWidth < 640 ? 360 : 540;
         const newHeight = Math.max(textarea.scrollHeight, minHeight);
         textarea.style.height = `${newHeight}px`;
+
+        if (scrollParent) {
+            scrollParent.scrollTop = prevScrollTop;
+        } else if (typeof window !== "undefined") {
+            window.scrollTo({ top: prevWindowScrollY });
+        }
     }, [isFullscreen]);
 
     useEffect(() => {
@@ -438,6 +464,26 @@ export default function IdeMarkdownEditor({
         const textarea = textareaRef.current;
         if (!textarea) return;
 
+        // Capture scroll positions before any DOM modifications
+        let scrollParent: HTMLElement | null = null;
+        let prevScrollTop = 0;
+        let prevWindowScrollY = 0;
+        const prevTextareaScrollTop = textarea.scrollTop;
+
+        if (typeof window !== "undefined") {
+            let curr = textarea.parentElement;
+            while (curr) {
+                const overflowY = window.getComputedStyle(curr).overflowY;
+                if (overflowY === "auto" || overflowY === "scroll") {
+                    scrollParent = curr;
+                    break;
+                }
+                curr = curr.parentElement;
+            }
+            prevScrollTop = scrollParent ? scrollParent.scrollTop : 0;
+            prevWindowScrollY = window.scrollY;
+        }
+
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
         const text = textarea.value;
@@ -467,11 +513,27 @@ export default function IdeMarkdownEditor({
         const updated = text.substring(0, start) + replacement + text.substring(end);
         onChange(updated);
 
-        setTimeout(() => {
-            textarea.focus();
-            textarea.setSelectionRange(start + replacement.length, start + replacement.length);
+        const newCursor = start + replacement.length;
+
+        const restoreFocusAndScroll = () => {
+            const ta = textareaRef.current;
+            if (!ta) return;
+            ta.focus({ preventScroll: true });
+            try {
+                ta.setSelectionRange(newCursor, newCursor);
+            } catch (e) {}
             adjustTextareaHeight();
-        }, 50);
+
+            if (scrollParent) {
+                scrollParent.scrollTop = prevScrollTop;
+            } else if (typeof window !== "undefined") {
+                window.scrollTo({ top: prevWindowScrollY });
+            }
+            ta.scrollTop = prevTextareaScrollTop;
+        };
+
+        requestAnimationFrame(restoreFocusAndScroll);
+        setTimeout(restoreFocusAndScroll, 20);
     };
 
     return (
@@ -620,6 +682,7 @@ export default function IdeMarkdownEditor({
                             <button
                                 key={b.id}
                                 type="button"
+                                onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => insertSyntax(b.id)}
                                 className={`w-6 h-6 shrink-0 rounded flex items-center justify-center text-[11px] text-zinc-400 hover:text-white hover:bg-[#1E293B] transition-colors ${b.className || ""
                                     }`}
@@ -637,30 +700,35 @@ export default function IdeMarkdownEditor({
                         <span className="text-zinc-500 font-bold uppercase tracking-wider text-[9px]">TINTS:</span>
                         <button
                             type="button"
+                            onMouseDown={(e) => e.preventDefault()}
                             onClick={() => insertSyntax("t-mint")}
                             className="w-3 h-3 rounded-full bg-emerald-400 hover:scale-125 transition-transform shrink-0"
                             title="Mint / Optimal"
                         />
                         <button
                             type="button"
+                            onMouseDown={(e) => e.preventDefault()}
                             onClick={() => insertSyntax("t-rose")}
                             className="w-3 h-3 rounded-full bg-rose-400 hover:scale-125 transition-transform shrink-0"
                             title="Rose / Pitfall"
                         />
                         <button
                             type="button"
+                            onMouseDown={(e) => e.preventDefault()}
                             onClick={() => insertSyntax("t-cyan")}
                             className="w-3 h-3 rounded-full bg-cyan-400 hover:scale-125 transition-transform shrink-0"
                             title="Cyan / Complexity"
                         />
                         <button
                             type="button"
+                            onMouseDown={(e) => e.preventDefault()}
                             onClick={() => insertSyntax("t-amber")}
                             className="w-3 h-3 rounded-full bg-amber-400 hover:scale-125 transition-transform shrink-0"
                             title="Amber / Key Term"
                         />
                         <button
                             type="button"
+                            onMouseDown={(e) => e.preventDefault()}
                             onClick={() => insertSyntax("t-purple")}
                             className="w-3 h-3 rounded-full bg-purple-400 hover:scale-125 transition-transform shrink-0"
                             title="Purple / Tip"
