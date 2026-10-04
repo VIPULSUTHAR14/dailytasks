@@ -5,7 +5,7 @@ import {
     Copy, Check, Edit3, Eye, Split, FileText, Link as LinkIcon,
     Image as ImageIcon, PlayCircle, ExternalLink, Maximize2, Minimize2,
     ArrowUp, ArrowDown, Save, Settings, Sliders, ChevronDown, CheckCircle2,
-    Layers, X, Sparkles
+    Layers, X, Sparkles, Columns, Rows
 } from "lucide-react";
 
 export interface EditorSection {
@@ -208,6 +208,62 @@ export default function IdeMarkdownEditor({
     });
     const [syncScroll, setSyncScroll] = useState<boolean>(true);
 
+    // Split orientation state: "auto" | "horizontal" | "vertical"
+    const [splitOrientation, setSplitOrientation] = useState<"auto" | "horizontal" | "vertical">(() => {
+        if (typeof window !== "undefined") {
+            const saved = localStorage.getItem("ide_editor_split_orientation");
+            if (saved === "horizontal" || saved === "vertical" || saved === "auto") return saved;
+        }
+        return "auto";
+    });
+
+    const [deviceOrientation, setDeviceOrientation] = useState<"portrait" | "landscape">("landscape");
+    const [isSmallerDevice, setIsSmallerDevice] = useState<boolean>(false);
+
+    useEffect(() => {
+        const updateDeviceInfo = () => {
+            if (typeof window === "undefined") return;
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            setIsSmallerDevice(width < 1024);
+            setDeviceOrientation(height > width ? "portrait" : "landscape");
+        };
+
+        updateDeviceInfo();
+        window.addEventListener("resize", updateDeviceInfo);
+        window.addEventListener("orientationchange", updateDeviceInfo);
+        return () => {
+            window.removeEventListener("resize", updateDeviceInfo);
+            window.removeEventListener("orientationchange", updateDeviceInfo);
+        };
+    }, []);
+
+    // Determine effective split orientation (horizontal vs vertical)
+    const effectiveSplitOrientation: "horizontal" | "vertical" = useMemo(() => {
+        if (splitOrientation === "horizontal") return "horizontal";
+        if (splitOrientation === "vertical") return "vertical";
+
+        // Auto mode logic for smaller devices & orientations:
+        // On screens < 768px (phones & small tablets), vertical (stacked) orientation gives each pane full width
+        // On screens < 1024px in portrait (e.g., iPad/tablet portrait), vertical (stacked) avoids cramped ~200px columns
+        // On wider screens (>= 1024px) or landscape tablets/desktops, horizontal (side-by-side) is optimal
+        if (isSmallerDevice && deviceOrientation === "portrait") {
+            return "vertical";
+        }
+        if (typeof window !== "undefined" && window.innerWidth < 768) {
+            return "vertical";
+        }
+        return "horizontal";
+    }, [splitOrientation, isSmallerDevice, deviceOrientation]);
+
+    const toggleSplitOrientation = useCallback(() => {
+        const next = effectiveSplitOrientation === "horizontal" ? "vertical" : "horizontal";
+        setSplitOrientation(next);
+        if (typeof window !== "undefined") {
+            localStorage.setItem("ide_editor_split_orientation", next);
+        }
+    }, [effectiveSplitOrientation]);
+
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const previewRef = useRef<HTMLDivElement>(null);
     const editorGutterRef = useRef<HTMLDivElement>(null);
@@ -318,11 +374,11 @@ export default function IdeMarkdownEditor({
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [handleSaveClick]);
 
-    // Auto-adjust textarea height to content so outer container scrolls and toolbar sticks smoothly (when not fullscreen)
+    // Auto-adjust textarea height to content so outer container scrolls and toolbar sticks smoothly (when not fullscreen and in edit mode)
     const adjustTextareaHeight = useCallback(() => {
         const textarea = textareaRef.current;
         if (!textarea) return;
-        if (isFullscreen) {
+        if (isFullscreen || mode === "split") {
             textarea.style.height = "100%";
             return;
         }
@@ -356,7 +412,7 @@ export default function IdeMarkdownEditor({
         } else if (typeof window !== "undefined") {
             window.scrollTo({ top: prevWindowScrollY });
         }
-    }, [isFullscreen]);
+    }, [isFullscreen, mode]);
 
     useEffect(() => {
         adjustTextareaHeight();
@@ -726,7 +782,7 @@ export default function IdeMarkdownEditor({
                                 </button>
 
                                 {isSectionsOpen && (
-                                    <div className="absolute top-full left-0 mt-1.5 w-72 sm:w-84 max-h-[420px] overflow-y-auto bg-[#0E131E]/98 backdrop-blur-xl border border-[#1E293B] rounded-xl shadow-2xl z-50 p-2 font-mono text-xs divide-y divide-[#1E293B]/70">
+                                    <div className="absolute top-full left-0 mt-1.5 w-72 sm:w-84 max-w-[calc(100vw-2rem)] max-h-[420px] overflow-y-auto bg-[#0E131E]/98 backdrop-blur-xl border border-[#1E293B] rounded-xl shadow-2xl z-50 p-2 font-mono text-xs divide-y divide-[#1E293B]/70">
                                         {/* Topic Sections */}
                                         {sections && sections.length > 0 && (
                                             <div className="pb-2 space-y-1">
@@ -890,7 +946,7 @@ export default function IdeMarkdownEditor({
                             <button
                                 type="button"
                                 onClick={() => setMode("edit")}
-                                className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] sm:text-[11px] font-semibold transition-colors cursor-pointer ${mode === "edit" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
+                                className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded text-[10px] sm:text-[11px] font-semibold transition-colors cursor-pointer ${mode === "edit" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
                                     }`}
                             >
                                 <Edit3 size={11} />
@@ -900,7 +956,7 @@ export default function IdeMarkdownEditor({
                             <button
                                 type="button"
                                 onClick={() => setMode("split")}
-                                className={`hidden sm:flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold transition-colors cursor-pointer ${mode === "split" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
+                                className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded text-[10px] sm:text-[11px] font-semibold transition-colors cursor-pointer ${mode === "split" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
                                     }`}
                             >
                                 <Split size={12} />
@@ -910,13 +966,41 @@ export default function IdeMarkdownEditor({
                             <button
                                 type="button"
                                 onClick={() => setMode("preview")}
-                                className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] sm:text-[11px] font-semibold transition-colors cursor-pointer ${mode === "preview" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
+                                className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded text-[10px] sm:text-[11px] font-semibold transition-colors cursor-pointer ${mode === "preview" ? "bg-[#1E293B] text-cyan-300" : "text-zinc-400 hover:text-white"
                                     }`}
                             >
                                 <Eye size={11} />
                                 <span>Preview</span>
                             </button>
                         </div>
+
+                        {/* Split Orientation Toggle button (visible in Split mode) */}
+                        {mode === "split" && (
+                            <button
+                                type="button"
+                                onClick={toggleSplitOrientation}
+                                className={`flex items-center gap-1.5 px-2 py-1 sm:py-1.5 rounded-lg border text-[10px] sm:text-[11px] font-semibold transition-all cursor-pointer ${
+                                    splitOrientation !== "auto"
+                                        ? "bg-cyan-500/15 text-cyan-300 border-cyan-500/30"
+                                        : "bg-[#141923] text-zinc-300 border-[#1E293B] hover:text-white hover:border-[#2E3C51]"
+                                }`}
+                                title={`Split Orientation: currently ${effectiveSplitOrientation === "horizontal" ? "Side-by-Side (Columns)" : "Stacked (Rows)"}. Click to switch.`}
+                            >
+                                {effectiveSplitOrientation === "horizontal" ? (
+                                    <>
+                                        <Columns size={12} className="text-cyan-400 shrink-0" />
+                                        <span className="hidden md:inline">Side-by-Side</span>
+                                        <span className="md:hidden">Columns</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Rows size={12} className="text-cyan-400 shrink-0" />
+                                        <span className="hidden md:inline">Stacked</span>
+                                        <span className="md:hidden">Rows</span>
+                                    </>
+                                )}
+                            </button>
+                        )}
 
                         {/* Full Screen 100vw x 100vh Toggle */}
                         <button
@@ -1096,27 +1180,33 @@ export default function IdeMarkdownEditor({
 
                 {/* Mode: SPLIT */}
                 {mode === "split" && (
-                    <div className={`flex-1 min-h-0 w-full flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x divide-[#1E293B] ${isFullscreen ? "h-full" : "min-h-[560px]"
-                        }`}>
-                        {/* Left: Editor */}
-                        <div className="flex-1 min-h-0 flex flex-col min-w-0 bg-[#0B0F17] h-full">
+                    <div
+                        className={`flex-1 min-h-0 w-full flex ${
+                            effectiveSplitOrientation === "horizontal" ? "flex-row divide-x" : "flex-col divide-y"
+                        } divide-[#1E293B] ${
+                            isFullscreen
+                                ? "h-full overflow-hidden"
+                                : effectiveSplitOrientation === "horizontal"
+                                ? "h-[540px] sm:h-[620px] max-h-[85vh]"
+                                : "h-[620px] sm:h-[720px] max-h-[88vh]"
+                        }`}
+                    >
+                        {/* Left / Top: Editor */}
+                        <div className="flex-1 min-w-0 min-h-0 flex flex-col bg-[#0B0F17] overflow-hidden">
                             <div
-                                style={!isFullscreen ? { top: `${toolbarHeight}px` } : undefined}
-                                className={`${!isFullscreen ? "sticky" : ""
-                                    } z-20 px-3 sm:px-4 py-1.5 bg-[#0F131C]/95 backdrop-blur-sm border-b border-[#1E293B] text-[10px] font-mono text-zinc-500 uppercase tracking-wider flex items-center justify-between shadow-sm shrink-0`}
+                                className="z-20 px-3 sm:px-4 py-1.5 bg-[#0F131C]/95 backdrop-blur-sm border-b border-[#1E293B] text-[10px] font-mono text-zinc-500 uppercase tracking-wider flex items-center justify-between shadow-sm shrink-0"
                             >
-                                <span className="flex items-center gap-1.5">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                                    <span>CODE EDITOR // MARKDOWN</span>
+                                <span className="flex items-center gap-1.5 min-w-0">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0" />
+                                    <span className="truncate">CODE EDITOR // MARKDOWN</span>
                                 </span>
-                                <span className="text-zinc-500 text-[9px]">Ln 1 - {lines.length}</span>
+                                <span className="text-zinc-500 text-[9px] shrink-0 ml-2">Ln 1 - {lines.length}</span>
                             </div>
-                            <div className={`flex-1 min-h-0 flex ${isFullscreen ? "h-full overflow-hidden" : "min-h-[360px] sm:min-h-[540px]"}`}>
+                            <div className="flex-1 min-h-0 flex overflow-hidden">
                                 {showLineNumbers && (
                                     <div
                                         ref={editorGutterRef}
-                                        className={`w-9 sm:w-12 bg-[#0B0F17] border-r border-[#1E293B] text-zinc-600 select-none py-3 sm:py-4 text-right pr-1.5 sm:pr-3 shrink-0 font-mono ${fontSizeClass} ${isFullscreen ? "overflow-hidden" : ""
-                                            }`}
+                                        className={`w-9 sm:w-12 bg-[#0B0F17] border-r border-[#1E293B] text-zinc-600 select-none py-2.5 sm:py-3.5 text-right pr-1.5 sm:pr-3 shrink-0 font-mono overflow-hidden ${fontSizeClass}`}
                                     >
                                         {lines.map((_, i) => (
                                             <div key={i}>{String(i + 1).padStart(2, "0")}</div>
@@ -1129,35 +1219,30 @@ export default function IdeMarkdownEditor({
                                     onScroll={handleEditorScroll}
                                     onChange={(e) => {
                                         onChange(e.target.value);
-                                        if (!isFullscreen) adjustTextareaHeight();
                                     }}
                                     placeholder={placeholder}
-                                    className={`flex-1 bg-[#0B0F17] text-zinc-200 p-2.5 sm:p-4 font-mono ${fontSizeClass} ${wrapClass} focus:outline-none resize-none ${isFullscreen ? "h-full overflow-y-auto" : "overflow-hidden"
-                                        }`}
+                                    className={`flex-1 bg-[#0B0F17] text-zinc-200 p-2.5 sm:p-4 font-mono ${fontSizeClass} ${wrapClass} focus:outline-none resize-none h-full overflow-y-auto`}
                                     spellCheck={false}
                                 />
                             </div>
                         </div>
 
-                        {/* Right: Live Preview */}
-                        <div className="flex-1 min-h-0 flex flex-col min-w-0 bg-[#0F131C] h-full">
+                        {/* Right / Bottom: Live Preview */}
+                        <div className="flex-1 min-w-0 min-h-0 flex flex-col bg-[#0F131C] overflow-hidden">
                             <div
-                                style={!isFullscreen ? { top: `${toolbarHeight}px` } : undefined}
-                                className={`${!isFullscreen ? "sticky" : ""
-                                    } z-20 px-3 sm:px-4 py-1.5 bg-[#0F131C]/95 backdrop-blur-sm border-b border-[#1E293B] text-[10px] font-mono text-zinc-500 uppercase tracking-wider flex items-center justify-between shadow-sm shrink-0`}
+                                className="z-20 px-3 sm:px-4 py-1.5 bg-[#0F131C]/95 backdrop-blur-sm border-b border-[#1E293B] text-[10px] font-mono text-zinc-500 uppercase tracking-wider flex items-center justify-between shadow-sm shrink-0"
                             >
-                                <span className="flex items-center gap-1.5">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                                    <span>COMPILED PREVIEW // LIVE</span>
+                                <span className="flex items-center gap-1.5 min-w-0">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                                    <span className="truncate">COMPILED PREVIEW // LIVE</span>
                                 </span>
-                                <span className="text-emerald-400 font-bold text-[9px]">SYNCHRONIZED</span>
+                                <span className="text-emerald-400 font-bold text-[9px] shrink-0 ml-2">SYNCHRONIZED</span>
                             </div>
-                            <div className={`flex-1 min-h-0 flex ${isFullscreen ? "h-full overflow-hidden" : "min-h-[360px] sm:min-h-[540px]"}`}>
+                            <div className="flex-1 min-h-0 flex overflow-hidden">
                                 {showLineNumbers && (
                                     <div
                                         ref={previewGutterRef}
-                                        className={`w-9 sm:w-12 bg-[#0F131C] border-r border-[#1E293B] text-zinc-600 select-none py-3 sm:py-4 text-right pr-1.5 sm:pr-3 shrink-0 font-mono ${fontSizeClass} ${isFullscreen ? "overflow-hidden" : ""
-                                            }`}
+                                        className={`w-9 sm:w-12 bg-[#0F131C] border-r border-[#1E293B] text-zinc-600 select-none py-2.5 sm:py-3.5 text-right pr-1.5 sm:pr-3 shrink-0 font-mono overflow-hidden ${fontSizeClass}`}
                                     >
                                         {lines.map((_, i) => (
                                             <div key={i}>{String(i + 1).padStart(2, "0")}</div>
@@ -1167,8 +1252,7 @@ export default function IdeMarkdownEditor({
                                 <div
                                     ref={previewRef}
                                     onScroll={handlePreviewScroll}
-                                    className={`flex-1 p-2.5 sm:p-4 font-mono ${fontSizeClass} ${wrapClass} text-zinc-200 select-text overflow-x-auto ${isFullscreen ? "h-full overflow-y-auto" : ""
-                                        }`}
+                                    className={`flex-1 p-2.5 sm:p-4 font-mono ${fontSizeClass} ${wrapClass} text-zinc-200 select-text overflow-y-auto h-full`}
                                 >
                                     {lines.map((line, i) => (
                                         <div key={i} className="hover:bg-[#141923] rounded px-1 -mx-1">
@@ -1383,6 +1467,40 @@ export default function IdeMarkdownEditor({
                                 >
                                     {syncScroll ? "Enabled" : "Disabled"}
                                 </button>
+                            </div>
+
+                            {/* Split Orientation */}
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-white flex items-center justify-between">
+                                    <span>Split View Orientation</span>
+                                    <span className="font-mono text-[10px] text-zinc-400 capitalize">
+                                        {splitOrientation === "auto" ? `Auto (${effectiveSplitOrientation})` : splitOrientation}
+                                    </span>
+                                </label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {[
+                                        { id: "auto" as const, label: "Auto", sub: "Responsive" },
+                                        { id: "horizontal" as const, label: "Side-by-Side", sub: "Columns" },
+                                        { id: "vertical" as const, label: "Stacked", sub: "Rows" },
+                                    ].map((opt) => (
+                                        <button
+                                            key={opt.id}
+                                            type="button"
+                                            onClick={() => {
+                                                setSplitOrientation(opt.id);
+                                                if (typeof window !== "undefined") localStorage.setItem("ide_editor_split_orientation", opt.id);
+                                            }}
+                                            className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all cursor-pointer ${
+                                                splitOrientation === opt.id
+                                                    ? "bg-cyan-500/15 border-cyan-500/40 text-cyan-300 font-semibold shadow-sm"
+                                                    : "bg-[#141923] border-[#1E293B] text-zinc-400 hover:text-white hover:border-[#2E3C51]"
+                                            }`}
+                                        >
+                                            <span>{opt.label}</span>
+                                            <span className="text-[10px] font-mono opacity-60">{opt.sub}</span>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
                             {/* Keyboard Shortcuts Reference */}
