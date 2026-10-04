@@ -12,7 +12,7 @@ import {
     PanelLeftClose, PanelLeftOpen,
     ExternalLink, Link as LinkIcon, Video as VideoIcon, PlayCircle,
     FolderPlus, Sparkles, MoveUp, MoveDown, MoreVertical, Bookmark,
-    ListPlus, ArrowRight, CornerDownRight, Hash, FolderKanban
+    ListPlus, ArrowRight, CornerDownRight, Hash, FolderKanban, Minimize2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -831,6 +831,7 @@ export default function CustomNotes() {
     // Active detail view
     const [activeTopic, setActiveTopic] = useState<CustomTopic | null>(null);
     const [activeSectionId, setActiveSectionId] = useState<string>("");
+    const [isEditorFullscreen, setIsEditorFullscreen] = useState(false);
 
     // Modal
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -1537,22 +1538,67 @@ export default function CustomNotes() {
                                 {currentSection ? (
                                     <div className="w-full max-w-7xl mx-auto">
                                         {currentSection.type === "list" ? (
-                                            <div className="max-w-4xl mx-auto">
-                                                <div className="flex items-center gap-2 mb-4">
-                                                    <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
-                                                        Section
-                                                    </span>
-                                                    <span className="text-xs text-zinc-600">•</span>
-                                                    <h3 className="text-lg font-bold text-white tracking-tight">
-                                                        {currentSection.name}
-                                                    </h3>
+                                            <div className={isEditorFullscreen ? "fixed inset-0 z-[100] w-screen h-screen w-[100vw] h-[100vh] bg-[#0B0F17] flex flex-col overflow-hidden m-0 p-0" : "max-w-4xl mx-auto"}>
+                                                {isEditorFullscreen && (
+                                                    <div className="sticky top-0 z-30 flex items-center justify-between px-4 py-2.5 sm:px-8 sm:py-3 bg-[#0B0F17]/98 backdrop-blur-md border-b border-[#1E293B] shadow-[0_4px_20px_rgba(0,0,0,0.5)] flex-wrap gap-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#141923] border border-[#1E293B] text-xs font-semibold text-white">
+                                                                <Layers size={13} className="text-cyan-400" />
+                                                                <span>{currentSection.name}</span>
+                                                            </div>
+                                                            <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-wider">
+                                                                LIST
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <button
+                                                                type="button"
+                                                                onClick={handleManualSave}
+                                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-md cursor-pointer ${
+                                                                    manualSaved
+                                                                        ? "bg-emerald-400 text-zinc-950 shadow-emerald-500/25 ring-2 ring-emerald-300"
+                                                                        : "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-emerald-500/20"
+                                                                }`}
+                                                            >
+                                                                {manualSaved ? <CheckCircle2 size={13} /> : <Save size={13} />}
+                                                                <span>{manualSaved ? "Saved!" : "Save Changes"}</span>
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => openEditModal(activeTopic)}
+                                                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] border border-[#1E293B] text-zinc-300 hover:text-white text-xs font-semibold transition-all cursor-pointer"
+                                                            >
+                                                                <Edit3 size={13} />
+                                                                <span>Settings</span>
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setIsEditorFullscreen(false)}
+                                                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-xs font-semibold transition-all cursor-pointer"
+                                                            >
+                                                                <Minimize2 size={13} />
+                                                                <span>Exit Full</span>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                <div className={isEditorFullscreen ? "flex-1 overflow-y-auto p-4 sm:p-8 max-w-4xl mx-auto w-full" : ""}>
+                                                    <div className="flex items-center gap-2 mb-4">
+                                                        <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
+                                                            Section
+                                                        </span>
+                                                        <span className="text-xs text-zinc-600">•</span>
+                                                        <h3 className="text-lg font-bold text-white tracking-tight">
+                                                            {currentSection.name}
+                                                        </h3>
+                                                    </div>
+                                                    <EditableListField
+                                                        label={currentSection.name}
+                                                        items={currentSection.items || []}
+                                                        onChange={(newItems) => updateActiveSectionItems(currentSection.id, newItems)}
+                                                        placeholder="Add list entry..."
+                                                    />
                                                 </div>
-                                                <EditableListField
-                                                    label={currentSection.name}
-                                                    items={currentSection.items || []}
-                                                    onChange={(newItems) => updateActiveSectionItems(currentSection.id, newItems)}
-                                                    placeholder="Add list entry..."
-                                                />
                                             </div>
                                         ) : (
                                             <IdeMarkdownEditor
@@ -1560,6 +1606,21 @@ export default function CustomNotes() {
                                                 value={currentSection.content || ""}
                                                 onChange={(newContent) => updateActiveSectionContent(currentSection.id, newContent)}
                                                 placeholder={`Write notes for ${currentSection.name}... Formatting tools are sticky and split preview synchronizes automatically.`}
+                                                onSave={handleManualSave}
+                                                isSaved={manualSaved}
+                                                onOpenSettings={() => openEditModal(activeTopic)}
+                                                sections={activeTopic.sections.map((sec) => ({
+                                                    id: sec.id,
+                                                    label: sec.name,
+                                                    count: sec.type === "list" ? `${sec.items?.length || 0} items` : `${(sec.content || "").trim().split(/\s+/).filter(Boolean).length} words`,
+                                                    type: sec.type,
+                                                }))}
+                                                activeSectionId={currentSection.id}
+                                                onSelectSection={(secId) => {
+                                                    setActiveSectionId(secId);
+                                                }}
+                                                isFullscreen={isEditorFullscreen}
+                                                onToggleFullscreen={setIsEditorFullscreen}
                                             />
                                         )}
                                     </div>

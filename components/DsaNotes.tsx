@@ -1239,6 +1239,39 @@ function TopicDetailPanel({
         { id: "mastery" as const, label: "Mastery & Progress", icon: Target, desc: "Checklists & revision stats" },
     ];
 
+    const [fullscreenEditorKey, setFullscreenEditorKey] = useState<string | null>(null);
+
+    const dsaSections = useMemo(() => sidebarTabs.map(t => {
+        let count: string | undefined = undefined;
+        if (t.id === "notes" && draft.notes) {
+            count = `${draft.notes.split("\n").length} lines`;
+        } else if (t.id === "revision" && draft.revisionNotes) {
+            count = `${draft.revisionNotes.split("\n").length} lines`;
+        } else if (t.id === "theory") {
+            count = `${(draft.importantPoints?.length || 0) + (draft.keywords?.length || 0)} items`;
+        } else if (t.id === "code") {
+            count = `${(draft.examples?.length || 0) + (draft.patterns?.length || 0)} items`;
+        }
+        return {
+            id: t.id,
+            label: t.label,
+            count,
+        };
+    }), [draft, sidebarTabs]);
+
+    const handleSelectDsaSection = (tabId: string) => {
+        setActiveTab(tabId as any);
+        if (fullscreenEditorKey) {
+            if (tabId === "theory") setFullscreenEditorKey("theory-1");
+            else if (tabId === "algorithms") setFullscreenEditorKey("algo-1");
+            else if (tabId === "code") setFullscreenEditorKey("code-1");
+            else if (tabId === "complexities") setFullscreenEditorKey("comp-1");
+            else if (tabId === "interview") setFullscreenEditorKey("interview-1");
+            else if (tabId === "support") setFullscreenEditorKey("support-1");
+            else setFullscreenEditorKey(tabId);
+        }
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0 }}
@@ -1360,6 +1393,13 @@ function TopicDetailPanel({
                             label="Core Notes"
                             value={draft.notes || `# ARRAY\n[Resource Title](https://youtu.be/37E9ckMDdTk)\n\n## Basics of array\nArray is a data structure in which only similar elements will be stored\nFor Example:- array can store only one type of data at a time like only integer , charector , String ETC.\n[ 0 ] [ 1 ] [ 2 ] [ 3 ] [ 4 ] [ ... ] [ n ]\nstart from index 0 to n\n\n## Largest Element in a Array\nFrom A given array of Integers Find the Largest Among Them\n\`arr[] = [3, 2, 1, 5, 2]\`\n\n- Brute Force Method:-`}
                             onChange={(val) => setDraft((prev) => ({ ...prev, notes: val }))}
+                            onSave={handleSave}
+                            isSaved={saved}
+                            sections={dsaSections}
+                            activeSectionId={activeTab}
+                            onSelectSection={handleSelectDsaSection}
+                            isFullscreen={fullscreenEditorKey === "notes"}
+                            onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "notes" : null)}
                         />
                     )}
 
@@ -1368,6 +1408,13 @@ function TopicDetailPanel({
                             label="Revision Notes"
                             value={draft.revisionNotes}
                             onChange={(val) => setDraft((prev) => ({ ...prev, revisionNotes: val }))}
+                            onSave={handleSave}
+                            isSaved={saved}
+                            sections={dsaSections}
+                            activeSectionId={activeTab}
+                            onSelectSection={handleSelectDsaSection}
+                            isFullscreen={fullscreenEditorKey === "revision"}
+                            onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "revision" : null)}
                         />
                     )}
 
@@ -1382,6 +1429,13 @@ function TopicDetailPanel({
                                             ...prev,
                                             importantPoints: val.split("\n").map(s => s.trim()).filter(Boolean)
                                         }))}
+                                        onSave={handleSave}
+                                        isSaved={saved}
+                                        sections={dsaSections}
+                                        activeSectionId={activeTab}
+                                        onSelectSection={handleSelectDsaSection}
+                                        isFullscreen={fullscreenEditorKey === "theory-1"}
+                                        onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "theory-1" : null)}
                                     />
                                     <IdeMarkdownEditor
                                         label="Keywords"
@@ -1390,6 +1444,13 @@ function TopicDetailPanel({
                                             ...prev,
                                             keywords: val.split("\n").map(s => s.trim()).filter(Boolean)
                                         }))}
+                                        onSave={handleSave}
+                                        isSaved={saved}
+                                        sections={dsaSections}
+                                        activeSectionId={activeTab}
+                                        onSelectSection={handleSelectDsaSection}
+                                        isFullscreen={fullscreenEditorKey === "theory-2"}
+                                        onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "theory-2" : null)}
                                     />
                                 </>
                             )}
@@ -1402,6 +1463,13 @@ function TopicDetailPanel({
                                             ...prev,
                                             algorithms: val.split("\n").map(s => s.trim()).filter(Boolean)
                                         }))}
+                                        onSave={handleSave}
+                                        isSaved={saved}
+                                        sections={dsaSections}
+                                        activeSectionId={activeTab}
+                                        onSelectSection={handleSelectDsaSection}
+                                        isFullscreen={fullscreenEditorKey === "algo-1"}
+                                        onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "algo-1" : null)}
                                     />
                                     <IdeMarkdownEditor
                                         label="Formulas"
@@ -1410,6 +1478,13 @@ function TopicDetailPanel({
                                             ...prev,
                                             formulas: val.split("\n").map(s => s.trim()).filter(Boolean)
                                         }))}
+                                        onSave={handleSave}
+                                        isSaved={saved}
+                                        sections={dsaSections}
+                                        activeSectionId={activeTab}
+                                        onSelectSection={handleSelectDsaSection}
+                                        isFullscreen={fullscreenEditorKey === "algo-2"}
+                                        onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "algo-2" : null)}
                                     />
                                 </>
                             )}
@@ -1422,6 +1497,13 @@ function TopicDetailPanel({
                                             ...prev,
                                             examples: val.split("\n").map(s => s.trim()).filter(Boolean)
                                         }))}
+                                        onSave={handleSave}
+                                        isSaved={saved}
+                                        sections={dsaSections}
+                                        activeSectionId={activeTab}
+                                        onSelectSection={handleSelectDsaSection}
+                                        isFullscreen={fullscreenEditorKey === "code-1"}
+                                        onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "code-1" : null)}
                                     />
                                     <IdeMarkdownEditor
                                         label="Patterns"
@@ -1430,6 +1512,13 @@ function TopicDetailPanel({
                                             ...prev,
                                             patterns: val.split("\n").map(s => s.trim()).filter(Boolean)
                                         }))}
+                                        onSave={handleSave}
+                                        isSaved={saved}
+                                        sections={dsaSections}
+                                        activeSectionId={activeTab}
+                                        onSelectSection={handleSelectDsaSection}
+                                        isFullscreen={fullscreenEditorKey === "code-2"}
+                                        onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "code-2" : null)}
                                     />
                                 </>
                             )}
@@ -1442,6 +1531,13 @@ function TopicDetailPanel({
                                             ...prev,
                                             timeComplexities: val.split("\n").map(s => s.trim()).filter(Boolean)
                                         }))}
+                                        onSave={handleSave}
+                                        isSaved={saved}
+                                        sections={dsaSections}
+                                        activeSectionId={activeTab}
+                                        onSelectSection={handleSelectDsaSection}
+                                        isFullscreen={fullscreenEditorKey === "comp-1"}
+                                        onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "comp-1" : null)}
                                     />
                                     <IdeMarkdownEditor
                                         label="Space Complexities"
@@ -1450,6 +1546,13 @@ function TopicDetailPanel({
                                             ...prev,
                                             spaceComplexities: val.split("\n").map(s => s.trim()).filter(Boolean)
                                         }))}
+                                        onSave={handleSave}
+                                        isSaved={saved}
+                                        sections={dsaSections}
+                                        activeSectionId={activeTab}
+                                        onSelectSection={handleSelectDsaSection}
+                                        isFullscreen={fullscreenEditorKey === "comp-2"}
+                                        onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "comp-2" : null)}
                                     />
                                 </>
                             )}
@@ -1462,6 +1565,13 @@ function TopicDetailPanel({
                                             ...prev,
                                             commonMistakes: val.split("\n").map(s => s.trim()).filter(Boolean)
                                         }))}
+                                        onSave={handleSave}
+                                        isSaved={saved}
+                                        sections={dsaSections}
+                                        activeSectionId={activeTab}
+                                        onSelectSection={handleSelectDsaSection}
+                                        isFullscreen={fullscreenEditorKey === "interview-1"}
+                                        onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "interview-1" : null)}
                                     />
                                     <IdeMarkdownEditor
                                         label="Interview Tips"
@@ -1470,6 +1580,13 @@ function TopicDetailPanel({
                                             ...prev,
                                             interviewTips: val.split("\n").map(s => s.trim()).filter(Boolean)
                                         }))}
+                                        onSave={handleSave}
+                                        isSaved={saved}
+                                        sections={dsaSections}
+                                        activeSectionId={activeTab}
+                                        onSelectSection={handleSelectDsaSection}
+                                        isFullscreen={fullscreenEditorKey === "interview-2"}
+                                        onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "interview-2" : null)}
                                     />
                                 </>
                             )}
@@ -1482,6 +1599,13 @@ function TopicDetailPanel({
                                             ...prev,
                                             tutorQuestions: val.split("\n").map(s => s.trim()).filter(Boolean)
                                         }))}
+                                        onSave={handleSave}
+                                        isSaved={saved}
+                                        sections={dsaSections}
+                                        activeSectionId={activeTab}
+                                        onSelectSection={handleSelectDsaSection}
+                                        isFullscreen={fullscreenEditorKey === "support-1"}
+                                        onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "support-1" : null)}
                                     />
                                     <IdeMarkdownEditor
                                         label="Related Topics"
@@ -1490,6 +1614,13 @@ function TopicDetailPanel({
                                             ...prev,
                                             relatedTopics: val.split("\n").map(s => s.trim()).filter(Boolean)
                                         }))}
+                                        onSave={handleSave}
+                                        isSaved={saved}
+                                        sections={dsaSections}
+                                        activeSectionId={activeTab}
+                                        onSelectSection={handleSelectDsaSection}
+                                        isFullscreen={fullscreenEditorKey === "support-2"}
+                                        onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "support-2" : null)}
                                     />
                                 </div>
                             )}
