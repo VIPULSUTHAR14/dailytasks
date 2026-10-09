@@ -621,7 +621,7 @@ function PaginatedNotesBlock({
                                         className="w-7 h-7 flex items-center justify-center rounded-lg bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/25 hover:border-rose-500/60 transition-all"
                                         title="Red Highlight (==r:text==)"
                                     >
-                                        <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" />
+                                        <span className="w-2.5 h-2.5 rounded-full note-light-rose bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]" />
                                     </button>
                                     <div className="absolute left-full ml-2 px-2.5 py-1 bg-zinc-900 text-rose-300 text-[11px] font-medium rounded-md shadow-xl border border-rose-500/20 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
                                         Red Highlight (==r:text==)
@@ -637,7 +637,7 @@ function PaginatedNotesBlock({
                                         className="w-7 h-7 flex items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/25 hover:border-emerald-500/60 transition-all"
                                         title="Green Highlight (==g:text==)"
                                     >
-                                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                                        <span className="w-2.5 h-2.5 rounded-full note-light-mint bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
                                     </button>
                                     <div className="absolute left-full ml-2 px-2.5 py-1 bg-zinc-900 text-emerald-300 text-[11px] font-medium rounded-md shadow-xl border border-emerald-500/20 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
                                         Green Highlight (==g:text==)
@@ -653,7 +653,7 @@ function PaginatedNotesBlock({
                                         className="w-7 h-7 flex items-center justify-center rounded-lg bg-sky-500/10 border border-sky-500/30 hover:bg-sky-500/25 hover:border-sky-500/60 transition-all"
                                         title="Blue Highlight (==b:text==)"
                                     >
-                                        <span className="w-2.5 h-2.5 rounded-full bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.6)]" />
+                                        <span className="w-2.5 h-2.5 rounded-full note-light-cyan bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.6)]" />
                                     </button>
                                     <div className="absolute left-full ml-2 px-2.5 py-1 bg-zinc-900 text-sky-300 text-[11px] font-medium rounded-md shadow-xl border border-sky-500/20 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
                                         Blue Highlight (==b:text==)
@@ -669,7 +669,7 @@ function PaginatedNotesBlock({
                                         className="w-7 h-7 flex items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/25 hover:border-amber-500/60 transition-all"
                                         title="Yellow Highlight (==y:text==)"
                                     >
-                                        <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
+                                        <span className="w-2.5 h-2.5 rounded-full note-light-amber bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
                                     </button>
                                     <div className="absolute left-full ml-2 px-2.5 py-1 bg-zinc-900 text-amber-300 text-[11px] font-medium rounded-md shadow-xl border border-amber-500/20 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
                                         Yellow Highlight (==y:text==)
@@ -685,7 +685,7 @@ function PaginatedNotesBlock({
                                         className="w-7 h-7 flex items-center justify-center rounded-lg bg-purple-500/10 border border-purple-500/30 hover:bg-purple-500/25 hover:border-purple-500/60 transition-all"
                                         title="Purple Highlight (==p:text==)"
                                     >
-                                        <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
+                                        <span className="w-2.5 h-2.5 rounded-full note-light-purple bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)]" />
                                     </button>
                                     <div className="absolute left-full ml-2 px-2.5 py-1 bg-zinc-900 text-purple-300 text-[11px] font-medium rounded-md shadow-xl border border-purple-500/20 whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
                                         Purple Highlight (==p:text==)

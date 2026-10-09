@@ -156,42 +156,42 @@ function renderMarkdownLine(line: string) {
         if (lower.startsWith("==red:") || lower.startsWith("==r:")) {
             const inner = part.replace(/^==(red|r):/i, "").replace(/==$/, "");
             parts.push(
-                <mark key={index} className="bg-rose-500/25 text-rose-200 border border-rose-500/40 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm inline-block mx-0.5">
+                <mark key={index} className="note-mark note-mark-red bg-rose-500/25 text-rose-200 border border-rose-500/40 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm inline-block mx-0.5">
                     {inner}
                 </mark>
             );
         } else if (lower.startsWith("==green:") || lower.startsWith("==g:")) {
             const inner = part.replace(/^==(green|g):/i, "").replace(/==$/, "");
             parts.push(
-                <mark key={index} className="bg-emerald-500/25 text-emerald-200 border border-emerald-500/40 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm inline-block mx-0.5">
+                <mark key={index} className="note-mark note-mark-green bg-emerald-500/25 text-emerald-200 border border-emerald-500/40 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm inline-block mx-0.5">
                     {inner}
                 </mark>
             );
         } else if (lower.startsWith("==blue:") || lower.startsWith("==b:")) {
             const inner = part.replace(/^==(blue|b):/i, "").replace(/==$/, "");
             parts.push(
-                <mark key={index} className="bg-sky-500/25 text-sky-200 border border-sky-500/40 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm inline-block mx-0.5">
+                <mark key={index} className="note-mark note-mark-blue bg-sky-500/25 text-sky-200 border border-sky-500/40 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm inline-block mx-0.5">
                     {inner}
                 </mark>
             );
         } else if (lower.startsWith("==yellow:") || lower.startsWith("==y:")) {
             const inner = part.replace(/^==(yellow|y):/i, "").replace(/==$/, "");
             parts.push(
-                <mark key={index} className="bg-amber-500/25 text-amber-200 border border-amber-500/40 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm inline-block mx-0.5">
+                <mark key={index} className="note-mark note-mark-yellow bg-amber-500/25 text-amber-200 border border-amber-500/40 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm inline-block mx-0.5">
                     {inner}
                 </mark>
             );
         } else if (lower.startsWith("==purple:") || lower.startsWith("==p:")) {
             const inner = part.replace(/^==(purple|p):/i, "").replace(/==$/, "");
             parts.push(
-                <mark key={index} className="bg-purple-500/25 text-purple-200 border border-purple-500/40 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm inline-block mx-0.5">
+                <mark key={index} className="note-mark note-mark-purple bg-purple-500/25 text-purple-200 border border-purple-500/40 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm inline-block mx-0.5">
                     {inner}
                 </mark>
             );
         } else if (part.startsWith("==") && part.endsWith("==") && part.length > 4) {
             const inner = part.slice(2, -2);
             parts.push(
-                <mark key={index} className="bg-amber-500/25 text-amber-200 border border-amber-500/40 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm inline-block mx-0.5">
+                <mark key={index} className="note-mark note-mark-yellow bg-amber-500/25 text-amber-200 border border-amber-500/40 px-1.5 py-0.5 rounded text-xs font-semibold shadow-sm inline-block mx-0.5">
                     {inner}
                 </mark>
             );

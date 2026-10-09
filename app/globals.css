@@ -267,7 +267,7 @@ body {
   border-color: #27272a !important;
 }
 
-[data-theme="mono-dark"] mark {
+[data-theme="mono-dark"] mark:not(.note-mark):not([class*="bg-"]) {
   background-color: #222222 !important;
   color: #ffffff !important;
   border-color: #444444 !important;
@@ -692,7 +692,7 @@ body {
   border-color: #cbd5e1 !important;
 }
 
-[data-theme="mono-light"] mark {
+[data-theme="mono-light"] mark:not(.note-mark):not([class*="bg-"]) {
   background-color: #fef08a !important;
   color: #713f12 !important;
   border-color: #facc15 !important;
@@ -1110,7 +1110,7 @@ body {
   border-color: #2a3055 !important;
 }
 
-[data-theme="midnight-violet"] mark {
+[data-theme="midnight-violet"] mark:not(.note-mark):not([class*="bg-"]) {
   background-color: rgba(139, 92, 246, 0.28) !important;
   color: #f5f3ff !important;
   border-color: rgba(139, 92, 246, 0.5) !important;
@@ -1356,7 +1356,7 @@ body {
   border-color: #1e4a3a !important;
 }
 
-[data-theme="emerald-forest"] mark {
+[data-theme="emerald-forest"] mark:not(.note-mark):not([class*="bg-"]) {
   background-color: rgba(16, 185, 129, 0.28) !important;
   color: #ecfdf5 !important;
   border-color: rgba(16, 185, 129, 0.5) !important;
@@ -1588,7 +1588,7 @@ body {
   border-color: #473a33 !important;
 }
 
-[data-theme="solar-flare"] mark {
+[data-theme="solar-flare"] mark:not(.note-mark):not([class*="bg-"]) {
   background-color: rgba(255, 122, 0, 0.28) !important;
   color: #fff5ee !important;
   border-color: rgba(255, 122, 0, 0.5) !important;
@@ -1908,7 +1908,7 @@ body {
   border-color: #dcd6cc !important;
 }
 
-[data-theme="paper-sand"] mark {
+[data-theme="paper-sand"] mark:not(.note-mark):not([class*="bg-"]) {
   background-color: rgba(217, 93, 57, 0.22) !important;
   color: #1e1b18 !important;
   border-color: rgba(217, 93, 57, 0.45) !important;
@@ -2226,7 +2226,7 @@ body {
   border-color: #4c566a !important;
 }
 
-[data-theme="nordic-frost"] mark {
+[data-theme="nordic-frost"] mark:not(.note-mark):not([class*="bg-"]) {
   background-color: rgba(136, 192, 208, 0.28) !important;
   color: #eceff4 !important;
   border-color: rgba(136, 192, 208, 0.5) !important;
@@ -2538,7 +2538,7 @@ body {
   border-color: #593a9f !important;
 }
 
-[data-theme="synthwave"] mark {
+[data-theme="synthwave"] mark:not(.note-mark):not([class*="bg-"]) {
   background-color: rgba(255, 42, 133, 0.3) !important;
   color: #fdf2f8 !important;
   border-color: rgba(255, 42, 133, 0.55) !important;
@@ -2850,7 +2850,7 @@ body {
   border-color: #574a44 !important;
 }
 
-[data-theme="coffee-espresso"] mark {
+[data-theme="coffee-espresso"] mark:not(.note-mark):not([class*="bg-"]) {
   background-color: rgba(226, 177, 121, 0.28) !important;
   color: #f5ece5 !important;
   border-color: rgba(226, 177, 121, 0.5) !important;
@@ -3182,7 +3182,7 @@ body {
   border-color: rgba(255, 225, 240, 0.14) !important;
 }
 
-[data-theme="liquid-glass"] mark {
+[data-theme="liquid-glass"] mark:not(.note-mark):not([class*="bg-"]) {
   background-color: rgba(251, 113, 133, 0.28) !important;
   color: #ffffff !important;
   border-color: rgba(251, 113, 133, 0.55) !important;
@@ -3297,6 +3297,159 @@ body {
   background-color: rgba(255, 255, 255, 0.06) !important;
   border-color: rgba(255, 225, 240, 0.12) !important;
   color: #b8a3be !important;
+}
+
+/* ============================================================
+   PROTECTED NOTE LIGHTS & HIGHLIGHTS
+   These semantic highlight colors and indicator lights remain 
+   constant and consistent across EVERY theme.
+   ============================================================ */
+/* Default highlight styling */
+mark.note-mark,
+mark[class*="note-mark-"] {
+  border-style: solid !important;
+  border-width: 1px !important;
+  display: inline-block !important;
+}
+
+/* Red / Rose highlight: ==r:text== or ==red:text== */
+mark.note-mark-red,
+mark[class*="bg-rose-500"],
+mark[class*="text-rose-200"],
+mark[class*="text-rose-300"] {
+  background-color: rgba(244, 63, 94, 0.24) !important;
+  color: #fecdd3 !important;
+  border-color: rgba(244, 63, 94, 0.45) !important;
+}
+
+/* Green / Mint highlight: ==g:text== or ==green:text== */
+mark.note-mark-green,
+mark[class*="bg-emerald-500"],
+mark[class*="text-emerald-200"],
+mark[class*="text-emerald-300"] {
+  background-color: rgba(16, 185, 129, 0.24) !important;
+  color: #a7f3d0 !important;
+  border-color: rgba(16, 185, 129, 0.45) !important;
+}
+
+/* Blue / Sky / Cyan highlight: ==b:text== or ==blue:text== */
+mark.note-mark-blue,
+mark[class*="bg-sky-500"],
+mark[class*="bg-cyan-500/20"],
+mark[class*="text-sky-200"],
+mark[class*="text-cyan-300"] {
+  background-color: rgba(14, 165, 233, 0.24) !important;
+  color: #bae6fd !important;
+  border-color: rgba(14, 165, 233, 0.45) !important;
+}
+
+/* Yellow / Amber highlight: ==y:text== or ==yellow:text== or ==text== */
+mark.note-mark-yellow,
+mark[class*="bg-amber-500"],
+mark[class*="text-amber-200"],
+mark[class*="text-amber-300"] {
+  background-color: rgba(245, 158, 11, 0.24) !important;
+  color: #fde68a !important;
+  border-color: rgba(245, 158, 11, 0.45) !important;
+}
+
+/* Purple highlight: ==p:text== or ==purple:text== */
+mark.note-mark-purple,
+mark[class*="bg-purple-500"],
+mark[class*="text-purple-200"],
+mark[class*="text-purple-300"] {
+  background-color: rgba(168, 85, 247, 0.24) !important;
+  color: #e9d5ff !important;
+  border-color: rgba(168, 85, 247, 0.45) !important;
+}
+
+/* High-contrast readable adjustments specifically for light themes */
+[data-theme="mono-light"] mark.note-mark-red,
+[data-theme="paper-sand"] mark.note-mark-red,
+[data-theme="mono-light"] mark[class*="bg-rose-500"],
+[data-theme="paper-sand"] mark[class*="bg-rose-500"] {
+  background-color: rgba(225, 29, 72, 0.16) !important;
+  color: #9f1239 !important;
+  border-color: rgba(225, 29, 72, 0.45) !important;
+}
+
+[data-theme="mono-light"] mark.note-mark-green,
+[data-theme="paper-sand"] mark.note-mark-green,
+[data-theme="mono-light"] mark[class*="bg-emerald-500"],
+[data-theme="paper-sand"] mark[class*="bg-emerald-500"] {
+  background-color: rgba(16, 185, 129, 0.16) !important;
+  color: #065f46 !important;
+  border-color: rgba(16, 185, 129, 0.45) !important;
+}
+
+[data-theme="mono-light"] mark.note-mark-blue,
+[data-theme="paper-sand"] mark.note-mark-blue,
+[data-theme="mono-light"] mark[class*="bg-sky-500"],
+[data-theme="paper-sand"] mark[class*="bg-sky-500"] {
+  background-color: rgba(14, 165, 233, 0.16) !important;
+  color: #075985 !important;
+  border-color: rgba(14, 165, 233, 0.45) !important;
+}
+
+[data-theme="mono-light"] mark.note-mark-yellow,
+[data-theme="paper-sand"] mark.note-mark-yellow,
+[data-theme="mono-light"] mark[class*="bg-amber-500"],
+[data-theme="paper-sand"] mark[class*="bg-amber-500"] {
+  background-color: rgba(245, 158, 11, 0.18) !important;
+  color: #92400e !important;
+  border-color: rgba(245, 158, 11, 0.45) !important;
+}
+
+[data-theme="mono-light"] mark.note-mark-purple,
+[data-theme="paper-sand"] mark.note-mark-purple,
+[data-theme="mono-light"] mark[class*="bg-purple-500"],
+[data-theme="paper-sand"] mark[class*="bg-purple-500"] {
+  background-color: rgba(168, 85, 247, 0.16) !important;
+  color: #6b21a8 !important;
+  border-color: rgba(168, 85, 247, 0.45) !important;
+}
+
+/* Toolbar light indicator dots across all note interfaces */
+.note-light-mint,
+button.note-light-mint,
+span.note-light-mint {
+  background-color: #10b981 !important;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6) !important;
+}
+
+.note-light-rose,
+button.note-light-rose,
+span.note-light-rose {
+  background-color: #f43f5e !important;
+  box-shadow: 0 0 8px rgba(244, 63, 94, 0.6) !important;
+}
+
+.note-light-cyan,
+button.note-light-cyan,
+span.note-light-cyan {
+  background-color: #06b6d4 !important;
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.6) !important;
+}
+
+.note-light-amber,
+button.note-light-amber,
+span.note-light-amber {
+  background-color: #f59e0b !important;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.6) !important;
+}
+
+.note-light-purple,
+button.note-light-purple,
+span.note-light-purple {
+  background-color: #a855f7 !important;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.6) !important;
+}
+
+.note-light-yellow,
+button.note-light-yellow,
+span.note-light-yellow {
+  background-color: #eab308 !important;
+  box-shadow: 0 0 8px rgba(234, 179, 8, 0.6) !important;
 }
 
 

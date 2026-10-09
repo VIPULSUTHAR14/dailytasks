@@ -52,42 +52,42 @@ function renderInlineSpans(content: string, depth = 0): ReactNode[] {
         if (lower.startsWith("==red:") || lower.startsWith("==r:")) {
             const inner = part.replace(/^==(red|r):/i, "").replace(/==$/, "");
             parts.push(
-                <mark key={`${depth}-${index}`} className="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
+                <mark key={`${depth}-${index}`} className="note-mark note-mark-red bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
                     {renderInlineSpans(inner, depth + 1)}
                 </mark>
             );
         } else if (lower.startsWith("==green:") || lower.startsWith("==g:")) {
             const inner = part.replace(/^==(green|g):/i, "").replace(/==$/, "");
             parts.push(
-                <mark key={`${depth}-${index}`} className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
+                <mark key={`${depth}-${index}`} className="note-mark note-mark-green bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
                     {renderInlineSpans(inner, depth + 1)}
                 </mark>
             );
         } else if (lower.startsWith("==blue:") || lower.startsWith("==b:") || lower.startsWith("==cyan:") || lower.startsWith("==c:")) {
             const inner = part.replace(/^==(blue|b|cyan|c):/i, "").replace(/==$/, "");
             parts.push(
-                <mark key={`${depth}-${index}`} className="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
+                <mark key={`${depth}-${index}`} className="note-mark note-mark-blue bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
                     {renderInlineSpans(inner, depth + 1)}
                 </mark>
             );
         } else if (lower.startsWith("==yellow:") || lower.startsWith("==y:") || lower.startsWith("==amber:")) {
             const inner = part.replace(/^==(yellow|y|amber):/i, "").replace(/==$/, "");
             parts.push(
-                <mark key={`${depth}-${index}`} className="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
+                <mark key={`${depth}-${index}`} className="note-mark note-mark-yellow bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
                     {renderInlineSpans(inner, depth + 1)}
                 </mark>
             );
         } else if (lower.startsWith("==purple:") || lower.startsWith("==p:")) {
             const inner = part.replace(/^==(purple|p):/i, "").replace(/==$/, "");
             parts.push(
-                <mark key={`${depth}-${index}`} className="bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
+                <mark key={`${depth}-${index}`} className="note-mark note-mark-purple bg-purple-500/20 text-purple-300 border border-purple-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
                     {renderInlineSpans(inner, depth + 1)}
                 </mark>
             );
         } else if (part.startsWith("==") && part.endsWith("==") && part.length > 4) {
             const inner = part.slice(2, -2);
             parts.push(
-                <mark key={`${depth}-${index}`} className="bg-amber-500/20 text-amber-200 border border-amber-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
+                <mark key={`${depth}-${index}`} className="note-mark note-mark-yellow bg-amber-500/20 text-amber-200 border border-amber-500/30 px-1 py-0.2 rounded font-mono text-xs mx-0.5">
                     {renderInlineSpans(inner, depth + 1)}
                 </mark>
             );
@@ -1462,42 +1462,48 @@ export default function IdeMarkdownEditor({
                                 type="button"
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => insertSyntax("t-mint")}
-                                className="w-3.5 h-3.5 rounded-full bg-emerald-400 hover:scale-125 transition-transform shrink-0 cursor-pointer shadow-sm shadow-emerald-500/20"
+                                className="w-3.5 h-3.5 rounded-full note-light-mint hover:scale-125 transition-transform shrink-0 cursor-pointer shadow-sm shadow-emerald-500/20"
+                                style={{ backgroundColor: "#10b981" }}
                                 title="Green / Optimal (==g:text==)"
                             />
                             <button
                                 type="button"
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => insertSyntax("t-rose")}
-                                className="w-3.5 h-3.5 rounded-full bg-rose-400 hover:scale-125 transition-transform shrink-0 cursor-pointer shadow-sm shadow-rose-500/20"
+                                className="w-3.5 h-3.5 rounded-full note-light-rose hover:scale-125 transition-transform shrink-0 cursor-pointer shadow-sm shadow-rose-500/20"
+                                style={{ backgroundColor: "#f43f5e" }}
                                 title="Rose / Warning (==r:text==)"
                             />
                             <button
                                 type="button"
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => insertSyntax("t-cyan")}
-                                className="w-3.5 h-3.5 rounded-full bg-cyan-400 hover:scale-125 transition-transform shrink-0 cursor-pointer shadow-sm shadow-cyan-500/20"
+                                className="w-3.5 h-3.5 rounded-full note-light-cyan hover:scale-125 transition-transform shrink-0 cursor-pointer shadow-sm shadow-cyan-500/20"
+                                style={{ backgroundColor: "#06b6d4" }}
                                 title="Cyan / Complexity (==b:text==)"
                             />
                             <button
                                 type="button"
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => insertSyntax("t-amber")}
-                                className="w-3.5 h-3.5 rounded-full bg-amber-400 hover:scale-125 transition-transform shrink-0 cursor-pointer shadow-sm shadow-amber-500/20"
+                                className="w-3.5 h-3.5 rounded-full note-light-amber hover:scale-125 transition-transform shrink-0 cursor-pointer shadow-sm shadow-amber-500/20"
+                                style={{ backgroundColor: "#f59e0b" }}
                                 title="Amber / Key Term (==y:text==)"
                             />
                             <button
                                 type="button"
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => insertSyntax("t-purple")}
-                                className="w-3.5 h-3.5 rounded-full bg-purple-400 hover:scale-125 transition-transform shrink-0 cursor-pointer shadow-sm shadow-purple-500/20"
+                                className="w-3.5 h-3.5 rounded-full note-light-purple hover:scale-125 transition-transform shrink-0 cursor-pointer shadow-sm shadow-purple-500/20"
+                                style={{ backgroundColor: "#a855f7" }}
                                 title="Purple / Note (==p:text==)"
                             />
                             <button
                                 type="button"
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => insertSyntax("t-default")}
-                                className="w-3.5 h-3.5 rounded-full bg-yellow-300 hover:scale-125 transition-transform shrink-0 cursor-pointer shadow-sm shadow-yellow-500/20"
+                                className="w-3.5 h-3.5 rounded-full note-light-yellow hover:scale-125 transition-transform shrink-0 cursor-pointer shadow-sm shadow-yellow-500/20"
+                                style={{ backgroundColor: "#eab308" }}
                                 title="Yellow / Highlight (==text==)"
                             />
                         </div>
