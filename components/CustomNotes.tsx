@@ -208,7 +208,7 @@ function renderMarkdownLine(line: string) {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-medium transition-all mx-0.5 no-underline align-baseline cursor-pointer ${isVideo
+                        className={`note-link inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-xs font-medium transition-all mx-0.5 no-underline align-baseline cursor-pointer ${isVideo
                             ? "bg-rose-500/15 text-rose-300 border border-rose-500/30 hover:bg-rose-500/25 hover:text-rose-100 hover:border-rose-500/60 shadow-sm"
                             : "bg-sky-500/15 text-sky-300 border border-sky-500/30 hover:bg-sky-500/25 hover:text-sky-100 hover:border-sky-500/60 shadow-sm"
                             }`}
@@ -231,7 +231,7 @@ function renderMarkdownLine(line: string) {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs transition-all mx-0.5 no-underline align-baseline cursor-pointer ${isVideo
+                    className={`note-link inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs transition-all mx-0.5 no-underline align-baseline cursor-pointer ${isVideo
                         ? "bg-rose-500/15 text-rose-300 border border-rose-500/30 hover:bg-rose-500/25 hover:text-rose-100"
                         : "bg-sky-500/15 text-sky-300 border border-sky-500/30 hover:bg-sky-500/25 hover:text-sky-100"
                         }`}
@@ -1345,7 +1345,7 @@ export default function CustomNotes() {
                             className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#0B0F17]"
                         >
                             {/* Top IDE Header */}
-                            <header className="shrink-0 px-3.5 py-2.5 sm:px-6 sm:py-3.5 border-b border-[#1E293B] bg-gradient-to-r from-[#10141E] via-[#0D121D] to-[#10141E]">
+                            <header className="shrink-0 px-3.5 py-2.5 sm:px-6 sm:py-3.5 border-b border-[#1E293B] bg-[#10141E]">
                                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                                     <div className="flex-1 min-w-0">
                                         {/* Breadcrumb row */}

@@ -102,7 +102,7 @@ function renderInlineSpans(content: string, depth = 0): ReactNode[] {
                     <span key={`${depth}-${index}`} className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-mono my-0.5 align-baseline">
                         <ImageIcon size={12} className="text-purple-400 shrink-0" />
                         <span className="font-semibold">{alt || "Image"}</span>
-                        <a href={url} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 underline text-[10px] ml-1 inline-flex items-center gap-0.5">
+                        <a href={url} target="_blank" rel="noopener noreferrer" className="note-link text-cyan-400 hover:text-cyan-300 underline text-[10px] ml-1 inline-flex items-center gap-0.5">
                             <span>Open</span>
                             <ExternalLink size={9} />
                         </a>
@@ -125,7 +125,7 @@ function renderInlineSpans(content: string, depth = 0): ReactNode[] {
                         href={linkUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-mono mx-0.5 transition-colors no-underline align-baseline cursor-pointer ${
+                        className={`note-link inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-mono mx-0.5 transition-colors no-underline align-baseline cursor-pointer ${
                             isVideo
                                 ? "bg-rose-500/10 text-rose-300 border border-rose-500/30 hover:bg-rose-500/20"
                                 : "bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/20"
@@ -149,7 +149,7 @@ function renderInlineSpans(content: string, depth = 0): ReactNode[] {
                     href={part}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-cyan-400 hover:text-cyan-300 underline font-mono text-xs mx-0.5"
+                    className="note-link inline-flex items-center gap-1 text-cyan-400 hover:text-cyan-300 underline font-mono text-xs mx-0.5"
                 >
                     {isVideo ? <PlayCircle size={12} className="text-rose-400 shrink-0" /> : <LinkIcon size={12} className="shrink-0" />}
                     <span>{part.length > 35 ? part.substring(0, 32) + "..." : part}</span>
@@ -1019,7 +1019,7 @@ export default function IdeMarkdownEditor({
                                 <button
                                     type="button"
                                     onClick={() => setIsSectionsOpen(prev => !prev)}
-                                    className="flex items-center gap-1.5 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] border border-[#1E293B] hover:border-cyan-500/40 text-xs font-semibold text-white transition-all shadow-sm cursor-pointer max-w-[150px] sm:max-w-[240px]"
+                                    className="editor-section-trigger flex items-center gap-1.5 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] border border-[#1E293B] hover:border-cyan-500/40 text-xs font-semibold text-white transition-all shadow-sm cursor-pointer max-w-[150px] sm:max-w-[240px]"
                                     title={`Section: ${activeSectionObj?.label || label} (Click to switch)`}
                                 >
                                     <Layers size={13} className="text-cyan-400 shrink-0" />
@@ -1030,13 +1030,13 @@ export default function IdeMarkdownEditor({
                                 </button>
 
                                 {isSectionsOpen && (
-                                    <div className="absolute top-full left-0 mt-1.5 w-72 sm:w-84 max-w-[calc(100vw-2rem)] max-h-[420px] overflow-y-auto bg-[#0E131E]/98 backdrop-blur-xl border border-[#1E293B] rounded-xl shadow-2xl z-50 p-2 font-mono text-xs divide-y divide-[#1E293B]/70">
+                                    <div className="editor-section-menu absolute top-full left-0 mt-1.5 w-72 sm:w-84 max-w-[calc(100vw-2rem)] max-h-[420px] overflow-y-auto bg-[#10141E] backdrop-blur-xl border border-[#1E293B] rounded-xl shadow-2xl z-50 p-2 font-mono text-xs divide-y divide-[#1E293B]/70">
                                         {/* Topic Sections */}
                                         {sections && sections.length > 0 && (
                                             <div className="pb-2 space-y-1">
                                                 <div className="px-2 py-1 text-[10px] font-bold text-zinc-400 uppercase tracking-wider flex items-center justify-between">
                                                     <span>Sections ({sections.length})</span>
-                                                    <span className="text-cyan-400 font-semibold text-[9px] bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">
+                                                    <span className="editor-section-badge-switch text-cyan-400 font-semibold text-[9px] bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">
                                                         Switch
                                                     </span>
                                                 </div>
@@ -1050,14 +1050,14 @@ export default function IdeMarkdownEditor({
                                                                 if (onSelectSection) onSelectSection(sec.id);
                                                                 setIsSectionsOpen(false);
                                                             }}
-                                                            className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-left text-xs transition-colors cursor-pointer ${
+                                                            className={`editor-section-item w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-left text-xs transition-colors cursor-pointer ${
                                                                 isActive
-                                                                    ? "bg-cyan-500/15 text-cyan-300 font-semibold border border-cyan-500/30"
+                                                                    ? "editor-section-item-active bg-cyan-500/15 text-cyan-300 font-semibold border border-cyan-500/30"
                                                                     : "text-zinc-300 hover:bg-[#181F2E] hover:text-white"
                                                             }`}
                                                         >
                                                             <div className="flex items-center gap-2 min-w-0">
-                                                                <span className={`w-5 h-5 rounded flex items-center justify-center font-mono text-[10px] shrink-0 ${
+                                                                <span className={`editor-section-num w-5 h-5 rounded flex items-center justify-center font-mono text-[10px] shrink-0 ${
                                                                     isActive ? "bg-cyan-400 text-zinc-950 font-bold" : "bg-[#1E293B] text-zinc-400"
                                                                 }`}>
                                                                     {String(i + 1).padStart(2, "0")}
@@ -1066,7 +1066,7 @@ export default function IdeMarkdownEditor({
                                                             </div>
                                                             <div className="flex items-center gap-1.5 shrink-0">
                                                                 {sec.count && (
-                                                                    <span className="text-[10px] font-mono text-zinc-500 bg-[#141923] px-1.5 py-0.5 rounded border border-[#1E293B]">
+                                                                    <span className="editor-section-count text-[10px] font-mono text-zinc-500 bg-[#141923] px-1.5 py-0.5 rounded border border-[#1E293B]">
                                                                         {sec.count}
                                                                     </span>
                                                                 )}
@@ -1093,10 +1093,10 @@ export default function IdeMarkdownEditor({
                                                             scrollToLine(h.lineIndex);
                                                             setIsSectionsOpen(false);
                                                         }}
-                                                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left text-xs text-zinc-400 hover:text-cyan-300 hover:bg-[#181F2E] transition-colors cursor-pointer"
+                                                        className="editor-heading-item w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left text-xs text-zinc-400 hover:text-cyan-300 hover:bg-[#181F2E] transition-colors cursor-pointer"
                                                         style={{ paddingLeft: `${(h.level - 1) * 12 + 10}px` }}
                                                     >
-                                                        <span className="font-mono text-[9px] text-zinc-500 uppercase px-1 py-0.2 rounded bg-[#141923] border border-[#1E293B] shrink-0">
+                                                        <span className="editor-heading-badge font-mono text-[9px] text-zinc-500 uppercase px-1 py-0.2 rounded bg-[#141923] border border-[#1E293B] shrink-0">
                                                             H{h.level}
                                                         </span>
                                                         <span className="truncate">{h.text}</span>

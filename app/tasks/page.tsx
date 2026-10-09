@@ -1,283 +1,386 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
-    CheckCircle2, Circle, Plus, Trash2, Menu, X, Loader2,
-    Search, Pin, Edit3, Eye, Clock, Calendar, AlertTriangle,
-    SlidersHorizontal, ArrowRight, Check, Sparkles, LayoutList,
-    Kanban, Hash, Tag, ArrowUpRight
+    Check,
+    Plus,
+    Trash2,
+    Calendar,
+    ChevronLeft,
+    ChevronRight,
+    Flame,
+    TrendingUp,
+    Sparkles,
+    AlertCircle,
+    Search,
+    CheckCircle2,
+    SlidersHorizontal,
+    Activity
 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "@/components/Sidebar";
 import WorkspaceHeader from "@/components/WorkspaceHeader";
 
-type TaskPriority = "High Priority" | "Medium Priority" | "Low Priority";
+export type HabitPriority = "High" | "Medium" | "Low";
 
-type TaskMeta = {
-    priority?: TaskPriority;
-    tag?: string;
-    estDuration?: string;
-    subFocus?: string;
-    complexity?: string;
-    completedAt?: string;
-};
+export interface Habit {
+    id: string;
+    title: string;
+    priority: HabitPriority;
+    completedDates: string[]; // ISO YYYY-MM-DD
+    createdAt: string;
+}
 
-type Task = {
-    _id?: string;
-    user_id?: string;
-    created_at?: string;
-    task: {
-        title: string;
-        status: "pending" | "completed";
-        updated_at?: string;
-        meta?: TaskMeta;
-    };
-};
+const STORAGE_KEY = "algocraft_weekly_habits_v1";
 
-export default function TasksPage() {
-    const [tasks, setTasks] = useState<Task[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState<"today" | "all" | "pending" | "completed">("today");
-    const [priorityFilter, setPriorityFilter] = useState<string>("all");
-    const [searchQuery, setSearchQuery] = useState("");
-    const [viewMode, setViewMode] = useState<"list" | "board">("list");
+// Titles of legacy inbuilt demo habits to automatically purge if encountered
+const INBUILT_TITLES = new Set([
+    "Solve 2 LeetCode Mediums (Arrays / DP)",
+    "Read 1 System Design / Tech Architecture Case",
+    "CS Fundamentals & OS / Concurrency Review",
+    "Daily 30m Physical Workout / Run",
+    "Push Clean Git Commit & Code Journaling",
+]);
+
+// Helper to format date as YYYY-MM-DD
+function formatISODate(d: Date): string {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+// Generate Monday through Sunday of a reference week
+function getWeekDays(referenceDate: Date, todayDate: Date = new Date()) {
+    const d = new Date(referenceDate);
+    const day = d.getDay(); // 0 is Sun, 1 is Mon, ... 6 is Sat
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+    const monday = new Date(d);
+    monday.setDate(d.getDate() + diffToMonday);
+    monday.setHours(0, 0, 0, 0);
+
+    const todayStr = formatISODate(todayDate);
+    const shortNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const fullNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+    return Array.from({ length: 7 }, (_, i) => {
+        const cur = new Date(monday);
+        cur.setDate(monday.getDate() + i);
+        const iso = formatISODate(cur);
+
+        return {
+            name: fullNames[i],
+            shortName: shortNames[i],
+            dateStr: iso,
+            dateNum: cur.getDate(),
+            monthLabel: cur.toLocaleDateString("en-US", { month: "short" }),
+            isToday: iso === todayStr,
+        };
+    });
+}
+
+export default function WeeklyHabitTrackerPage() {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
-    const [isModalOpen, setModalOpen] = useState(false);
+    const [habits, setHabits] = useState<Habit[]>([]);
+    const [isHydrated, setIsHydrated] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isDbSynced, setIsDbSynced] = useState<boolean | null>(null);
 
-    // Form states for new task
-    const [newTaskTitle, setNewTaskTitle] = useState("");
-    const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>("High Priority");
-    const [newTaskTag, setNewTaskTag] = useState("#DSA-Arrays");
-    const [newTaskEst, setNewTaskEst] = useState("45m");
-    const [newTaskSubFocus, setNewTaskSubFocus] = useState("Sliding Window Optimization");
+    // Week navigation: 0 = current week, -1 = last week, +1 = next week
+    const [weekOffset, setWeekOffset] = useState<number>(0);
 
-    const router = useRouter();
+    // Inline form state
+    const [newTitle, setNewTitle] = useState("");
+    const [newPriority, setNewPriority] = useState<HabitPriority>("High");
+    const [inputError, setInputError] = useState("");
 
-    const fetchTasks = async () => {
-        setLoading(true);
-        try {
-            const res = await fetch(`/api/task`);
-            if (res.ok) {
-                const data = await res.json();
-                if (data.tasks && data.tasks.length > 0) {
-                    setTasks(data.tasks);
-                } else {
-                    // Seed initial realistic AlgoCraft data if user's account has empty tasks
-                    const initialAlgoTasks: Task[] = [
-                        {
-                            created_at: new Date().toISOString(),
-                            task: {
-                                title: "new task",
-                                status: "pending",
-                                meta: {
-                                    priority: "High Priority",
-                                    tag: "#DSA-Arrays",
-                                    estDuration: "Est. 45m",
-                                    subFocus: "Sliding Window Optimization"
-                                }
-                            }
-                        },
-                        {
-                            created_at: new Date(Date.now() - 3600000).toISOString(),
-                            task: {
-                                title: "Solve LC #206 Reverse Linked List (Iterative & Recursive)",
-                                status: "completed",
-                                meta: {
-                                    priority: "Medium Priority",
-                                    tag: "#LinkedList",
-                                    estDuration: "18 mins recorded",
-                                    complexity: "O(1) Memory",
-                                    completedAt: "Finished 08:30 AM"
-                                }
-                            }
-                        }
-                    ];
-                    setTasks(initialAlgoTasks);
-                }
-            } else {
-                setTasks([]);
-            }
-        } catch (e) {
-            console.error("Failed to fetch tasks", e);
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Filtering & Search
+    const [searchQuery, setSearchQuery] = useState("");
+    const [priorityFilter, setPriorityFilter] = useState<"All" | HabitPriority>("All");
 
+    // Fetch habits from MongoDB Database on mount, with graceful localStorage fallback
     useEffect(() => {
-        fetchTasks();
+        let isMounted = true;
+
+        async function initHabits() {
+            try {
+                const res = await fetch("/api/habits");
+                if (res.ok) {
+                    const data = await res.json();
+                    if (isMounted) {
+                        setIsDbSynced(true);
+                        let loadedHabits: Habit[] = Array.isArray(data.habits) ? data.habits : [];
+
+                        // Automatically purge legacy inbuilt habits if they exist in DB
+                        const legacyHabits = loadedHabits.filter(
+                            (h) => INBUILT_TITLES.has(h.title) || h.id.startsWith("habit-")
+                        );
+                        if (legacyHabits.length > 0) {
+                            for (const legacy of legacyHabits) {
+                                fetch(`/api/habits?id=${encodeURIComponent(legacy.id)}`, {
+                                    method: "DELETE",
+                                }).catch(() => {});
+                            }
+                            loadedHabits = loadedHabits.filter(
+                                (h) => !INBUILT_TITLES.has(h.title) && !h.id.startsWith("habit-")
+                            );
+                        }
+
+                        setHabits(loadedHabits);
+                        try {
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(loadedHabits));
+                        } catch {}
+                        setIsHydrated(true);
+                        setIsLoading(false);
+                        return;
+                    }
+                } else {
+                    // Unauthenticated (Guest mode)
+                    if (isMounted) setIsDbSynced(false);
+                }
+            } catch (err) {
+                console.warn("Could not connect to /api/habits, using local storage fallback", err);
+                if (isMounted) setIsDbSynced(false);
+            }
+
+            // LocalStorage fallback for guest / offline
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) {
+                        const cleanHabits = parsed.filter(
+                            (h: Habit) => !INBUILT_TITLES.has(h.title) && !h.id?.startsWith("habit-")
+                        );
+                        if (isMounted) {
+                            setHabits(cleanHabits);
+                            setIsHydrated(true);
+                            setIsLoading(false);
+                            return;
+                        }
+                    }
+                }
+            } catch {}
+
+            if (isMounted) {
+                setHabits([]);
+                setIsHydrated(true);
+                setIsLoading(false);
+            }
+        }
+
+        initHabits();
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
-    // Keyboard Shortcuts: 'N' to open modal, 'Tab' to cycle filter
+    // Persist habits to localStorage as offline mirror
     useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            const target = e.target as HTMLElement;
-            if (target && ["INPUT", "TEXTAREA"].includes(target.tagName)) return;
+        if (!isHydrated) return;
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(habits));
+        } catch (e) {
+            console.error("Failed to save habits to local storage", e);
+        }
+    }, [habits, isHydrated]);
 
-            if (e.key.toLowerCase() === "n" && !e.metaKey && !e.ctrlKey) {
-                e.preventDefault();
-                setModalOpen(true);
-            }
-            if (e.key === "Tab" && !e.metaKey && !e.ctrlKey) {
-                e.preventDefault();
-                setFilter((prev) => {
-                    if (prev === "today") return "all";
-                    if (prev === "all") return "pending";
-                    if (prev === "pending") return "completed";
-                    return "today";
-                });
+    // Live reference for current real-world time (auto-refreshes on midnight / interval / window focus)
+    const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
+
+    useEffect(() => {
+        const updateDateIfChanged = () => {
+            const now = new Date();
+            setCurrentDate((prev) => {
+                if (formatISODate(prev) !== formatISODate(now)) {
+                    return now;
+                }
+                return prev;
+            });
+        };
+
+        const interval = setInterval(updateDateIfChanged, 30000);
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === "visible") {
+                updateDateIfChanged();
             }
         };
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
+        const handleFocus = () => updateDateIfChanged();
+
+        window.addEventListener("focus", handleFocus);
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener("focus", handleFocus);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
     }, []);
 
-    const toggleStatus = async (targetTask: Task) => {
-        const newStatus = targetTask.task.status === "pending" ? "completed" : "pending";
+    // Calculate reference week date & 7-day array
+    const referenceDate = useMemo(() => {
+        const d = new Date(currentDate);
+        d.setDate(d.getDate() + weekOffset * 7);
+        return d;
+    }, [currentDate, weekOffset]);
 
-        // Optimistic UI update
-        setTasks((prev) =>
-            prev.map((t) =>
-                t.task.title === targetTask.task.title
-                    ? {
-                          ...t,
-                          task: {
-                              ...t.task,
-                              status: newStatus,
-                              meta: {
-                                  ...t.task.meta,
-                                  completedAt: newStatus === "completed" ? "Finished Just Now" : undefined,
-                              },
-                          },
-                      }
-                    : t
-            )
+    const weekDays = useMemo(() => getWeekDays(referenceDate, currentDate), [referenceDate, currentDate]);
+
+    // Range label for header (e.g. "Oct 5 – Oct 11, 2026")
+    const weekRangeLabel = useMemo(() => {
+        const first = weekDays[0];
+        const last = weekDays[6];
+        return `${first.monthLabel} ${first.dateNum} – ${last.monthLabel} ${last.dateNum}, ${referenceDate.getFullYear()}`;
+    }, [weekDays, referenceDate]);
+
+    // Dynamic Progress Formula:
+    // (Total Completed Checks This Week / (Active Habits * 7)) * 100
+    const weekStats = useMemo(() => {
+        const activeHabitsCount = habits.length;
+        if (activeHabitsCount === 0) {
+            return {
+                totalChecks: 0,
+                maxPossible: 0,
+                percentage: 0,
+            };
+        }
+
+        const weekDateSet = new Set(weekDays.map((d) => d.dateStr));
+        let totalCompletedChecks = 0;
+
+        for (const habit of habits) {
+            for (const date of habit.completedDates) {
+                if (weekDateSet.has(date)) {
+                    totalCompletedChecks += 1;
+                }
+            }
+        }
+
+        const maxPossible = activeHabitsCount * 7;
+        const percentage = Math.round((totalCompletedChecks / maxPossible) * 100);
+
+        return {
+            totalChecks: totalCompletedChecks,
+            maxPossible,
+            percentage: Math.min(100, percentage),
+        };
+    }, [habits, weekDays]);
+
+    // Toggle day checkbox for a habit (updates state immediately and syncs with MongoDB)
+    const handleToggleDay = useCallback((habitId: string, dateStr: string) => {
+        setHabits((prev) =>
+            prev.map((habit) => {
+                if (habit.id !== habitId) return habit;
+                const hasDate = habit.completedDates.includes(dateStr);
+                const updatedDates = hasDate
+                    ? habit.completedDates.filter((d) => d !== dateStr)
+                    : [...habit.completedDates, dateStr];
+                return {
+                    ...habit,
+                    completedDates: updatedDates,
+                };
+            })
         );
 
-        try {
-            await fetch(`/api/task`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    task: {
-                        title: targetTask.task.title,
-                        status: newStatus,
-                    },
-                }),
-            });
-        } catch (e) {
-            console.error("Failed to toggle task status:", e);
-            fetchTasks();
-        }
-    };
+        // Async sync to MongoDB backend
+        fetch("/api/habits", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: habitId, dateStr }),
+        }).catch((err) => {
+            console.error("Failed to sync habit toggle to database:", err);
+        });
+    }, []);
 
-    const deleteTask = async (title: string) => {
-        setTasks((prev) => prev.filter((t) => t.task.title !== title));
-        try {
-            await fetch(`/api/task?title=${encodeURIComponent(title)}`, {
-                method: "DELETE",
-            });
-        } catch (e) {
-            console.error("Failed to delete task:", e);
-            fetchTasks();
-        }
-    };
-
-    const addTask = async (e: React.FormEvent) => {
+    // Add new habit (updates state immediately and writes to MongoDB)
+    const handleAddHabit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newTaskTitle.trim()) return;
+        const trimmed = newTitle.trim();
+        if (!trimmed) {
+            setInputError("Please enter a habit title");
+            return;
+        }
 
-        const newTaskItem: Task = {
-            created_at: new Date().toISOString(),
-            task: {
-                title: newTaskTitle.trim(),
-                status: "pending",
-                meta: {
-                    priority: newTaskPriority,
-                    tag: newTaskTag.startsWith("#") ? newTaskTag : `#${newTaskTag}`,
-                    estDuration: `Est. ${newTaskEst}`,
-                    subFocus: newTaskSubFocus,
-                },
-            },
+        setInputError("");
+        const tempId = `habit-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+        const newHabit: Habit = {
+            id: tempId,
+            title: trimmed,
+            priority: newPriority,
+            completedDates: [],
+            createdAt: new Date().toISOString(),
         };
 
-        setTasks((prev) => [newTaskItem, ...prev]);
-        setModalOpen(false);
-        setNewTaskTitle("");
+        // Optimistic UI update
+        setHabits((prev) => [newHabit, ...prev]);
+        setNewTitle("");
 
+        // Persist to MongoDB
         try {
-            await fetch("/api/task", {
+            const res = await fetch("/api/habits", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    task: {
-                        title: newTaskItem.task.title,
-                        status: "pending",
-                    },
+                    title: newHabit.title,
+                    priority: newHabit.priority,
+                    completedDates: newHabit.completedDates,
                 }),
             });
-        } catch (e) {
-            console.error(e);
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.habit?.id) {
+                    setHabits((prev) =>
+                        prev.map((h) => (h.id === tempId ? { ...h, id: data.habit.id } : h))
+                    );
+                }
+            }
+        } catch (err) {
+            console.error("Failed to save habit to database:", err);
         }
     };
 
-    // Filter logic
-    const todayTasks = useMemo(() => {
-        return tasks.filter((t) => {
-            if (!t.created_at) return true;
-            return new Date(t.created_at).toDateString() === new Date().toDateString();
-        });
-    }, [tasks]);
+    // Delete habit (updates state immediately and removes from MongoDB)
+    const handleDeleteHabit = useCallback(async (id: string) => {
+        setHabits((prev) => prev.filter((h) => h.id !== id));
 
-    const completedTodayCount = useMemo(() => {
-        return todayTasks.filter((t) => t.task.status === "completed").length;
-    }, [todayTasks]);
+        // Delete from MongoDB
+        try {
+            await fetch(`/api/habits?id=${encodeURIComponent(id)}`, {
+                method: "DELETE",
+            });
+        } catch (err) {
+            console.error("Failed to delete habit from database:", err);
+        }
+    }, []);
 
-    const activeQueueCount = useMemo(() => {
-        return tasks.filter((t) => t.task.status === "pending").length;
-    }, [tasks]);
-
-    const archivedCount = useMemo(() => {
-        return tasks.filter((t) => t.task.status === "completed").length;
-    }, [tasks]);
-
-    const dailyGoalTarget = 4;
-    const dailyGoalPercent = Math.min(100, Math.round((completedTodayCount / dailyGoalTarget) * 100));
-
-    const filteredTasks = useMemo(() => {
-        return tasks.filter((t) => {
-            // Tab filter
-            if (filter === "today") {
-                if (t.created_at && new Date(t.created_at).toDateString() !== new Date().toDateString()) {
-                    return false;
-                }
-            } else if (filter === "pending" && t.task.status !== "pending") {
-                return false;
-            } else if (filter === "completed" && t.task.status !== "completed") {
+    // Filtered habits
+    const filteredHabits = useMemo(() => {
+        return habits.filter((habit) => {
+            if (priorityFilter !== "All" && habit.priority !== priorityFilter) {
                 return false;
             }
-
-            // Priority filter
-            if (priorityFilter !== "all") {
-                if (t.task.meta?.priority !== priorityFilter) return false;
-            }
-
-            // Search query
             if (searchQuery.trim()) {
                 const q = searchQuery.toLowerCase();
-                const matchTitle = t.task.title.toLowerCase().includes(q);
-                const matchTag = t.task.meta?.tag?.toLowerCase().includes(q);
-                const matchSub = t.task.meta?.subFocus?.toLowerCase().includes(q);
-                if (!matchTitle && !matchTag && !matchSub) return false;
+                return habit.title.toLowerCase().includes(q);
             }
-
             return true;
         });
-    }, [tasks, filter, priorityFilter, searchQuery]);
+    }, [habits, priorityFilter, searchQuery]);
+
+    // Priority color tokens
+    const getPriorityBadgeClass = (priority: HabitPriority) => {
+        switch (priority) {
+            case "High":
+                return "bg-rose-500/10 text-rose-400 border border-rose-500/30";
+            case "Medium":
+                return "bg-amber-500/10 text-amber-400 border border-amber-500/30";
+            case "Low":
+                return "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30";
+        }
+    };
 
     return (
-        <div className="min-h-screen bg-[#0B0F17] text-[#F1F5F9] font-sans flex flex-col md:flex-row">
+        <div className="min-h-screen bg-[#0B0F17] text-[#F1F5F9] font-sans flex flex-col md:flex-row antialiased">
             {/* Sidebar */}
             <Sidebar
                 isMobileOpen={isSidebarOpen}
@@ -286,537 +389,450 @@ export default function TasksPage() {
 
             {/* Main Area */}
             <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto">
-                {/* Top Persistent Contextual Header */}
+                {/* Workspace Header with Context & Mobile Toggle */}
                 <WorkspaceHeader
-                    newActionLabel="New Task"
-                    onNewAction={() => setModalOpen(true)}
                     onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
-                >
-                    {/* View Switcher: List vs Board */}
-                    <div className="flex items-center bg-[#10141E] border border-[#1E293B] rounded-lg p-0.5 mr-1">
-                        <button
-                            onClick={() => setViewMode("list")}
-                            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded transition-colors ${
-                                viewMode === "list"
-                                    ? "bg-[#1E293B] text-white shadow-sm"
-                                    : "text-zinc-400 hover:text-white"
-                            }`}
-                        >
-                            <LayoutList size={13} />
-                            <span>List</span>
-                        </button>
-                        <button
-                            onClick={() => setViewMode("board")}
-                            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded transition-colors ${
-                                viewMode === "board"
-                                    ? "bg-[#1E293B] text-white shadow-sm"
-                                    : "text-zinc-400 hover:text-white"
-                            }`}
-                        >
-                            <Kanban size={13} />
-                            <span>Board</span>
-                        </button>
-                    </div>
-                </WorkspaceHeader>
+                />
 
-                <main className="p-4 sm:p-6 md:p-8 pb-16 md:pb-8 max-w-7xl mx-auto w-full space-y-6 flex-1">
-                    {/* Page Header Title Section */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <main className="p-3 sm:p-5 md:p-7 pb-20 max-w-7xl mx-auto w-full space-y-5 flex-1">
+                    {/* Top View Title & Week Navigator */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1E293B] pb-4">
                         <div className="space-y-1">
                             <div className="flex items-center gap-2">
                                 <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 uppercase tracking-widest">
-                                    SPRINT PROTOCOL
+                                    WEEKLY CADENCE
                                 </span>
-                                <span className="text-xs font-mono text-zinc-500">SYS.ID: #TASK-8821</span>
+                                <span className="text-xs font-mono text-zinc-500">
+                                    MON — SUN MATRIX
+                                </span>
                             </div>
-                            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                                Task Manager View
+                            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                                Weekly Habit Tracker
                             </h1>
-                            <p className="text-xs sm:text-sm text-zinc-400">
-                                Keep track of your latest algorithmic milestones, practice sprints, and pending items.
+                            <p className="text-xs text-zinc-400">
+                                High-density execution grid. Log your daily algorithmic reps, engineering readings, and discipline.
                             </p>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => setModalOpen(true)}
-                                className="flex items-center gap-1.5 px-3.5 py-2 bg-cyan-500 hover:bg-cyan-400 text-zinc-950 text-xs font-bold rounded-lg shadow-lg shadow-cyan-500/20 transition-all cursor-pointer"
-                            >
-                                <Plus size={15} strokeWidth={2.5} />
-                                <span>+ New Task</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Operational Health Deck & Focus Area Cards Row */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        {/* Operational Health Deck (Left Card) */}
-                        <div className="bg-[#10141E] border border-[#1E293B] rounded-xl p-5 flex flex-col justify-between relative overflow-hidden shadow-lg shadow-black/40">
-                            <div>
-                                <div className="flex items-center justify-between text-xs mb-3">
-                                    <span className="text-[11px] font-bold text-zinc-400 tracking-wider uppercase">
-                                        OPERATIONAL HEALTH
-                                    </span>
-                                    <span className="flex items-center gap-1 text-[11px] font-semibold text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded">
-                                        <AlertTriangle size={12} />
-                                        Incomplete Backlog
-                                    </span>
-                                </div>
-
-                                <h3 className="text-base font-bold text-white tracking-tight">Dashboard Progress</h3>
-                                <p className="text-xs text-zinc-500 font-mono mt-0.5">
-                                    {completedTodayCount} / {todayTasks.length} COMPLETED TODAY
-                                </p>
-
-                                <div className="grid grid-cols-3 gap-3 my-4 items-center">
-                                    {/* Radial Progress Gauge */}
-                                    <div className="flex items-center gap-3">
-                                        <div className="relative w-14 h-14 flex items-center justify-center shrink-0">
-                                            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                                                <path
-                                                    className="text-zinc-800"
-                                                    strokeWidth="3.5"
-                                                    stroke="currentColor"
-                                                    fill="none"
-                                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                                />
-                                                <path
-                                                    className="text-cyan-400 transition-all duration-700"
-                                                    strokeDasharray={`${dailyGoalPercent}, 100`}
-                                                    strokeWidth="3.5"
-                                                    strokeLinecap="round"
-                                                    stroke="currentColor"
-                                                    fill="none"
-                                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                                />
-                                            </svg>
-                                            <span className="absolute text-xs font-bold font-mono text-white">
-                                                {dailyGoalPercent}%
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-bold text-white">Daily Goal</p>
-                                            <p className="text-[10px] text-zinc-400">Target: {dailyGoalTarget} Solves</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Active Queue */}
-                                    <div className="border-l border-[#1E293B] pl-3">
-                                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-1.5">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                                            ACTIVE QUEUE
-                                        </p>
-                                        <p className="text-xl font-bold font-mono text-white mt-1">{activeQueueCount}</p>
-                                        <p className="text-[10px] text-zinc-400">Awaiting triage</p>
-                                    </div>
-
-                                    {/* Completed */}
-                                    <div className="border-l border-[#1E293B] pl-3">
-                                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider flex items-center gap-1.5">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                                            COMPLETED
-                                        </p>
-                                        <p className="text-xl font-bold font-mono text-white mt-1">{archivedCount}</p>
-                                        <p className="text-[10px] text-zinc-400">Archived sprints</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Velocity Monitor */}
-                            <div className="pt-3 border-t border-[#1E293B] flex items-center justify-between text-xs">
-                                <div className="flex-1 mr-4">
-                                    <div className="flex justify-between text-[11px] mb-1">
-                                        <span className="text-zinc-400">Sprint #14 Velocity (Arrays & DP)</span>
-                                        <span className="font-mono text-cyan-400">1 item queued</span>
-                                    </div>
-                                    <div className="w-full h-1 bg-zinc-800 rounded-full overflow-hidden">
-                                        <div className="h-full bg-cyan-400 w-1/4 rounded-full" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Algorithmic Focus Area Card (Right Card) */}
-                        <div className="bg-[#10141E] border border-[#1E293B] rounded-xl p-5 flex flex-col justify-between relative shadow-lg shadow-black/40">
-                            <div>
-                                <div className="flex items-center justify-between text-xs mb-3">
-                                    <span className="text-[11px] font-bold text-zinc-400 tracking-wider uppercase">
-                                        ALGORITHMIC FOCUS AREA
-                                    </span>
-                                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
-                                        Week 4 Active
-                                    </span>
-                                </div>
-
-                                <h3 className="text-base font-bold text-white tracking-tight">
-                                    Dynamic Programming & Two Pointers
-                                </h3>
-                                <p className="text-xs text-zinc-400 leading-relaxed mt-1">
-                                    High correlation with Tier-1 engineering interview loops. Prioritize interval scheduling and matrix manipulation.
-                                </p>
-
-                                <div className="flex items-center gap-4 my-4">
-                                    <div className="flex items-center gap-2 bg-[#141923] border border-[#1E293B] px-3 py-1.5 rounded-lg text-xs">
-                                        <Clock size={13} className="text-cyan-400" />
-                                        <div>
-                                            <span className="text-zinc-500 text-[10px] block">Time Allocated</span>
-                                            <span className="font-semibold text-white">1h 45m planned</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-2 bg-[#141923] border border-[#1E293B] px-3 py-1.5 rounded-lg text-xs font-mono">
-                                        <span className="text-cyan-400 font-bold">O(N)</span>
-                                        <span className="text-zinc-300">TIME TARGET</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="pt-3 border-t border-[#1E293B] flex items-center justify-between text-xs">
-                                <span className="text-zinc-500 font-mono text-[11px]">Next Review: 18:00 UTC</span>
+                        {/* Week Switcher Controls */}
+                        <div className="flex items-center gap-2 self-start sm:self-auto">
+                            <div className="flex items-center bg-[#10141E] border border-[#1E293B] rounded-lg p-0.5 shadow-sm">
                                 <button
-                                    onClick={() => router.push("/notes")}
-                                    className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 font-medium transition-colors cursor-pointer"
+                                    onClick={() => setWeekOffset((prev) => prev - 1)}
+                                    title="Previous Week"
+                                    className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                    aria-label="Previous week"
                                 >
-                                    <span>View Study Plan</span>
-                                    <ArrowRight size={13} />
+                                    <ChevronLeft size={16} />
                                 </button>
-                            </div>
-                        </div>
-                    </div>
 
-                    {/* Filter Bar & Search */}
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
-                        {/* Status Tabs */}
-                        <div className="flex items-center gap-1 bg-[#10141E] border border-[#1E293B] rounded-lg p-1 overflow-x-auto no-scrollbar">
-                            {(
-                                [
-                                    { id: "today", label: "Today", count: todayTasks.length },
-                                    { id: "all", label: "All Tasks", count: tasks.length },
-                                    { id: "pending", label: "Pending", count: activeQueueCount },
-                                    { id: "completed", label: "Completed", count: archivedCount },
-                                ] as const
-                            ).map((tab) => (
                                 <button
-                                    key={tab.id}
-                                    onClick={() => setFilter(tab.id)}
-                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
-                                        filter === tab.id
-                                            ? "bg-[#1E293B] text-white shadow-sm"
+                                    onClick={() => setWeekOffset(0)}
+                                    className={`px-2.5 py-1 text-xs font-mono font-semibold rounded transition-colors cursor-pointer ${weekOffset === 0
+                                            ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
                                             : "text-zinc-400 hover:text-white"
-                                    }`}
-                                >
-                                    <span>{tab.label}</span>
-                                    <span
-                                        className={`px-1.5 py-0.2 rounded text-[10px] font-mono ${
-                                            filter === tab.id ? "bg-cyan-500/20 text-cyan-300" : "bg-zinc-800 text-zinc-500"
                                         }`}
-                                    >
-                                        {tab.count}
-                                    </span>
+                                >
+                                    {weekOffset === 0 ? "Current Week" : "Jump to Today"}
                                 </button>
-                            ))}
+
+                                <button
+                                    onClick={() => setWeekOffset((prev) => prev + 1)}
+                                    title="Next Week"
+                                    className="p-1.5 rounded text-zinc-400 hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                    aria-label="Next week"
+                                >
+                                    <ChevronRight size={16} />
+                                </button>
+                            </div>
+
+                            <span className="text-xs font-mono text-zinc-400 bg-[#10141E] border border-[#1E293B] px-3 py-1.5 rounded-lg hidden lg:inline-flex items-center gap-1.5">
+                                <Calendar size={13} className="text-cyan-400" />
+                                {weekRangeLabel}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Section 1: Global Dynamic Progress Card */}
+                    <div className="bg-[#10141E] border border-[#1E293B] rounded-xl p-4 sm:p-5 shadow-lg shadow-black/40 relative overflow-hidden">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            {/* Left: Summary Title & Quantitative Ratio */}
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[11px] font-bold text-zinc-400 tracking-wider uppercase flex items-center gap-1.5">
+                                        <Activity size={13} className="text-cyan-400" />
+                                        Weekly Execution Index
+                                    </span>
+                                    <span className="text-[11px] font-mono text-zinc-500">
+                                        ({weekRangeLabel})
+                                    </span>
+                                </div>
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-3xl sm:text-4xl font-extrabold font-mono tracking-tight text-white">
+                                        {weekStats.percentage}%
+                                    </span>
+                                    <span className="text-xs text-zinc-400 font-mono">
+                                        completed ({weekStats.totalChecks} / {weekStats.maxPossible} checks)
+                                    </span>
+                                </div>
+                                <p className="text-xs text-zinc-400">
+                                    Formula:{" "}
+                                    <code className="text-cyan-400/90 font-mono text-[11px] bg-cyan-950/40 px-1.5 py-0.5 rounded border border-cyan-800/30">
+                                        (Total Checks [{weekStats.totalChecks}] / ({habits.length} Habits × 7)) × 100
+                                    </code>
+                                </p>
+                            </div>
+
+                            {/* Right: Quick Micro Metrics */}
+                            <div className="grid grid-cols-3 gap-2 sm:gap-3 bg-[#0B0F17]/80 border border-[#1E293B] rounded-lg p-3 shrink-0">
+                                <div className="text-center px-2">
+                                    <span className="text-[10px] text-zinc-500 uppercase font-mono block">Habits</span>
+                                    <span className="text-base font-bold font-mono text-white">{habits.length}</span>
+                                </div>
+                                <div className="text-center px-2 border-x border-[#1E293B]">
+                                    <span className="text-[10px] text-zinc-500 uppercase font-mono block">Done</span>
+                                    <span className="text-base font-bold font-mono text-emerald-400">{weekStats.totalChecks}</span>
+                                </div>
+                                <div className="text-center px-2">
+                                    <span className="text-[10px] text-zinc-500 uppercase font-mono block">Status</span>
+                                    <span className={`text-[11px] font-bold font-mono uppercase ${weekStats.percentage >= 80
+                                            ? "text-emerald-400"
+                                            : weekStats.percentage >= 50
+                                                ? "text-cyan-400"
+                                                : "text-amber-400"
+                                        }`}>
+                                        {weekStats.percentage >= 80 ? "Superb" : weekStats.percentage >= 50 ? "Steady" : "Lagging"}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Search & Priority Dropdown */}
-                        <div className="flex items-center gap-2">
-                            <div className="relative flex-1 sm:w-64">
-                                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                        {/* Interactive Dynamic Progress Bar */}
+                        <div className="mt-4 pt-3 border-t border-[#1E293B]/80">
+                            <div className="w-full h-2.5 bg-[#0B0F17] rounded-full overflow-hidden border border-[#1E293B] p-0.5 relative">
+                                <div
+                                    className="h-full rounded-full transition-all duration-500 ease-out bg-gradient-to-r from-cyan-500 via-teal-400 to-emerald-400 shadow-[0_0_12px_rgba(6,182,212,0.5)]"
+                                    style={{ width: `${weekStats.percentage}%` }}
+                                    role="progressbar"
+                                    aria-valuenow={weekStats.percentage}
+                                    aria-valuemin={0}
+                                    aria-valuemax={100}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Section 2: Inline Creation Form & Top Toolbar */}
+                    <div className="bg-[#10141E] border border-[#1E293B] rounded-xl p-3 sm:p-4 shadow-sm">
+                        <form onSubmit={handleAddHabit} className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2.5">
+                            {/* Title Input Field */}
+                            <div className="flex-1 relative">
                                 <input
                                     type="text"
-                                    placeholder="Filter by keyword or #tag..."
+                                    value={newTitle}
+                                    onChange={(e) => {
+                                        setNewTitle(e.target.value);
+                                        if (inputError) setInputError("");
+                                    }}
+                                    placeholder="Add new weekly habit (e.g. LC Graph Traversal, 20m Mock Interview, System Architecture)..."
+                                    className={`w-full bg-[#0B0F17] border rounded-lg px-3.5 py-2 text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none transition-colors ${inputError ? "border-rose-500/80 focus:border-rose-500" : "border-[#1E293B] focus:border-cyan-500/60"
+                                        }`}
+                                />
+                                {inputError && (
+                                    <span className="absolute -bottom-4 left-1 text-[10px] text-rose-400 flex items-center gap-1">
+                                        <AlertCircle size={10} /> {inputError}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Priority Segmented Button */}
+                            <div className="flex items-center gap-1 bg-[#0B0F17] border border-[#1E293B] rounded-lg p-1 shrink-0 self-start lg:self-auto">
+                                <span className="text-[10px] uppercase font-mono text-zinc-500 px-2 select-none">
+                                    Priority:
+                                </span>
+                                {(["High", "Medium", "Low"] as HabitPriority[]).map((p) => {
+                                    const isSelected = newPriority === p;
+                                    let activeColor = "bg-rose-500/20 text-rose-300 border-rose-500/40";
+                                    if (p === "Medium") activeColor = "bg-amber-500/20 text-amber-300 border-amber-500/40";
+                                    if (p === "Low") activeColor = "bg-emerald-500/20 text-emerald-300 border-emerald-500/40";
+
+                                    return (
+                                        <button
+                                            type="button"
+                                            key={p}
+                                            onClick={() => setNewPriority(p)}
+                                            className={`px-2.5 py-1 text-xs font-semibold rounded transition-all cursor-pointer border ${isSelected
+                                                    ? `${activeColor} shadow-sm font-bold`
+                                                    : "border-transparent text-zinc-400 hover:text-white"
+                                                }`}
+                                        >
+                                            {p}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Add Button */}
+                            <button
+                                type="submit"
+                                disabled={!newTitle.trim()}
+                                className="flex items-center justify-center gap-1.5 px-4 py-2 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 disabled:hover:bg-cyan-500 text-zinc-950 text-xs font-bold rounded-lg shadow-md shadow-cyan-500/20 transition-all cursor-pointer disabled:cursor-not-allowed shrink-0"
+                            >
+                                <Plus size={15} strokeWidth={2.5} />
+                                <span>Add Habit</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    {/* Section 3: Filter Bar & Density Search */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
+                        {/* Priority Filter Tabs */}
+                        <div className="flex items-center gap-1 bg-[#10141E] border border-[#1E293B] rounded-lg p-1 overflow-x-auto no-scrollbar">
+                            {(["All", "High", "Medium", "Low"] as const).map((tab) => {
+                                const isCurrent = priorityFilter === tab;
+                                const count =
+                                    tab === "All"
+                                        ? habits.length
+                                        : habits.filter((h) => h.priority === tab).length;
+
+                                return (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setPriorityFilter(tab)}
+                                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${isCurrent
+                                                ? "bg-[#1E293B] text-white shadow-sm"
+                                                : "text-zinc-400 hover:text-white"
+                                            }`}
+                                    >
+                                        <span>{tab}</span>
+                                        <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono ${isCurrent ? "bg-cyan-500/20 text-cyan-300" : "bg-zinc-800 text-zinc-500"
+                                            }`}>
+                                            {count}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Search & Action */}
+                        <div className="flex items-center gap-2">
+                            <div className="relative flex-1 sm:w-64">
+                                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                                <input
+                                    type="text"
+                                    placeholder="Filter habit titles..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-9 pr-3 py-1.5 bg-[#10141E] border border-[#1E293B] rounded-lg text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 transition-colors"
+                                    className="w-full pl-8 pr-3 py-1.5 bg-[#10141E] border border-[#1E293B] rounded-lg text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-500/50 transition-colors"
                                 />
                             </div>
 
-                            <select
-                                value={priorityFilter}
-                                onChange={(e) => setPriorityFilter(e.target.value)}
-                                className="px-2.5 py-1.5 bg-[#10141E] border border-[#1E293B] rounded-lg text-xs text-zinc-300 focus:outline-none focus:border-cyan-500/50 cursor-pointer"
-                            >
-                                <option value="all">Priority: All</option>
-                                <option value="High Priority">High</option>
-                                <option value="Medium Priority">Medium</option>
-                                <option value="Low Priority">Low</option>
-                            </select>
                         </div>
                     </div>
 
-                    {/* Task Feed */}
-                    <div className="space-y-2 pb-16">
-                        {loading ? (
-                            <div className="flex items-center justify-center p-16 text-zinc-500">
-                                <Loader2 className="animate-spin text-cyan-400" size={24} />
-                            </div>
-                        ) : filteredTasks.length === 0 ? (
-                            <div className="text-center p-16 rounded-xl border border-dashed border-[#1E293B] bg-[#10141E]/40 text-xs text-zinc-500 space-y-2">
-                                <p className="font-medium text-zinc-400">No tasks found matching your filter criteria.</p>
-                                <p>Press &quot;N&quot; or click &quot;+ New Task&quot; to queue a milestone.</p>
-                            </div>
-                        ) : (
-                            filteredTasks.map((t) => {
-                                const isCompleted = t.task.status === "completed";
-                                const meta = t.task.meta;
-
-                                return (
-                                    <div
-                                        key={t.task.title}
-                                        className={`flex items-center justify-between p-3.5 sm:p-4 rounded-xl border transition-all duration-150 group cursor-pointer ${
-                                            isCompleted
-                                                ? "bg-[#10141E]/60 border-[#1E293B]/70 hover:border-[#1E293B]"
-                                                : "bg-[#10141E] border-[#1E293B] hover:border-cyan-500/40 hover:bg-[#141923]"
-                                        }`}
-                                        onClick={() => toggleStatus(t)}
-                                    >
-                                        <div className="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
-                                            {/* Status Circle */}
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    toggleStatus(t);
-                                                }}
-                                                className="mt-0.5 sm:mt-0 shrink-0 focus:outline-none"
-                                            >
-                                                {isCompleted ? (
-                                                    <CheckCircle2 size={18} className="text-emerald-400" />
-                                                ) : (
-                                                    <Circle size={18} className="text-zinc-600 group-hover:text-cyan-400 transition-colors" />
-                                                )}
-                                            </button>
-
-                                            {/* Title & Metadata */}
-                                            <div className="flex flex-col gap-1 min-w-0">
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    <span
-                                                        className={`text-sm font-semibold truncate ${
-                                                            isCompleted ? "text-zinc-500 line-through" : "text-white"
-                                                        }`}
-                                                    >
-                                                        {t.task.title}
-                                                    </span>
-
-                                                    {/* Priority Badge */}
-                                                    {meta?.priority && (
-                                                        <span
-                                                            className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                                                                meta.priority === "High Priority"
-                                                                    ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
-                                                                    : meta.priority === "Medium Priority"
-                                                                    ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                                                                    : "bg-zinc-800 text-zinc-400"
-                                                            }`}
-                                                        >
-                                                            {meta.priority}
-                                                        </span>
-                                                    )}
-
-                                                    {/* Tag Badge */}
-                                                    {meta?.tag && (
-                                                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
-                                                            {meta.tag}
-                                                        </span>
-                                                    )}
-
-                                                    {/* Completed Status Badge */}
-                                                    {isCompleted && (
-                                                        <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                                            Completed
-                                                        </span>
-                                                    )}
-                                                </div>
-
-                                                {/* Sub-details line */}
-                                                <div className="flex flex-wrap items-center gap-2 text-[11px] text-zinc-500 font-mono">
-                                                    {isCompleted ? (
-                                                        <>
-                                                            <span>{meta?.completedAt || "Finished 08:30 AM"}</span>
-                                                            <span>•</span>
-                                                            <span>{meta?.estDuration || "18 mins recorded"}</span>
-                                                            {meta?.complexity && (
-                                                                <>
-                                                                    <span>•</span>
-                                                                    <span className="text-cyan-400">{meta.complexity}</span>
-                                                                </>
-                                                            )}
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <span className="flex items-center gap-1">
-                                                                <Calendar size={11} className="text-zinc-400" />
-                                                                Today 10:14 AM
-                                                            </span>
-                                                            <span>•</span>
-                                                            <span>{meta?.estDuration || "Est. 45m"}</span>
-                                                            {meta?.subFocus && (
-                                                                <>
-                                                                    <span>•</span>
-                                                                    <span className="text-zinc-300">{meta.subFocus}</span>
-                                                                </>
-                                                            )}
-                                                        </>
-                                                    )}
-                                                </div>
+                    {/* Section 4: Weekly Execution Grid Matrix View */}
+                    <div className="bg-[#10141E] border border-[#1E293B] rounded-xl overflow-hidden shadow-lg shadow-black/30">
+                        {/* Table Overflow Wrapper */}
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse min-w-[760px]">
+                                <thead>
+                                    <tr className="bg-[#0D121B] border-b border-[#1E293B] text-xs font-semibold text-zinc-400 select-none">
+                                        {/* Habit Details Column */}
+                                        <th className="py-3 px-4 w-[38%] min-w-[240px]">
+                                            <div className="flex items-center gap-1.5 uppercase tracking-wider text-[11px] font-mono text-zinc-400">
+                                                <span>Active Habit</span>
+                                                <span className="text-zinc-600 font-normal">({filteredHabits.length})</span>
                                             </div>
-                                        </div>
+                                        </th>
 
-                                        {/* Row Actions */}
-                                        <div
-                                            className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-3 shrink-0"
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            <button
-                                                title="Pin Task"
-                                                className="p-1.5 text-zinc-500 hover:text-white rounded hover:bg-[#1E293B] transition-colors"
+                                        {/* 7 Days: Mon through Sun */}
+                                        {weekDays.map((day) => (
+                                            <th
+                                                key={day.dateStr}
+                                                className={`py-2 px-1 text-center w-[8%] transition-colors ${day.isToday ? "bg-cyan-500/[0.08]" : ""
+                                                    }`}
                                             >
-                                                <Pin size={13} />
-                                            </button>
-                                            <button
-                                                title="Edit Task"
-                                                className="p-1.5 text-zinc-500 hover:text-white rounded hover:bg-[#1E293B] transition-colors"
-                                            >
-                                                <Edit3 size={13} />
-                                            </button>
-                                            <button
-                                                onClick={() => deleteTask(t.task.title)}
-                                                title="Delete Task"
-                                                className="p-1.5 text-zinc-500 hover:text-rose-400 rounded hover:bg-[#1E293B] transition-colors"
-                                            >
-                                                <Trash2 size={13} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        )}
+                                                <div className="flex flex-col items-center justify-center">
+                                                    <span className={`text-[11px] font-mono ${day.isToday ? "text-cyan-400 font-bold" : "text-zinc-400"
+                                                        }`}>
+                                                        {day.shortName}
+                                                    </span>
+                                                    <span className={`text-[12px] font-mono leading-none mt-0.5 ${day.isToday
+                                                            ? "bg-cyan-500 text-zinc-950 font-bold px-1.5 py-0.5 rounded-full"
+                                                            : "text-zinc-300 font-medium"
+                                                        }`}>
+                                                        {day.dateNum}
+                                                    </span>
+                                                </div>
+                                            </th>
+                                        ))}
+
+                                        {/* Row Progress Metric */}
+                                        <th className="py-3 px-3 text-center w-[9%] uppercase tracking-wider text-[10px] font-mono text-zinc-400">
+                                            Weekly
+                                        </th>
+
+                                        {/* Delete / Archive Column */}
+                                        <th className="py-3 px-3 text-right w-[5%] uppercase tracking-wider text-[10px] font-mono text-zinc-400">
+                                            Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody className="divide-y divide-[#1E293B]/70 text-xs">
+                                    {isLoading ? (
+                                        <tr>
+                                            <td colSpan={10} className="py-16 text-center">
+                                                <div className="flex flex-col items-center justify-center space-y-2 text-zinc-500">
+                                                    <div className="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+                                                    <span className="text-xs font-mono text-zinc-400">Connecting & loading habits from database...</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : filteredHabits.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={10} className="py-14 text-center">
+                                                <div className="flex flex-col items-center justify-center space-y-3 max-w-sm mx-auto text-zinc-500">
+                                                    <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-[#1E293B] flex items-center justify-center text-zinc-400">
+                                                        <Sparkles size={18} />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <p className="text-sm font-semibold text-zinc-300">
+                                                            {habits.length === 0 ? "No active habits found" : "No habits match current filter"}
+                                                        </p>
+                                                        <p className="text-xs text-zinc-500">
+                                                            {habits.length === 0
+                                                                ? "Add your first habit using the input bar above."
+                                                                : "Try switching priority filters or clearing your search query."}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        filteredHabits.map((habit) => {
+                                            // Compute this habit's completed count for the current visible week
+                                            const completedThisWeek = weekDays.filter((d) =>
+                                                habit.completedDates.includes(d.dateStr)
+                                            ).length;
+
+                                            const habitWeekPercent = Math.round((completedThisWeek / 7) * 100);
+
+                                            return (
+                                                <tr
+                                                    key={habit.id}
+                                                    className="hover:bg-[#141923] transition-colors group"
+                                                >
+                                                    {/* Title & Priority Pill */}
+                                                    <td className="py-3 px-4">
+                                                        <div className="flex items-center gap-2.5">
+                                                            <span
+                                                                className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold shrink-0 ${getPriorityBadgeClass(
+                                                                    habit.priority
+                                                                )}`}
+                                                            >
+                                                                {habit.priority}
+                                                            </span>
+                                                            <span className="text-xs sm:text-sm font-medium text-white truncate group-hover:text-cyan-200 transition-colors">
+                                                                {habit.title}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+
+                                                    {/* 7 Interactive Checkboxes */}
+                                                    {weekDays.map((day) => {
+                                                        const isChecked = habit.completedDates.includes(day.dateStr);
+
+                                                        return (
+                                                            <td
+                                                                key={day.dateStr}
+                                                                className={`py-2 px-1 text-center align-middle transition-colors ${day.isToday ? "bg-cyan-500/[0.04]" : ""
+                                                                    }`}
+                                                            >
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleToggleDay(habit.id, day.dateStr)}
+                                                                    title={`${isChecked ? "Uncheck" : "Check"} ${habit.title} for ${day.name} (${day.dateStr})`}
+                                                                    aria-label={`${habit.title} on ${day.name} ${day.dateStr}`}
+                                                                    className={`w-7 h-7 sm:w-8 sm:h-8 mx-auto rounded-lg flex items-center justify-center transition-all duration-150 cursor-pointer ${isChecked
+                                                                            ? "bg-emerald-500 text-zinc-950 shadow-md shadow-emerald-500/20 scale-100 ring-1 ring-emerald-400"
+                                                                            : "bg-[#0B0F17] border border-[#1E293B] text-transparent hover:border-cyan-500/50 hover:text-zinc-600 hover:scale-105"
+                                                                        }`}
+                                                                >
+                                                                    <Check
+                                                                        size={15}
+                                                                        strokeWidth={3}
+                                                                        className={isChecked ? "opacity-100" : "opacity-0 hover:opacity-100"}
+                                                                    />
+                                                                </button>
+                                                            </td>
+                                                        );
+                                                    })}
+
+                                                    {/* Row Streak / Progress Ratio */}
+                                                    <td className="py-2 px-3 text-center align-middle font-mono">
+                                                        <div className="flex flex-col items-center">
+                                                            <span className={`text-xs font-bold ${completedThisWeek === 7
+                                                                    ? "text-emerald-400 flex items-center gap-0.5"
+                                                                    : completedThisWeek >= 4
+                                                                        ? "text-cyan-400"
+                                                                        : "text-zinc-400"
+                                                                }`}>
+                                                                {completedThisWeek === 7 && <Flame size={12} className="text-amber-400" />}
+                                                                {completedThisWeek}/7
+                                                            </span>
+                                                            <span className="text-[10px] text-zinc-500">
+                                                                {habitWeekPercent}%
+                                                            </span>
+                                                        </div>
+                                                    </td>
+
+                                                    {/* Direct Delete / Archive Action */}
+                                                    <td className="py-2 px-3 text-right align-middle">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleDeleteHabit(habit.id)}
+                                                            title={`Delete habit "${habit.title}"`}
+                                                            aria-label={`Delete ${habit.title}`}
+                                                            className="p-1.5 text-zinc-500 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors cursor-pointer"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </main>
 
-                {/* Fixed Footer Bar */}
+                {/* Dense Footer Bar with Quick Summary */}
                 <footer className="sticky bottom-0 bg-[#0B0F17]/95 backdrop-blur-sm border-t border-[#1E293B] px-4 md:px-6 py-2.5 flex items-center justify-between text-xs text-zinc-500 select-none">
                     <div className="flex items-center gap-2">
-                        <span className="font-mono text-cyan-400">⌘</span>
-                        <span>Press <kbd className="px-1.5 py-0.5 rounded bg-[#181C24] border border-[#1E293B] font-mono text-zinc-300 text-[10px]">N</kbd> anywhere to create a task, or <kbd className="px-1.5 py-0.5 rounded bg-[#181C24] border border-[#1E293B] font-mono text-zinc-300 text-[10px]">Tab</kbd> to cycle view.</span>
+                        <span className="font-mono text-cyan-400">⚡</span>
+                        <span>
+                            {isDbSynced === true
+                                ? "MongoDB Connected • Real-time Cloud Sync"
+                                : isDbSynced === false
+                                ? "Local Storage Mirror (Guest Mode)"
+                                : "Connecting Database..."}{" "}
+                            • {habits.length} habits monitored
+                        </span>
                     </div>
 
                     <div className="flex items-center gap-2 font-mono text-[11px]">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                        <span className="text-zinc-400">System Sync: Real-time</span>
+                        <span
+                            className={`w-2 h-2 rounded-full ${
+                                isDbSynced ? "bg-emerald-400 animate-pulse" : "bg-cyan-400"
+                            }`}
+                        />
+                        <span className="text-zinc-400">Week Velocity: {weekStats.percentage}%</span>
                     </div>
                 </footer>
             </div>
-
-            {/* Quick Creation Modal (Matches PRD Module 1) */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-150">
-                    <div className="bg-[#10141E] border border-[#1E293B] rounded-2xl p-6 w-full max-w-md shadow-2xl relative shadow-black/80">
-                        <div className="flex items-center justify-between pb-4 border-b border-[#1E293B]">
-                            <div className="flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-cyan-400" />
-                                <h3 className="text-base font-bold text-white tracking-tight">Create SDE Practice Task</h3>
-                            </div>
-                            <button
-                                onClick={() => setModalOpen(false)}
-                                className="p-1 rounded text-zinc-500 hover:text-white"
-                            >
-                                <X size={16} />
-                            </button>
-                        </div>
-
-                        <form onSubmit={addTask} className="space-y-4 pt-4">
-                            <div>
-                                <label className="text-xs font-semibold text-zinc-300 block mb-1.5">
-                                    What needs to be done?
-                                </label>
-                                <input
-                                    type="text"
-                                    value={newTaskTitle}
-                                    onChange={(e) => setNewTaskTitle(e.target.value)}
-                                    placeholder="e.g. Solve LC #15 3Sum with Two Pointers"
-                                    autoFocus
-                                    className="w-full bg-[#0B0F17] border border-[#1E293B] rounded-lg px-3 py-2.5 text-white text-xs placeholder-zinc-500 focus:outline-none focus:border-cyan-500/60 transition-colors"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="text-[11px] font-semibold text-zinc-400 block mb-1">
-                                        Priority
-                                    </label>
-                                    <select
-                                        value={newTaskPriority}
-                                        onChange={(e) => setNewTaskPriority(e.target.value as TaskPriority)}
-                                        className="w-full bg-[#0B0F17] border border-[#1E293B] rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-cyan-500/60"
-                                    >
-                                        <option value="High Priority">High Priority</option>
-                                        <option value="Medium Priority">Medium Priority</option>
-                                        <option value="Low Priority">Low Priority</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="text-[11px] font-semibold text-zinc-400 block mb-1">
-                                        Domain / Tag
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={newTaskTag}
-                                        onChange={(e) => setNewTaskTag(e.target.value)}
-                                        placeholder="#DSA-Arrays"
-                                        className="w-full bg-[#0B0F17] border border-[#1E293B] rounded-lg px-2.5 py-2 text-white text-xs font-mono focus:outline-none focus:border-cyan-500/60"
-                                    >
-                                    </input>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="text-[11px] font-semibold text-zinc-400 block mb-1">
-                                        Estimated Time
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={newTaskEst}
-                                        onChange={(e) => setNewTaskEst(e.target.value)}
-                                        placeholder="45m"
-                                        className="w-full bg-[#0B0F17] border border-[#1E293B] rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-cyan-500/60"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="text-[11px] font-semibold text-zinc-400 block mb-1">
-                                        Focus Subtopic
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={newTaskSubFocus}
-                                        onChange={(e) => setNewTaskSubFocus(e.target.value)}
-                                        placeholder="Sliding Window"
-                                        className="w-full bg-[#0B0F17] border border-[#1E293B] rounded-lg px-2.5 py-2 text-white text-xs focus:outline-none focus:border-cyan-500/60"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex gap-2 pt-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setModalOpen(false)}
-                                    className="flex-1 py-2.5 text-xs font-semibold text-zinc-400 hover:text-white bg-[#141923] border border-[#1E293B] rounded-lg transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={!newTaskTitle.trim()}
-                                    className="flex-1 py-2.5 text-xs font-bold bg-cyan-500 hover:bg-cyan-400 text-zinc-950 rounded-lg shadow-lg shadow-cyan-500/20 transition-colors disabled:opacity-50 cursor-pointer"
-                                >
-                                    Create Task
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
