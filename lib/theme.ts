@@ -8,7 +8,8 @@ export type ThemeMode =
     | "paper-sand"
     | "nordic-frost"
     | "synthwave"
-    | "coffee-espresso";
+    | "coffee-espresso"
+    | "liquid-glass";
 
 export const THEME_STORAGE_KEY = "algocraft_theme";
 
@@ -34,6 +35,17 @@ export const THEMES: ThemeOption[] = [
             card: "#10141E",
             accent: "#06B6D4",
             text: "#F1F5F9",
+        },
+    },
+    {
+        id: "liquid-glass",
+        name: "Liquid Glass",
+        description: "Frosted amethyst quartz with champagne-rose & lilac refractive light",
+        preview: {
+            bg: "#0E0B14",
+            card: "#1A1424",
+            accent: "linear-gradient(135deg, #FB7185 0%, #C084FC 100%)",
+            text: "#FDF4F8",
         },
     },
     {
@@ -151,7 +163,8 @@ export function getStoredTheme(): ThemeMode {
             stored === "paper-sand" ||
             stored === "nordic-frost" ||
             stored === "synthwave" ||
-            stored === "coffee-espresso"
+            stored === "coffee-espresso" ||
+            stored === "liquid-glass"
         ) {
             return stored;
         }

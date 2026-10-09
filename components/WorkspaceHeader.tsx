@@ -258,7 +258,7 @@ export default function WorkspaceHeader({
                           >
                             <div
                               className="w-2.5 h-2.5 rounded-full"
-                              style={{ backgroundColor: theme.preview.accent }}
+                              style={{ background: theme.preview.accent }}
                             />
                           </div>
 
