@@ -13,6 +13,7 @@ import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import Placeholder from "@tiptap/extension-placeholder";
+import Link from "@tiptap/extension-link";
 import { Markdown, type MarkdownStorage } from "tiptap-markdown";
 import { common, createLowlight } from "lowlight";
 import {
@@ -22,6 +23,8 @@ import {
 import { legacyToRich, richToStorage } from "@/lib/markdownHighlightConverter";
 import IdeMarkdownEditor from "./IdeMarkdownEditor";
 import RichTextToolbar from "./RichTextToolbar";
+import RichTextSlashMenu from "./RichTextSlashMenu";
+import RichTextFloatingToolbar from "./RichTextFloatingToolbar";
 import "./rich-editor.css";
 
 declare module "@tiptap/core" {
@@ -88,9 +91,11 @@ export default function RichTextEditor({
     const [isOutlineOpen, setIsOutlineOpen] = useState(false);
     const outlineRef = useRef<HTMLDivElement>(null);
 
-    // Debounce refs
+    // Debounce refs & saving status
     const pendingValueRef = useRef<string | null>(null);
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [stats, setStats] = useState({ words: 0, characters: 0 });
 
     // Load saved editor mode from localStorage on mount
     useEffect(() => {
@@ -113,6 +118,7 @@ export default function RichTextEditor({
             const val = pendingValueRef.current;
             pendingValueRef.current = null;
             onChange(val);
+            setIsSaving(false);
         }
     }, [onChange]);
 
@@ -187,6 +193,13 @@ export default function RichTextEditor({
                 placeholder: placeholder || "Start writing...",
                 emptyEditorClass: "is-editor-empty",
             }),
+            Link.configure({
+                openOnClick: false,
+                autolink: true,
+                HTMLAttributes: {
+                    class: "text-cyan-400 underline hover:text-cyan-300 transition-colors",
+                },
+            }),
             Markdown.configure({
                 html: true,
                 tightLists: true,
@@ -198,6 +211,14 @@ export default function RichTextEditor({
             const rawMarkdown = editor.storage.markdown?.getMarkdown() ?? "";
             const storableMarkdown = richToStorage(rawMarkdown);
             pendingValueRef.current = storableMarkdown;
+            setIsSaving(true);
+
+            // Compute words and characters
+            const text = editor.getText().trim();
+            setStats({
+                words: text ? text.split(/\s+/).length : 0,
+                characters: text.length,
+            });
 
             if (debounceTimerRef.current) {
                 clearTimeout(debounceTimerRef.current);
@@ -211,6 +232,14 @@ export default function RichTextEditor({
         editorProps: {
             attributes: {
                 class: "tiptap ProseMirror focus:outline-none min-h-[300px] w-full text-slate-200 text-sm leading-relaxed p-4",
+            },
+            transformPastedHTML: (html: string) => {
+                return html
+                    .replace(/<!--[\s\S]*?-->/gi, "")
+                    .replace(/<style[\s\S]*?<\/style>/gi, "")
+                    .replace(/<xml[\s\S]*?<\/xml>/gi, "")
+                    .replace(/class=["']?Mso\w*["']?/gi, "")
+                    .replace(/style=["'][^"']*mso-[^"']*["']/gi, "");
             },
             handleDOMEvents: {
                 blur: () => {
@@ -440,9 +469,38 @@ export default function RichTextEditor({
             {/* Word-Style Formatting Toolbar */}
             <RichTextToolbar editor={editor} />
 
-            {/* Editor body */}
-            <div className="flex-1 overflow-y-auto bg-[var(--background,#0d1117)] text-[var(--foreground,#f1f5f9)] relative">
+            {/* Editor body with Slash Menu & Floating Selection Toolbar */}
+            <div className="relative flex-1 overflow-y-auto bg-[var(--background,#0d1117)] text-[var(--foreground,#f1f5f9)] tiptap-container">
+                <RichTextSlashMenu editor={editor} />
+                <RichTextFloatingToolbar editor={editor} />
                 <EditorContent editor={editor} />
+            </div>
+
+            {/* Footer Status Bar: Word Count & Save Indicator */}
+            <div className="flex items-center justify-between px-4 py-1 bg-[var(--surface,#161b22)] border-t border-[var(--border-subtle,#21262d)] text-[11px] text-slate-400 select-none">
+                <div className="flex items-center gap-3">
+                    <span>{stats.words} {stats.words === 1 ? "word" : "words"}</span>
+                    <span className="opacity-40">•</span>
+                    <span>{stats.characters} chars</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    {isSaving ? (
+                        <span className="flex items-center gap-1.5 text-amber-400 font-mono text-[10px]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                            Saving...
+                        </span>
+                    ) : isSaved ? (
+                        <span className="flex items-center gap-1 text-emerald-400 font-mono text-[10px]">
+                            <Check className="w-3 h-3" />
+                            Saved
+                        </span>
+                    ) : (
+                        <span className="text-[10px] text-slate-500 font-mono">
+                            Type / for commands
+                        </span>
+                    )}
+                </div>
             </div>
         </div>
     );
