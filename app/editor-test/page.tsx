@@ -26,16 +26,30 @@ function findMax(nums: number[]): number {
 > Remember: Check for null/empty arrays before accessing index 0.
 `;
 
-const SAMPLE_NOTE_2 = `# Dynamic Programming Patterns
+const SAMPLE_LEGACY_NOTE = `# Legacy Notes & Highlight Migration
 
-1. Identify overlapping subproblems
-2. Define optimal substructure
-3. Formulate recurrence relation
+Demonstrating seamless backward compatibility with AlgoCraft's custom syntax:
 
-| Pattern | Complexity | Example |
-| :--- | :--- | :--- |
-| 0/1 Knapsack | O(N * W) | Partition Equal Subset Sum |
-| LCS | O(N * M) | Longest Common Subsequence |
+- ==r:Critical edge case / bug==: Watch for integer overflow when index approaches 2^31 - 1.
+- ==g:Optimal insight==: Two-pointer technique achieves O(n) time and O(1) space.
+- ==b:Standard library method==: Use \`std::lower_bound\` for binary search.
+- ==y:Interviewer follow-up==: What if input is a stream rather than an in-memory array?
+- ==p:Formula / Pattern==: Recurrence is ==p:dp[i] = max(dp[i-1], dp[i-2] + nums[i])==.
+
+### Code Block (Highlights are preserved as raw code inside)
+\`\`\`typescript
+// The highlight syntax below MUST NOT be converted:
+const pattern = "==r:bug==";
+console.log(pattern);
+\`\`\`
+
+### Mermaid Diagram
+\`\`\`mermaid
+graph TD
+  A[Start] --> B{Valid?}
+  B -->|Yes| C[Process]
+  B -->|No| D[Reject]
+\`\`\`
 `;
 
 export default function EditorTestPage() {
@@ -73,10 +87,10 @@ export default function EditorTestPage() {
                         </button>
                         <button
                             type="button"
-                            onClick={() => setContent(SAMPLE_NOTE_2)}
-                            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition"
+                            onClick={() => setContent(SAMPLE_LEGACY_NOTE)}
+                            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white shadow transition"
                         >
-                            Load Sample 2
+                            Load Legacy Highlights Note
                         </button>
                     </div>
                 </header>

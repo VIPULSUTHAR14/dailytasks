@@ -14,6 +14,7 @@ import TaskItem from "@tiptap/extension-task-item";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import { Markdown, type MarkdownStorage } from "tiptap-markdown";
 import { common, createLowlight } from "lowlight";
+import { legacyToRich, richToStorage } from "@/lib/markdownHighlightConverter";
 import RichTextToolbar from "./RichTextToolbar";
 import "./rich-editor.css";
 
@@ -96,10 +97,11 @@ export default function RichTextEditor({
                 bulletListMarker: "-",
             }),
         ],
-        content: value || "",
+        content: legacyToRich(value || ""),
         onUpdate: ({ editor }) => {
-            const markdown = editor.storage.markdown?.getMarkdown() ?? "";
-            onChange(markdown);
+            const rawMarkdown = editor.storage.markdown?.getMarkdown() ?? "";
+            const storableMarkdown = richToStorage(rawMarkdown);
+            onChange(storableMarkdown);
         },
         editorProps: {
             attributes: {
@@ -111,9 +113,10 @@ export default function RichTextEditor({
     // Synchronize external value changes without infinite loop or losing cursor
     useEffect(() => {
         if (!editor) return;
-        const currentMarkdown = editor.storage.markdown?.getMarkdown() ?? "";
-        if (value !== undefined && value !== currentMarkdown) {
-            editor.commands.setContent(value || "", { emitUpdate: false });
+        const rawMarkdown = editor.storage.markdown?.getMarkdown() ?? "";
+        const currentStorable = richToStorage(rawMarkdown);
+        if (value !== undefined && value !== currentStorable) {
+            editor.commands.setContent(legacyToRich(value || ""), { emitUpdate: false });
         }
     }, [value, editor]);
 
