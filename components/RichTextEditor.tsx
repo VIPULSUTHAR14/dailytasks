@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -14,7 +14,12 @@ import TaskItem from "@tiptap/extension-task-item";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import { Markdown, type MarkdownStorage } from "tiptap-markdown";
 import { common, createLowlight } from "lowlight";
+import {
+    Maximize2, Minimize2, Save, Check, FileText,
+    ListTree, ChevronDown, Sparkles, Code2
+} from "lucide-react";
 import { legacyToRich, richToStorage } from "@/lib/markdownHighlightConverter";
+import IdeMarkdownEditor from "./IdeMarkdownEditor";
 import RichTextToolbar from "./RichTextToolbar";
 import "./rich-editor.css";
 
@@ -50,6 +55,12 @@ export interface RichTextEditorProps {
     className?: string;
 }
 
+export interface DocumentHeading {
+    pos: number;
+    level: number;
+    text: string;
+}
+
 const lowlight = createLowlight(common);
 
 export default function RichTextEditor({
@@ -68,6 +79,86 @@ export default function RichTextEditor({
     onToggleFullscreen,
     className = ""
 }: RichTextEditorProps) {
+    // Mode state: 'rich' or 'markdown'
+    const [editorMode, setEditorMode] = useState<"rich" | "markdown">("rich");
+
+    // Outline state
+    const [headings, setHeadings] = useState<DocumentHeading[]>([]);
+    const [isOutlineOpen, setIsOutlineOpen] = useState(false);
+    const outlineRef = useRef<HTMLDivElement>(null);
+
+    // Debounce refs
+    const pendingValueRef = useRef<string | null>(null);
+    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Load saved editor mode from localStorage on mount
+    useEffect(() => {
+        try {
+            const savedMode = localStorage.getItem("algocraft_editor_mode");
+            if (savedMode === "markdown" || savedMode === "rich") {
+                setEditorMode(savedMode);
+            }
+        } catch {
+            // Ignore if localStorage unavailable
+        }
+    }, []);
+
+    const flushDebouncedChange = useCallback(() => {
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+            debounceTimerRef.current = null;
+        }
+        if (pendingValueRef.current !== null) {
+            const val = pendingValueRef.current;
+            pendingValueRef.current = null;
+            onChange(val);
+        }
+    }, [onChange]);
+
+    // Cleanup and flush on unmount
+    useEffect(() => {
+        return () => {
+            flushDebouncedChange();
+        };
+    }, [flushDebouncedChange]);
+
+    const toggleMode = (newMode: "rich" | "markdown") => {
+        flushDebouncedChange();
+        setEditorMode(newMode);
+        try {
+            localStorage.setItem("algocraft_editor_mode", newMode);
+        } catch {
+            // Ignore
+        }
+    };
+
+    // Close outline dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (outlineRef.current && !outlineRef.current.contains(e.target as Node)) {
+                setIsOutlineOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    // Extract headings from editor document
+    const updateHeadingsList = useCallback((editorInstance: any) => {
+        if (!editorInstance) return;
+        const list: DocumentHeading[] = [];
+        editorInstance.state.doc.descendants((node: any, pos: number) => {
+            if (node.type.name === "heading") {
+                list.push({
+                    pos,
+                    level: (node.attrs.level as number) || 1,
+                    text: node.textContent.trim(),
+                });
+            }
+        });
+        setHeadings(list);
+    }, []);
+
     const editor = useEditor({
         immediatelyRender: false,
         extensions: [
@@ -101,52 +192,196 @@ export default function RichTextEditor({
         onUpdate: ({ editor }) => {
             const rawMarkdown = editor.storage.markdown?.getMarkdown() ?? "";
             const storableMarkdown = richToStorage(rawMarkdown);
-            onChange(storableMarkdown);
+            pendingValueRef.current = storableMarkdown;
+
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+            debounceTimerRef.current = setTimeout(() => {
+                flushDebouncedChange();
+            }, 350);
+
+            updateHeadingsList(editor);
         },
         editorProps: {
             attributes: {
                 class: "tiptap ProseMirror focus:outline-none min-h-[300px] w-full text-slate-200 text-sm leading-relaxed p-4",
             },
+            handleDOMEvents: {
+                blur: () => {
+                    flushDebouncedChange();
+                    return false;
+                },
+            },
         },
     });
+
+    // Populate initial outline when editor is ready
+    useEffect(() => {
+        if (editor) {
+            updateHeadingsList(editor);
+        }
+    }, [editor, updateHeadingsList]);
 
     // Synchronize external value changes without infinite loop or losing cursor
     useEffect(() => {
         if (!editor) return;
         const rawMarkdown = editor.storage.markdown?.getMarkdown() ?? "";
         const currentStorable = richToStorage(rawMarkdown);
-        if (value !== undefined && value !== currentStorable) {
+        if (value !== undefined && value !== currentStorable && value !== pendingValueRef.current) {
             editor.commands.setContent(legacyToRich(value || ""), { emitUpdate: false });
+            updateHeadingsList(editor);
         }
-    }, [value, editor]);
+    }, [value, editor, updateHeadingsList]);
+
+    const scrollToHeading = (pos: number) => {
+        if (!editor) return;
+        editor.commands.focus(pos);
+        const domNode = editor.view.nodeDOM(pos);
+        if (domNode instanceof HTMLElement) {
+            domNode.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else if (domNode && domNode.parentElement) {
+            domNode.parentElement.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+        setIsOutlineOpen(false);
+    };
+
+    // If fallback Markdown mode is chosen by user
+    if (editorMode === "markdown") {
+        return (
+            <div className={`relative flex flex-col h-full ${isFullscreen ? "fixed inset-0 z-50" : ""} ${className}`}>
+                {/* Fallback Mode Indicator Banner */}
+                <div className="flex items-center justify-between px-3.5 py-1.5 bg-[#10141e] border-b border-[#1e293b] select-none text-xs">
+                    <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                        <span className="text-zinc-300 font-mono text-[11px]">
+                            Markdown Mode Fallback
+                        </span>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={() => toggleMode("rich")}
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 text-xs font-medium transition cursor-pointer"
+                    >
+                        <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+                        <span>Switch to Rich Text Editor (Word-Style)</span>
+                    </button>
+                </div>
+
+                <IdeMarkdownEditor
+                    label={label}
+                    value={value}
+                    onChange={onChange}
+                    placeholder={placeholder}
+                    lineCountBadge={lineCountBadge}
+                    onSave={onSave}
+                    isSaved={isSaved}
+                    onOpenSettings={onOpenSettings}
+                    sections={sections}
+                    activeSectionId={activeSectionId}
+                    onSelectSection={onSelectSection}
+                    isFullscreen={isFullscreen}
+                    onToggleFullscreen={onToggleFullscreen}
+                />
+            </div>
+        );
+    }
 
     return (
         <div className={`relative flex flex-col bg-[#0d1117] border border-[#21262d] rounded-xl overflow-hidden shadow-xl ${isFullscreen ? "fixed inset-0 z-50 rounded-none border-none" : ""} ${className}`}>
             {/* Header bar */}
-            <div className="flex items-center justify-between px-4 py-2.5 bg-[#161b22] border-b border-[#21262d] select-none">
-                <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold tracking-wider text-slate-300 uppercase">
-                        {label}
-                    </span>
+            <div className="flex items-center justify-between px-4 py-2 bg-[#161b22] border-b border-[#21262d] select-none">
+                <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                        <FileText className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                        <span className="text-xs font-semibold tracking-wider text-slate-200 uppercase truncate">
+                            {label}
+                        </span>
+                    </div>
+
                     {lineCountBadge !== undefined && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono hidden sm:inline">
                             {lineCountBadge} lines
                         </span>
+                    )}
+
+                    {/* Document Outline Dropdown */}
+                    {headings.length > 0 && (
+                        <div className="relative" ref={outlineRef}>
+                            <button
+                                type="button"
+                                onClick={() => setIsOutlineOpen((prev) => !prev)}
+                                className="flex items-center gap-1 px-2 py-0.5 rounded bg-[#1f242d] hover:bg-[#282e3a] border border-[#2d3748] text-slate-300 hover:text-white text-xs transition"
+                                title="Jump to document section"
+                            >
+                                <ListTree className="w-3 h-3 text-cyan-400" />
+                                <span className="hidden sm:inline">Outline</span>
+                                <span className="text-[10px] opacity-70">({headings.length})</span>
+                                <ChevronDown className="w-2.5 h-2.5 text-slate-400" />
+                            </button>
+
+                            {isOutlineOpen && (
+                                <div className="absolute top-full left-0 mt-1 w-64 bg-[#161b24] border border-[#2d3748] rounded-lg shadow-2xl py-1 z-40 max-h-60 overflow-y-auto">
+                                    <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-[#262c36]">
+                                        Document Headings
+                                    </div>
+                                    {headings.map((h, i) => (
+                                        <button
+                                            key={`${h.pos}-${i}`}
+                                            type="button"
+                                            onClick={() => scrollToHeading(h.pos)}
+                                            className="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-800 flex items-center gap-2 text-slate-300 hover:text-cyan-300 transition"
+                                            style={{ paddingLeft: `${(h.level - 1) * 12 + 12}px` }}
+                                        >
+                                            <span className="font-mono text-[9px] px-1 py-0.2 rounded bg-slate-800 border border-slate-700 text-slate-400 shrink-0">
+                                                H{h.level}
+                                            </span>
+                                            <span className="truncate">{h.text || "Untitled"}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     )}
                 </div>
 
                 <div className="flex items-center gap-2 text-xs">
+                    {/* Mode Toggle Switch */}
+                    <button
+                        type="button"
+                        onClick={() => toggleMode("markdown")}
+                        className="flex items-center gap-1 px-2 py-1 rounded bg-[#1a202c] hover:bg-slate-800 border border-[#2d3748] text-slate-300 hover:text-white transition text-xs"
+                        title="Switch to raw Markdown Editor mode"
+                    >
+                        <Code2 className="w-3 h-3 text-slate-400" />
+                        <span className="hidden md:inline">Markdown Mode</span>
+                    </button>
+
                     {onSave && (
                         <button
                             type="button"
-                            onClick={onSave}
-                            className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                            onClick={() => {
+                                flushDebouncedChange();
+                                onSave();
+                            }}
+                            className={`flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium transition-colors ${
                                 isSaved
                                     ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
                                     : "bg-blue-600 hover:bg-blue-500 text-white"
                             }`}
                         >
-                            {isSaved ? "Saved" : "Save"}
+                            {isSaved ? (
+                                <>
+                                    <Check className="w-3 h-3" />
+                                    <span>Saved</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="w-3 h-3" />
+                                    <span>Save</span>
+                                </>
+                            )}
                         </button>
                     )}
 
@@ -157,7 +392,11 @@ export default function RichTextEditor({
                             className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-colors"
                             title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
                         >
-                            {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                            {isFullscreen ? (
+                                <Minimize2 className="w-3.5 h-3.5" />
+                            ) : (
+                                <Maximize2 className="w-3.5 h-3.5" />
+                            )}
                         </button>
                     )}
                 </div>
@@ -165,15 +404,18 @@ export default function RichTextEditor({
 
             {/* Sections tab bar if sections are provided */}
             {sections && sections.length > 0 && (
-                <div className="flex items-center gap-1 px-3 py-1.5 bg-[#0e131a] border-b border-[#21262d] overflow-x-auto text-xs">
+                <div className="flex items-center gap-1 px-3 py-1.5 bg-[#0e131a] border-b border-[#21262d] overflow-x-auto text-xs scrollbar-thin">
                     {sections.map((section) => {
                         const isActive = section.id === activeSectionId;
                         return (
                             <button
                                 key={section.id}
                                 type="button"
-                                onClick={() => onSelectSection?.(section.id)}
-                                className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors whitespace-nowrap ${
+                                onClick={() => {
+                                    flushDebouncedChange();
+                                    onSelectSection?.(section.id);
+                                }}
+                                className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors whitespace-nowrap cursor-pointer ${
                                     isActive
                                         ? "bg-blue-500/20 text-blue-300 border border-blue-500/30 font-medium"
                                         : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"

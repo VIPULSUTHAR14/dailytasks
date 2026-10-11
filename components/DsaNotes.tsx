@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "@/components/Sidebar";
 import WorkspaceHeader from "@/components/WorkspaceHeader";
 import IdeMarkdownEditor from "@/components/IdeMarkdownEditor";
+import RichTextEditor from "@/components/RichTextEditor";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -1389,7 +1390,7 @@ function TopicDetailPanel({
                     {/* Editor Body */}
                     <div className="flex-1 overflow-y-auto px-2.5 sm:px-6 pb-4 sm:pb-6 pt-2.5 sm:pt-4">
                     {activeTab === "notes" && (
-                        <IdeMarkdownEditor
+                        <RichTextEditor
                             label="Core Notes"
                             value={draft.notes || `# ARRAY\n[Resource Title](https://youtu.be/37E9ckMDdTk)\n\n## Basics of array\nArray is a data structure in which only similar elements will be stored\nFor Example:- array can store only one type of data at a time like only integer , charector , String ETC.\n[ 0 ] [ 1 ] [ 2 ] [ 3 ] [ 4 ] [ ... ] [ n ]\nstart from index 0 to n\n\n## Largest Element in a Array\nFrom A given array of Integers Find the Largest Among Them\n\`arr[] = [3, 2, 1, 5, 2]\`\n\n- Brute Force Method:-`}
                             onChange={(val) => setDraft((prev) => ({ ...prev, notes: val }))}
@@ -1404,7 +1405,7 @@ function TopicDetailPanel({
                     )}
 
                     {activeTab === "revision" && (
-                        <IdeMarkdownEditor
+                        <RichTextEditor
                             label="Revision Notes"
                             value={draft.revisionNotes}
                             onChange={(val) => setDraft((prev) => ({ ...prev, revisionNotes: val }))}

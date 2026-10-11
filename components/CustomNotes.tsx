@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "@/components/Sidebar";
 import WorkspaceHeader from "@/components/WorkspaceHeader";
 import IdeMarkdownEditor from "@/components/IdeMarkdownEditor";
+import RichTextEditor from "@/components/RichTextEditor";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -1601,7 +1602,7 @@ export default function CustomNotes() {
                                                 </div>
                                             </div>
                                         ) : (
-                                            <IdeMarkdownEditor
+                                            <RichTextEditor
                                                 label={currentSection.name}
                                                 value={currentSection.content || ""}
                                                 onChange={(newContent) => updateActiveSectionContent(currentSection.id, newContent)}
