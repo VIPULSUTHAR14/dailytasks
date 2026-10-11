@@ -12,6 +12,7 @@ import { TableCell } from "@tiptap/extension-table-cell";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+import Placeholder from "@tiptap/extension-placeholder";
 import { Markdown, type MarkdownStorage } from "tiptap-markdown";
 import { common, createLowlight } from "lowlight";
 import {
@@ -182,6 +183,10 @@ export default function RichTextEditor({
             CodeBlockLowlight.configure({
                 lowlight,
             }),
+            Placeholder.configure({
+                placeholder: placeholder || "Start writing...",
+                emptyEditorClass: "is-editor-empty",
+            }),
             Markdown.configure({
                 html: true,
                 tightLists: true,
@@ -289,9 +294,9 @@ export default function RichTextEditor({
     }
 
     return (
-        <div className={`relative flex flex-col bg-[#0d1117] border border-[#21262d] rounded-xl overflow-hidden shadow-xl ${isFullscreen ? "fixed inset-0 z-50 rounded-none border-none" : ""} ${className}`}>
+        <div className={`relative flex flex-col bg-[var(--card,#0d1117)] border border-[var(--border-subtle,#21262d)] text-[var(--foreground,#f1f5f9)] rounded-xl overflow-hidden shadow-xl ${isFullscreen ? "fixed inset-0 z-50 rounded-none border-none" : ""} ${className}`}>
             {/* Header bar */}
-            <div className="flex items-center justify-between px-4 py-2 bg-[#161b22] border-b border-[#21262d] select-none">
+            <div className="flex items-center justify-between px-4 py-2 bg-[var(--surface,#161b22)] border-b border-[var(--border-subtle,#21262d)] text-[var(--foreground,#f1f5f9)] select-none">
                 <div className="flex items-center gap-2.5 min-w-0">
                     <div className="flex items-center gap-1.5 min-w-0">
                         <FileText className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
@@ -404,7 +409,7 @@ export default function RichTextEditor({
 
             {/* Sections tab bar if sections are provided */}
             {sections && sections.length > 0 && (
-                <div className="flex items-center gap-1 px-3 py-1.5 bg-[#0e131a] border-b border-[#21262d] overflow-x-auto text-xs scrollbar-thin">
+                <div className="flex items-center gap-1 px-3 py-1.5 bg-[var(--card,#0e131a)] border-b border-[var(--border-subtle,#21262d)] overflow-x-auto text-xs scrollbar-thin">
                     {sections.map((section) => {
                         const isActive = section.id === activeSectionId;
                         return (
@@ -436,7 +441,7 @@ export default function RichTextEditor({
             <RichTextToolbar editor={editor} />
 
             {/* Editor body */}
-            <div className="flex-1 overflow-y-auto bg-[#0d1117] relative">
+            <div className="flex-1 overflow-y-auto bg-[var(--background,#0d1117)] text-[var(--foreground,#f1f5f9)] relative">
                 <EditorContent editor={editor} />
             </div>
         </div>

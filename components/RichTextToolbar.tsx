@@ -102,12 +102,12 @@ export default function RichTextToolbar({ editor, className = "" }: RichTextTool
 
     return (
         <div
-            className={`flex flex-wrap items-center gap-1 p-1.5 bg-[#12161f] border-b border-[#21262d] text-slate-300 text-xs select-none overflow-x-auto scrollbar-thin ${className}`}
+            className={`flex flex-wrap items-center gap-1 p-1.5 bg-[var(--surface,#12161f)] border-b border-[var(--border-subtle,#21262d)] text-[var(--foreground,#cbd5e1)] text-xs select-none overflow-x-auto scrollbar-thin ${className}`}
             role="toolbar"
             aria-label="Formatting options"
         >
             {/* History: Undo / Redo */}
-            <div className="flex items-center gap-0.5 pr-1 border-r border-[#262c36]">
+            <div className="flex items-center gap-0.5 pr-1 border-r border-[var(--border-subtle,#262c36)]">
                 <button
                     type="button"
                     onClick={() => editor.chain().focus().undo().run()}
