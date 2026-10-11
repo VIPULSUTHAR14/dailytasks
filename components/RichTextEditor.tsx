@@ -14,6 +14,7 @@ import TaskItem from "@tiptap/extension-task-item";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import { Markdown, type MarkdownStorage } from "tiptap-markdown";
 import { common, createLowlight } from "lowlight";
+import RichTextToolbar from "./RichTextToolbar";
 import "./rich-editor.css";
 
 declare module "@tiptap/core" {
@@ -185,6 +186,9 @@ export default function RichTextEditor({
                     })}
                 </div>
             )}
+
+            {/* Word-Style Formatting Toolbar */}
+            <RichTextToolbar editor={editor} />
 
             {/* Editor body */}
             <div className="flex-1 overflow-y-auto bg-[#0d1117] relative">
