@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Highlight from "@tiptap/extension-highlight";
@@ -87,13 +87,13 @@ export default function RichTextEditor({
     const [internalIsFullscreen, setInternalIsFullscreen] = useState(false);
     const isFullscreen = externalIsFullscreen !== undefined ? externalIsFullscreen : internalIsFullscreen;
 
-    const handleToggleFullscreen = () => {
+    const handleToggleFullscreen = useCallback(() => {
         if (onToggleFullscreen) {
             onToggleFullscreen(!isFullscreen);
         } else {
             setInternalIsFullscreen((prev) => !prev);
         }
-    };
+    }, [isFullscreen, onToggleFullscreen]);
 
     // Exit fullscreen on Escape key
     useEffect(() => {
@@ -104,10 +104,22 @@ export default function RichTextEditor({
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [isFullscreen]);
+    }, [isFullscreen, handleToggleFullscreen]);
 
     // Mode state: 'rich' or 'markdown'
-    const [editorMode, setEditorMode] = useState<"rich" | "markdown">("rich");
+    const [editorMode, setEditorMode] = useState<"rich" | "markdown">(() => {
+        if (typeof window !== "undefined") {
+            try {
+                const savedMode = localStorage.getItem("algocraft_editor_mode");
+                if (savedMode === "markdown" || savedMode === "rich") {
+                    return savedMode;
+                }
+            } catch {
+                // Ignore if localStorage unavailable
+            }
+        }
+        return "rich";
+    });
 
     // Outline state
     const [headings, setHeadings] = useState<DocumentHeading[]>([]);
@@ -119,18 +131,6 @@ export default function RichTextEditor({
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [stats, setStats] = useState({ words: 0, characters: 0 });
-
-    // Load saved editor mode from localStorage on mount
-    useEffect(() => {
-        try {
-            const savedMode = localStorage.getItem("algocraft_editor_mode");
-            if (savedMode === "markdown" || savedMode === "rich") {
-                setEditorMode(savedMode);
-            }
-        } catch {
-            // Ignore if localStorage unavailable
-        }
-    }, []);
 
     const flushDebouncedChange = useCallback(() => {
         if (debounceTimerRef.current) {
@@ -174,10 +174,10 @@ export default function RichTextEditor({
     }, []);
 
     // Extract headings from editor document
-    const updateHeadingsList = useCallback((editorInstance: any) => {
+    const updateHeadingsList = useCallback((editorInstance: Editor) => {
         if (!editorInstance) return;
         const list: DocumentHeading[] = [];
-        editorInstance.state.doc.descendants((node: any, pos: number) => {
+        editorInstance.state.doc.descendants((node, pos) => {
             if (node.type.name === "heading") {
                 list.push({
                     pos,
@@ -230,6 +230,14 @@ export default function RichTextEditor({
             }),
         ],
         content: legacyToRich(value || ""),
+        onCreate: ({ editor: inst }) => {
+            updateHeadingsList(inst);
+            const text = inst.getText().trim();
+            setStats({
+                words: text ? text.split(/\s+/).length : 0,
+                characters: text.length,
+            });
+        },
         onUpdate: ({ editor }) => {
             const rawMarkdown = editor.storage.markdown?.getMarkdown() ?? "";
             const storableMarkdown = richToStorage(rawMarkdown);
@@ -272,13 +280,6 @@ export default function RichTextEditor({
             },
         },
     });
-
-    // Populate initial outline when editor is ready
-    useEffect(() => {
-        if (editor) {
-            updateHeadingsList(editor);
-        }
-    }, [editor, updateHeadingsList]);
 
     // Synchronize external value changes without infinite loop or losing cursor
     useEffect(() => {

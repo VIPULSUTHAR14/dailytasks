@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { type Editor } from "@tiptap/react";
 import {
-    Bold, Italic, Highlighter, Link as LinkIcon,
-    Unlink, Check, X, ExternalLink
+    Bold, Italic, Link as LinkIcon,
+    Unlink, Check
 } from "lucide-react";
 
 const SWATCHES = [

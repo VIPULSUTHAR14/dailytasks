@@ -145,6 +145,22 @@ export default function RichTextSlashMenu({ editor }: { editor: Editor | null })
         };
     }, [editor]);
 
+    const executeCommand = React.useCallback((item: SlashItem) => {
+        if (!editor) return;
+        const { from } = editor.state.selection;
+        const textBefore = editor.state.doc.textBetween(Math.max(0, from - 20), from, "\n", "\0");
+        const match = textBefore.match(/(?:^|\s)\/([a-z0-9_-]*)$/i);
+
+        if (match) {
+            const deleteLength = match[0].length;
+            const startPos = from - deleteLength + (match[0].startsWith(" ") ? 1 : 0);
+            editor.commands.deleteRange({ from: startPos, to: from });
+        }
+
+        item.command(editor);
+        setIsOpen(false);
+    }, [editor]);
+
     // Keyboard navigation when slash menu is open
     useEffect(() => {
         if (!isOpen || !editor) return;
@@ -169,23 +185,7 @@ export default function RichTextSlashMenu({ editor }: { editor: Editor | null })
 
         window.addEventListener("keydown", handleKeyDown, true);
         return () => window.removeEventListener("keydown", handleKeyDown, true);
-    }, [isOpen, editor, filteredItems, selectedIndex]);
-
-    const executeCommand = (item: SlashItem) => {
-        if (!editor) return;
-        const { from } = editor.state.selection;
-        const textBefore = editor.state.doc.textBetween(Math.max(0, from - 20), from, "\n", "\0");
-        const match = textBefore.match(/(?:^|\s)\/([a-z0-9_-]*)$/i);
-
-        if (match) {
-            const deleteLength = match[0].length;
-            const startPos = from - deleteLength + (match[0].startsWith(" ") ? 1 : 0);
-            editor.commands.deleteRange({ from: startPos, to: from });
-        }
-
-        item.command(editor);
-        setIsOpen(false);
-    };
+    }, [isOpen, editor, filteredItems, selectedIndex, executeCommand]);
 
     if (!isOpen || filteredItems.length === 0) return null;
 
