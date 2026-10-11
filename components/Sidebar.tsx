@@ -17,6 +17,7 @@ import {
     Terminal,
     ChevronRight,
     Menu,
+    Sparkles,
 } from "lucide-react";
 import CommandPalette from "@/components/CommandPalette";
 
@@ -29,6 +30,7 @@ export interface NavItem {
 }
 
 export const ALGO_NAV_ITEMS: NavItem[] = [
+    { name: "Planly AI", href: "/planly", icon: Sparkles, badge: "AI Sprint", badgeColor: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" },
     { name: "Tasks", href: "/tasks", icon: CheckSquare, badge: "1", badgeColor: "bg-[#1E293B] text-zinc-300" },
     { name: "Aptitude Prep", href: "/aptitude", icon: GraduationCap, badge: "5%", badgeColor: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" },
     { name: "DSA Questions", href: "/dsaquestions", icon: Code2, badge: "147", badgeColor: "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30" },

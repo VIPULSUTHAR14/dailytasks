@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Code2, BookOpen, Clock, CheckSquare, GraduationCap, ArrowRight, X } from "lucide-react";
+import { Search, Code2, BookOpen, Clock, CheckSquare, GraduationCap, ArrowRight, X, Sparkles } from "lucide-react";
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -14,6 +14,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   const [query, setQuery] = useState("");
 
   const items = [
+    { title: "Planly AI Sprint Planner", path: "/planly", type: "AI Sprint", icon: Sparkles, shortcut: "P" },
     { title: "Task Manager View", path: "/tasks", type: "Tasks", icon: CheckSquare, shortcut: "T" },
     { title: "DSA Questions Catalog (147 Problems)", path: "/dsaquestions", type: "DSA", icon: Code2, shortcut: "Q" },
     { title: "DSA Notes — Arrays & Strings", path: "/notes", type: "Notes", icon: BookOpen, shortcut: "N" },

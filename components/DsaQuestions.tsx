@@ -9,7 +9,7 @@ import {
     Database, GitBranch, MessageCircle, Lightbulb, BookOpen,
     Pencil, Trash2, Save, FileText, StickyNote, RotateCw
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "@/components/Sidebar";
 import WorkspaceHeader from "@/components/WorkspaceHeader";
@@ -100,6 +100,9 @@ export default function DsaQuestions() {
     const [selectedQuestion, setSelectedQuestion] = useState<(QuestionItem & { topicName?: string }) | null>(null);
     const [showHint, setShowHint] = useState(false);
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const queryParam = searchParams?.get("q") || searchParams?.get("search");
+    const topicParam = searchParams?.get("topic");
 
     const fetchQuestions = useCallback(async () => {
         setLoading(true);
@@ -129,6 +132,31 @@ export default function DsaQuestions() {
     useEffect(() => {
         fetchQuestions();
     }, [fetchQuestions]);
+
+    // Deep link query listener: automatically select matching question from URL params
+    useEffect(() => {
+        if (!queryParam || topics.length === 0) return;
+        const target = queryParam.trim().toLowerCase();
+
+        for (const topic of topics) {
+            const found = topic.questions.find(
+                (q) =>
+                    q.name.trim().toLowerCase() === target ||
+                    q.name.toLowerCase().includes(target)
+            );
+            if (found) {
+                setSelectedQuestion({
+                    ...found,
+                    topicName: topic.name,
+                });
+                setExpandedTopics((prev) => new Set([...prev, topic.id]));
+                if (topicParam && topic.id === topicParam) {
+                    setTopicFilter(topic.id);
+                }
+                break;
+            }
+        }
+    }, [queryParam, topicParam, topics]);
 
     const handleSync = () => {
         setSyncing(true);

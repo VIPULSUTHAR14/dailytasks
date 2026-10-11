@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import WorkspaceHeader from "@/components/WorkspaceHeader";
+import PlanlySprintWidget from "@/components/tasks/PlanlySprintWidget";
 
 export type HabitPriority = "High" | "Medium" | "Low";
 
@@ -452,6 +453,9 @@ export default function WeeklyHabitTrackerPage() {
                             </span>
                         </div>
                     </div>
+
+                    {/* Planly AI Synced Sprint Section (Isolated from Habits) */}
+                    <PlanlySprintWidget />
 
                     {/* Section 1: Global Dynamic Progress Card */}
                     <div className="bg-[#10141E] border border-[#1E293B] rounded-xl p-4 sm:p-5 shadow-lg shadow-black/40 relative overflow-hidden">
