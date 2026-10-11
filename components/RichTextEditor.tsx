@@ -79,10 +79,33 @@ export default function RichTextEditor({
     sections,
     activeSectionId,
     onSelectSection,
-    isFullscreen = false,
+    isFullscreen: externalIsFullscreen,
     onToggleFullscreen,
     className = ""
 }: RichTextEditorProps) {
+    // Fullscreen state with external or internal fallback
+    const [internalIsFullscreen, setInternalIsFullscreen] = useState(false);
+    const isFullscreen = externalIsFullscreen !== undefined ? externalIsFullscreen : internalIsFullscreen;
+
+    const handleToggleFullscreen = () => {
+        if (onToggleFullscreen) {
+            onToggleFullscreen(!isFullscreen);
+        } else {
+            setInternalIsFullscreen((prev) => !prev);
+        }
+    };
+
+    // Exit fullscreen on Escape key
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape" && isFullscreen) {
+                handleToggleFullscreen();
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [isFullscreen]);
+
     // Mode state: 'rich' or 'markdown'
     const [editorMode, setEditorMode] = useState<"rich" | "markdown">("rich");
 
@@ -316,16 +339,24 @@ export default function RichTextEditor({
                     activeSectionId={activeSectionId}
                     onSelectSection={onSelectSection}
                     isFullscreen={isFullscreen}
-                    onToggleFullscreen={onToggleFullscreen}
+                    onToggleFullscreen={handleToggleFullscreen}
                 />
             </div>
         );
     }
 
     return (
-        <div className={`relative flex flex-col bg-[var(--card,#0d1117)] border border-[var(--border-subtle,#21262d)] text-[var(--foreground,#f1f5f9)] rounded-xl overflow-hidden shadow-xl ${isFullscreen ? "fixed inset-0 z-50 rounded-none border-none" : ""} ${className}`}>
+        <div
+            className={`font-sans transition-all ${
+                isFullscreen
+                    ? "fixed inset-0 z-[100] w-screen h-screen w-[100vw] h-[100vh] bg-[var(--background,#0B0F17)] flex flex-col overflow-hidden m-0 p-0 rounded-none border-0 shadow-none text-[var(--foreground,#f1f5f9)]"
+                    : `relative flex flex-col bg-[var(--card,#0d1117)] border border-[var(--border-subtle,#21262d)] text-[var(--foreground,#f1f5f9)] rounded-xl overflow-hidden shadow-xl ${className}`
+            }`}
+        >
             {/* Header bar */}
-            <div className="flex items-center justify-between px-4 py-2 bg-[var(--surface,#161b22)] border-b border-[var(--border-subtle,#21262d)] text-[var(--foreground,#f1f5f9)] select-none">
+            <div className={`flex items-center justify-between border-b border-[var(--border-subtle,#21262d)] text-[var(--foreground,#f1f5f9)] select-none transition-all ${
+                isFullscreen ? "px-6 py-2.5 bg-[var(--surface,#161b22)] shadow-md" : "px-4 py-2 bg-[var(--surface,#161b22)]"
+            }`}>
                 <div className="flex items-center gap-2.5 min-w-0">
                     <div className="flex items-center gap-1.5 min-w-0">
                         <FileText className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
@@ -419,20 +450,28 @@ export default function RichTextEditor({
                         </button>
                     )}
 
-                    {onToggleFullscreen && (
-                        <button
-                            type="button"
-                            onClick={() => onToggleFullscreen(!isFullscreen)}
-                            className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 transition-colors"
-                            title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-                        >
-                            {isFullscreen ? (
+                    <button
+                        type="button"
+                        onClick={handleToggleFullscreen}
+                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                            isFullscreen
+                                ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30"
+                                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-transparent hover:border-slate-700"
+                        }`}
+                        title={isFullscreen ? "Exit Fullscreen (Esc)" : "Fullscreen"}
+                    >
+                        {isFullscreen ? (
+                            <>
                                 <Minimize2 className="w-3.5 h-3.5" />
-                            ) : (
+                                <span>Exit Fullscreen</span>
+                            </>
+                        ) : (
+                            <>
                                 <Maximize2 className="w-3.5 h-3.5" />
-                            )}
-                        </button>
-                    )}
+                                <span className="hidden sm:inline">Fullscreen</span>
+                            </>
+                        )}
+                    </button>
                 </div>
             </div>
 
@@ -470,10 +509,12 @@ export default function RichTextEditor({
             <RichTextToolbar editor={editor} />
 
             {/* Editor body with Slash Menu & Floating Selection Toolbar */}
-            <div className="relative flex-1 overflow-y-auto bg-[var(--background,#0d1117)] text-[var(--foreground,#f1f5f9)] tiptap-container">
-                <RichTextSlashMenu editor={editor} />
-                <RichTextFloatingToolbar editor={editor} />
-                <EditorContent editor={editor} />
+            <div className={`relative flex-1 overflow-y-auto bg-[var(--background,#0d1117)] text-[var(--foreground,#f1f5f9)] tiptap-container ${isFullscreen ? "px-4 sm:px-12 py-8" : ""}`}>
+                <div className={isFullscreen ? "max-w-4xl mx-auto w-full min-h-full" : "w-full min-h-full"}>
+                    <RichTextSlashMenu editor={editor} />
+                    <RichTextFloatingToolbar editor={editor} />
+                    <EditorContent editor={editor} />
+                </div>
             </div>
 
             {/* Footer Status Bar: Word Count & Save Indicator */}
