@@ -15,56 +15,116 @@ export function injectSpacedRepetitionTask(
   const offset = getSpacedRepetitionOffset(sourceTask.confidence);
   if (!offset) return { updatedPlan: plan, scheduledDay: null };
 
-  const targetDayNum = currentDayNumber + offset;
+  const baseTargetDay = currentDayNumber + offset;
   const totalDays = plan.metadata.totalDays;
 
-  // If outside sprint bounds, clamp to the nearest buffer day or drop
-  if (targetDayNum > totalDays) {
+  if (baseTargetDay > totalDays) {
     return { updatedPlan: plan, scheduledDay: null };
   }
 
-  let foundTarget = false;
+  // Bidirectional Deduplication (A8):
+  // Check if problem already exists in that week's Sunday revision
+  const targetWeekNum = Math.ceil(baseTargetDay / 7);
+  const targetWeek = plan.weeks.find((w) => w.weekNumber === targetWeekNum);
+
+  if (targetWeek) {
+    const sundayDay = targetWeek.days.find((d) => d.dayOfWeek === 7);
+    if (sundayDay) {
+      const cleanSrcTitle = sourceTask.title.replace(/^\[(Re-attempt Drill|Re-solve|Fresh Challenge)\]\s*/, "").trim();
+      const existsOnSunday = sundayDay.tasks.some((t) => {
+        if (sourceTask.problemUrl && t.problemUrl && t.problemUrl === sourceTask.problemUrl) return true;
+        const cleanTTitle = t.title.replace(/^\[(Re-attempt Drill|Re-solve|Fresh Challenge)\]\s*/, "").trim();
+        return cleanTTitle.length > 3 && cleanTTitle === cleanSrcTitle;
+      });
+      if (existsOnSunday) {
+        return { updatedPlan: plan, scheduledDay: null };
+      }
+    }
+  }
+
+  // Capacity-clamped day selection:
+  // Starting from baseTargetDay, find first day with remaining capacity for 30 mins
+  let chosenDayNum: number | null = null;
+  for (let candDay = baseTargetDay; candDay <= totalDays; candDay++) {
+    for (const w of plan.weeks) {
+      const d = w.days.find((day) => day.dayNumber === candDay);
+      if (d) {
+        const currentMins = d.tasks.reduce((sum, t) => sum + t.timeMins, 0);
+        const dayLimit = d.allocatedMins || (plan.metadata.dailyHours * 60);
+
+        if (currentMins + 30 <= dayLimit) {
+          chosenDayNum = candDay;
+          break;
+        }
+
+        // Sunday revision day with this-week block can absorb 30 mins
+        if (d.dayOfWeek === 7 && d.tasks.some((t) => t.revisionMeta?.block === "this-week")) {
+          chosenDayNum = candDay;
+          break;
+        }
+      }
+    }
+    if (chosenDayNum !== null) break;
+  }
+
+  if (chosenDayNum === null) {
+    return { updatedPlan: plan, scheduledDay: null };
+  }
+
+  const revisitTask: PlanTask = {
+    id: `sr-${currentDayNumber}-${chosenDayNum}-${sourceTask.id}`,
+    track: "Spaced Repetition",
+    title: `[Re-attempt Drill] ${sourceTask.title}`,
+    subject: "Spaced Retention Engine",
+    details: [
+      "Re-code solution with fresh intuition",
+      sourceTask.confidence === "struggled"
+        ? "Target: complete without viewing hints/editorials"
+        : "Target: optimize for speed and space complexity"
+    ],
+    timeMins: 30,
+    confidence: null,
+    completed: false,
+    isBacklogEligible: true,
+    difficulty: sourceTask.difficulty,
+    problemUrl: sourceTask.problemUrl,
+    intuitionHint: sourceTask.intuitionHint,
+    topicId: sourceTask.topicId,
+    pattern: sourceTask.pattern,
+    timeComplexity: sourceTask.timeComplexity,
+    spaceComplexity: sourceTask.spaceComplexity,
+    originDay: currentDayNumber
+  };
+
   const newWeeks = plan.weeks.map((w) => ({
     ...w,
     days: w.days.map((d) => {
-      if (d.dayNumber === targetDayNum) {
-        foundTarget = true;
-        const revisitTask: PlanTask = {
-          id: `revisit-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-          track: "Spaced Repetition",
-          title: `[Re-attempt Drill] ${sourceTask.title}`,
-          subject: "Spaced Retention Engine",
-          details: [
-            "Re-code solution with fresh intuition",
-            sourceTask.confidence === "struggled"
-              ? "Target: complete without viewing hints/editorials"
-              : "Target: optimize for speed and space complexity"
-          ],
-          timeMins: 30,
-          confidence: null,
-          completed: false,
-          isBacklogEligible: true,
-          difficulty: sourceTask.difficulty,
-          problemUrl: sourceTask.problemUrl,
-          intuitionHint: sourceTask.intuitionHint,
-          topicId: sourceTask.topicId,
-          pattern: sourceTask.pattern,
-          timeComplexity: sourceTask.timeComplexity,
-          spaceComplexity: sourceTask.spaceComplexity,
-          originDay: currentDayNumber
-        };
-        return {
-          ...d,
-          tasks: [...d.tasks, revisitTask]
-        };
+      if (d.dayNumber !== chosenDayNum) return d;
+
+      const adjustedTasks = [...d.tasks];
+      const currentMins = d.tasks.reduce((sum, t) => sum + t.timeMins, 0);
+      const dayLimit = d.allocatedMins || (plan.metadata.dailyHours * 60);
+
+      // If Sunday absorbs and total exceeds limit, shorten a non-completed this-week task
+      if (currentMins + 30 > dayLimit && d.dayOfWeek === 7) {
+        const thisWeekBlock = adjustedTasks.find(
+          (t) => t.revisionMeta?.block === "this-week" && !t.completed && t.timeMins > 30
+        );
+        if (thisWeekBlock) {
+          thisWeekBlock.timeMins -= 30;
+        }
       }
-      return d;
+
+      return {
+        ...d,
+        tasks: [...adjustedTasks, revisitTask]
+      };
     })
   }));
 
   return {
     updatedPlan: { ...plan, weeks: newWeeks },
-    scheduledDay: foundTarget ? targetDayNum : null
+    scheduledDay: chosenDayNum
   };
 }
 
@@ -87,7 +147,7 @@ export function applyRestDay(
           }
         });
         const restTask: PlanTask = {
-          id: `rest-${Date.now()}`,
+          id: `rest-${currentDayNumber}`,
           track: "Buffer & Consolidation",
           title: "Scheduled Rest & Brain Recovery Day",
           subject: "Wellbeing & Cognitive Reset",
@@ -120,7 +180,7 @@ export function applyRestDay(
           const item = tasksToShift[taskIdx++];
           d.tasks.push({
             ...item,
-            id: `shifted-${Date.now()}-${taskIdx}`,
+            id: `shifted-${currentDayNumber}-${d.dayNumber}-${item.id}`,
             title: `[Shifted] ${item.title}`
           });
         }
@@ -149,31 +209,47 @@ export function executeIntelligentRebalance(
     ...w,
     days: w.days.map((d) => {
       const clonedTasks = [...d.tasks];
-      // Inject into future Saturday / Sunday buffer slots that aren't overloaded (<= 4 tasks)
-      if ((d.isBufferDay || d.isSaturday) && d.dayNumber > 7 && pending.length > 0 && clonedTasks.length < 5) {
-        const moveTask = pending.shift();
-        if (moveTask) {
-          clonedTasks.push({
-            id: `rebalanced-${Date.now()}-${rebalancedCount}`,
-            track: moveTask.track,
-            title: `[Rebalanced] ${moveTask.title}`,
-            subject: `Backlog from Day ${moveTask.dayNumber}`,
-            details: moveTask.details,
-            timeMins: 45,
-            confidence: null,
-            completed: false,
-            isBacklogEligible: false,
-            difficulty: moveTask.difficulty,
-            problemUrl: moveTask.problemUrl,
-            intuitionHint: moveTask.intuitionHint,
-            topicId: moveTask.topicId,
-            pattern: moveTask.pattern,
-            timeComplexity: moveTask.timeComplexity,
-            spaceComplexity: moveTask.spaceComplexity
-          });
-          rebalancedCount++;
+
+      // Minute-based capacity for Sunday and Saturday
+      if ((d.isBufferDay || d.isSaturday) && d.dayNumber > 7 && pending.length > 0) {
+        const isSunday = d.dayOfWeek === 7;
+        const sundayBacklogBlock = isSunday
+          ? clonedTasks.find((t) => t.revisionMeta?.block === "backlog")
+          : null;
+
+        // Sunday backlog capacity is 40m; Saturday is 45m
+        const maxCapacity = sundayBacklogBlock ? sundayBacklogBlock.timeMins : 45;
+        let currentBacklogMins = clonedTasks
+          .filter((t) => t.id.startsWith("rebalanced-") || t.id.startsWith("shifted-"))
+          .reduce((sum, t) => sum + t.timeMins, 0);
+
+        while (pending.length > 0 && currentBacklogMins + 45 <= maxCapacity) {
+          const moveTask = pending.shift();
+          if (moveTask) {
+            clonedTasks.push({
+              id: `rebalanced-${d.dayNumber}-${moveTask.id}`,
+              track: moveTask.track,
+              title: `[Rebalanced] ${moveTask.title}`,
+              subject: `Backlog from Day ${moveTask.dayNumber}`,
+              details: moveTask.details,
+              timeMins: 45,
+              confidence: null,
+              completed: false,
+              isBacklogEligible: false,
+              difficulty: moveTask.difficulty,
+              problemUrl: moveTask.problemUrl,
+              intuitionHint: moveTask.intuitionHint,
+              topicId: moveTask.topicId,
+              pattern: moveTask.pattern,
+              timeComplexity: moveTask.timeComplexity,
+              spaceComplexity: moveTask.spaceComplexity
+            });
+            currentBacklogMins += 45;
+            rebalancedCount++;
+          }
         }
       }
+
       return {
         ...d,
         tasks: clonedTasks

@@ -1,8 +1,29 @@
-export type TrackType = "DSA" | "Core CS" | "Mock Contest" | "Buffer & Consolidation" | "Spaced Repetition" | "Custom";
+export type TrackType = "DSA" | "Core CS" | "Mock Contest" | "Buffer & Consolidation" | "Spaced Repetition" | "Revision" | "Custom";
 
 export type ConfidenceLevel = "clean" | "hint" | "struggled" | null;
 
 export type ProblemDifficulty = "Easy" | "Medium" | "Hard";
+
+export type TopicStatus = "new" | "studied";
+export type TopicConfidence = "rusty" | "okay" | "solid";
+
+export interface TopicPlanEntry {
+  topicId: string;             // Canonical DSA category ID (e.g. "dynamic-programming") or Core CS key ("os")
+  kind: "dsa" | "core";
+  status: TopicStatus;
+  confidence?: TopicConfidence; // Required when status === "studied"
+  skipRevision?: boolean;      // Optional, studied topics only
+  order: number;               // 0-based sequence order unique within its kind ("dsa" or "core")
+}
+
+export type RevisionBlockType = "retro" | "backlog" | "prior-pool" | "this-week";
+
+export interface RevisionBlockMeta {
+  block: RevisionBlockType;
+  topicId?: string;
+  kind?: "dsa" | "core";
+  hydrated: boolean;          // false until filled with concrete problems/cards
+}
 
 export interface ProblemMetadata {
   title: string;
@@ -39,6 +60,7 @@ export interface PlanTask {
   pattern?: string;
   timeComplexity?: string;
   spaceComplexity?: string;
+  revisionMeta?: RevisionBlockMeta;
 }
 
 export interface PlanDay {
@@ -56,6 +78,8 @@ export interface PlanWeek {
   weekNumber: number;
   weekFocus: string;
   isMockInterviewWeek?: boolean;
+  topicIds?: string[];
+  coreTopicIds?: string[];
   days: PlanDay[];
 }
 
@@ -92,6 +116,8 @@ export interface SprintSettings {
   diagnostic?: UserDiagnostic;
   reserveMockWeeks?: boolean;
   startDate?: string; // YYYY-MM-DD
+  topicPlan?: TopicPlanEntry[];
+  sundayRevisionMins?: number; // default 240, range 60..360
 }
 
 export interface PlanMetadata {
@@ -105,11 +131,16 @@ export interface PlanMetadata {
   selectedCores: string[];
   targetInterviewDate?: string;
   startDate?: string;
+  schemaVersion?: number;
+  revisionCursor?: number;
+  topicPlan?: TopicPlanEntry[];
+  sundayRevisionMins?: number;
 }
 
 export interface SprintPlan {
   metadata: PlanMetadata;
   weeks: PlanWeek[];
+  settings?: SprintSettings;
 }
 
 export interface StreakStats {

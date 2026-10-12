@@ -28,12 +28,13 @@ import {
   TargetCompanyKey
 } from "@/lib/planly/types";
 import { COMPANY_PRESETS } from "@/lib/planly/pools";
-import { generateSchedule } from "@/lib/planly/engine";
+import { generateSchedule, regenerateFrom } from "@/lib/planly/engine";
 import {
   applyRestDay,
   executeIntelligentRebalance,
   injectSpacedRepetitionTask
 } from "@/lib/planly/spacedRepetition";
+import { hydrateSundayRevision } from "@/lib/planly/revision";
 import { computePlanMetrics } from "@/lib/planly/analytics";
 import {
   loadPlanlyState,
@@ -72,6 +73,11 @@ export default function PlanlyDashboard() {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
+  const triggerNotification = React.useCallback((msg: string) => {
+    setNotification(msg);
+    setTimeout(() => setNotification(""), 4500);
+  }, []);
+
   // Load from localStorage on mount & reconcile with /tasks
   useEffect(() => {
     const savedState = loadPlanlyState();
@@ -91,13 +97,13 @@ export default function PlanlyDashboard() {
     }
 
     setIsLoaded(true);
-  }, []);
+  }, [triggerNotification]);
 
   // Auto-save whenever plan, settings or streaks update
   useEffect(() => {
     if (!isLoaded || !plan) return;
     savePlanlyState({
-      version: 3,
+      version: 4,
       settings,
       plan,
       streaks,
@@ -106,10 +112,18 @@ export default function PlanlyDashboard() {
     });
   }, [plan, settings, streaks, currentDayNumber, isLoaded]);
 
-  const triggerNotification = (msg: string) => {
-    setNotification(msg);
-    setTimeout(() => setNotification(""), 4500);
-  };
+  // Sunday runtime hydration trigger
+  useEffect(() => {
+    if (!isLoaded || !plan || !settings.topicPlan) return;
+    const activeWeekNum = Math.ceil(currentDayNumber / 7);
+    const sundayDayNum = activeWeekNum * 7;
+    if (currentDayNumber === sundayDayNum || currentDayNumber === sundayDayNum - 1) {
+      const hydrated = hydrateSundayRevision(plan, activeWeekNum);
+      if (hydrated !== plan) {
+        setPlan(hydrated);
+      }
+    }
+  }, [currentDayNumber, isLoaded, plan, settings.topicPlan]);
 
   const metrics = useMemo(() => {
     return computePlanMetrics(plan, currentDayNumber);
@@ -136,11 +150,12 @@ export default function PlanlyDashboard() {
 
   const handleRegenerateFromModal = (newSettings: SprintSettings) => {
     setSettings(newSettings);
-    updatePlanWithHistory(() => {
-      const fresh = generateSchedule(newSettings);
-      setActiveWeek(1);
-      return fresh;
-    }, `Generated fresh sprint for ${COMPANY_PRESETS[newSettings.targetCompany]?.name || newSettings.targetCompany.toUpperCase()}!`);
+    updatePlanWithHistory((prevPlan) => {
+      if (!prevPlan) {
+        return generateSchedule(newSettings);
+      }
+      return regenerateFrom(newSettings, prevPlan, currentDayNumber);
+    }, `Updated sprint plan for ${COMPANY_PRESETS[newSettings.targetCompany]?.name || newSettings.targetCompany.toUpperCase()}! (Completed work preserved)`);
   };
 
   const handleUpdateTask = (taskId: string, updates: Partial<PlanTask>) => {

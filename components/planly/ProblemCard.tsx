@@ -92,12 +92,13 @@ export default function ProblemCard({ task, onUpdate, onConfidenceSelect }: Prob
     Hard: "text-rose-400 bg-rose-500/10 border-rose-500/30"
   };
 
-  const trackColors = {
+  const trackColors: Record<string, string> = {
     DSA: "text-emerald-400 bg-emerald-500/10 border-emerald-500/25",
     "Core CS": "text-cyan-400 bg-cyan-500/10 border-cyan-500/25",
     "Mock Contest": "text-purple-400 bg-purple-500/10 border-purple-500/25",
     "Buffer & Consolidation": "text-amber-400 bg-amber-500/10 border-amber-500/25",
     "Spaced Repetition": "text-pink-400 bg-pink-500/10 border-pink-500/25",
+    Revision: "text-purple-400 bg-purple-500/10 border-purple-500/25",
     Custom: "text-zinc-400 bg-zinc-500/10 border-zinc-500/25"
   };
 
@@ -146,14 +147,16 @@ export default function ProblemCard({ task, onUpdate, onConfidenceSelect }: Prob
           </div>
 
           <div className="flex items-center space-x-1">
-            <button
-              onClick={openInDsaCatalog}
-              className="flex items-center space-x-1 px-1.5 py-0.5 rounded bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px] font-medium transition"
-              title="Open problem in AlgoCraft DSA Sheet Catalog"
-            >
-              <BookOpen className="w-3 h-3 text-cyan-400" />
-              <span className="hidden sm:inline">DSA Sheet</span>
-            </button>
+            {(task.track === "DSA" || task.problemUrl || (task.track === "Revision" && task.revisionMeta?.block === "this-week")) && (
+              <button
+                onClick={openInDsaCatalog}
+                className="flex items-center space-x-1 px-1.5 py-0.5 rounded bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px] font-medium transition"
+                title="Open problem in AlgoCraft DSA Sheet Catalog"
+              >
+                <BookOpen className="w-3 h-3 text-cyan-400" />
+                <span className="hidden sm:inline">DSA Sheet</span>
+              </button>
+            )}
 
             <button
               onClick={togglePin}

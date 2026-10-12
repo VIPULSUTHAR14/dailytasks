@@ -1,8 +1,9 @@
-import { PlanlyState, PlanTask, SprintPlan, SprintSettings } from "./types";
-import { DEFAULT_DIAGNOSTIC } from "./pools";
+import { PlanlyState, PlanTask, SprintPlan, SprintSettings, TopicPlanEntry } from "./types";
+import { DEFAULT_DIAGNOSTIC, DSA_TOPICS_POOL } from "./pools";
 import { generateSchedule } from "./engine";
 
-const STATE_KEY = "algocraft_planly_v3";
+const STATE_KEY = "algocraft_planly_v4";
+const LEGACY_V3_KEY = "algocraft_planly_v3";
 const LEGACY_STATE_KEY = "algocraft_planly_v2";
 const HISTORY_KEY = "algocraft_planly_history_v3";
 const HABITS_STORAGE_KEY = "algocraft_weekly_habits_v1";
@@ -36,13 +37,81 @@ export const DEFAULT_SETTINGS: SprintSettings = {
   language: "Java",
   includeMockContests: true,
   reserveMockWeeks: true,
-  diagnostic: DEFAULT_DIAGNOSTIC
+  diagnostic: DEFAULT_DIAGNOSTIC,
+  sundayRevisionMins: 240
 };
+
+export function getDefaultTopicPlan(settings: SprintSettings): TopicPlanEntry[] {
+  const result: TopicPlanEntry[] = [];
+
+  // 1. Add all DSA topics in canonical order
+  DSA_TOPICS_POOL.forEach((dt, idx) => {
+    result.push({
+      topicId: dt.id || dt.tag,
+      kind: "dsa",
+      status: "new",
+      order: idx
+    });
+  });
+
+  // 2. Add selected Core CS subjects
+  const selectedCores = settings.selectedCores || ["os", "dbms", "cn"];
+  selectedCores.forEach((cKey, idx) => {
+    result.push({
+      topicId: cKey,
+      kind: "core",
+      status: "new",
+      order: idx
+    });
+  });
+
+  return result;
+}
+
+export function migratePlan(raw: unknown): PlanlyState {
+  if (!raw || typeof raw !== "object") {
+    return getInitialPlanlyState();
+  }
+
+  const rawObj = raw as Partial<PlanlyState>;
+  const rawSettings = rawObj.settings || DEFAULT_SETTINGS;
+  const plan: SprintPlan | null = rawObj.plan || null;
+
+  if (plan && plan.metadata) {
+    plan.metadata.schemaVersion = 4;
+  }
+
+  // Crucial backward-compatibility invariant:
+  // Legacy plans MUST keep topicPlan undefined so legacy generator runs.
+  const migratedSettings: SprintSettings = {
+    ...rawSettings,
+    topicPlan: rawSettings.topicPlan ? [...rawSettings.topicPlan] : undefined,
+    sundayRevisionMins: rawSettings.sundayRevisionMins ?? 240
+  };
+
+  const streaks = rawObj.streaks || {
+    currentStreak: 1,
+    longestStreak: 1,
+    lastActiveDate: new Date().toISOString().split("T")[0]
+  };
+
+  const currentDayNumber = typeof rawObj.currentDayNumber === "number" ? rawObj.currentDayNumber : 1;
+  const updatedAt = rawObj.updatedAt || new Date().toISOString();
+
+  return {
+    version: 4,
+    settings: migratedSettings,
+    plan,
+    streaks,
+    currentDayNumber,
+    updatedAt
+  };
+}
 
 export function getInitialPlanlyState(): PlanlyState {
   const initialPlan = generateSchedule(DEFAULT_SETTINGS);
   return {
-    version: 3,
+    version: 4,
     settings: DEFAULT_SETTINGS,
     plan: initialPlan,
     streaks: {
@@ -59,22 +128,34 @@ export function loadPlanlyState(): PlanlyState {
   if (typeof window === "undefined") return getInitialPlanlyState();
 
   try {
-    const raw = localStorage.getItem(STATE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && parsed.plan && parsed.version === 3) {
-        return parsed as PlanlyState;
+    // 1. Try v4 state
+    const rawV4 = localStorage.getItem(STATE_KEY);
+    if (rawV4) {
+      const parsed = JSON.parse(rawV4);
+      if (parsed && parsed.plan) {
+        return migratePlan(parsed);
       }
     }
 
-    // Auto-migrate from v2 if user had previously generated plan with old single-problem engine
+    // 2. Try v3 state
+    const rawV3 = localStorage.getItem(LEGACY_V3_KEY);
+    if (rawV3) {
+      const parsed = JSON.parse(rawV3);
+      if (parsed && parsed.plan) {
+        const migrated = migratePlan(parsed);
+        savePlanlyState(migrated);
+        return migrated;
+      }
+    }
+
+    // 3. Try v2 state
     const legacyRaw = localStorage.getItem(LEGACY_STATE_KEY);
     if (legacyRaw) {
       const legacyParsed = JSON.parse(legacyRaw);
       const userSettings = legacyParsed.settings || DEFAULT_SETTINGS;
       const freshPlan = generateSchedule(userSettings);
       const migratedState: PlanlyState = {
-        version: 3,
+        version: 4,
         settings: userSettings,
         plan: freshPlan,
         streaks: legacyParsed.streaks || {
@@ -194,7 +275,7 @@ export function syncDayToHabitTasks(dayTasks: PlanTask[]): { addedCount: number;
       const rawHabits = localStorage.getItem(HABITS_STORAGE_KEY);
       if (rawHabits) {
         const habits = JSON.parse(rawHabits);
-        const filtered = habits.filter((h: any) => !h.title.startsWith("[Planly]"));
+        const filtered = habits.filter((h: { title?: string }) => typeof h?.title === "string" && !h.title.startsWith("[Planly]"));
         if (filtered.length !== habits.length) {
           localStorage.setItem(HABITS_STORAGE_KEY, JSON.stringify(filtered));
         }
@@ -245,7 +326,7 @@ export function reconcileWithCompletedHabits(plan: SprintPlan): { updatedPlan: S
       updatedPlan: { ...plan, weeks: newWeeks },
       syncedCount
     };
-  } catch (e) {
+  } catch {
     return { updatedPlan: plan, syncedCount: 0 };
   }
 }
