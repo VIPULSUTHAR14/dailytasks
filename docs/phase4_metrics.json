@@ -1,0 +1,179 @@
+{
+  "timestamp": "2026-10-12T06:20:39.809Z",
+  "targetUrl": "http://localhost:3000",
+  "gitBranch": "perf-security-hardening",
+  "phase": "Phase 4 - Session Caching & Performance Verification",
+  "comparison": [
+    {
+      "path": "/Login",
+      "type": "page",
+      "status": 200,
+      "baselineTtfbMs": 78.51,
+      "currentTtfbMs": 97.49,
+      "deltaMs": 18.98,
+      "bytes": 38544
+    },
+    {
+      "path": "/signup",
+      "type": "page",
+      "status": 200,
+      "baselineTtfbMs": 49.35,
+      "currentTtfbMs": 52.87,
+      "deltaMs": 3.52,
+      "bytes": 39456
+    },
+    {
+      "path": "/dashboard",
+      "type": "page",
+      "status": 200,
+      "baselineTtfbMs": 59.08,
+      "currentTtfbMs": 60.96,
+      "deltaMs": 1.88,
+      "bytes": 38542
+    },
+    {
+      "path": "/timetable",
+      "type": "page",
+      "status": 200,
+      "baselineTtfbMs": 71.3,
+      "currentTtfbMs": 55.73,
+      "deltaMs": -15.57,
+      "bytes": 38548
+    },
+    {
+      "path": "/tasks",
+      "type": "page",
+      "status": 200,
+      "baselineTtfbMs": 63.08,
+      "currentTtfbMs": 62.39,
+      "deltaMs": -0.69,
+      "bytes": 38545
+    },
+    {
+      "path": "/notes",
+      "type": "page",
+      "status": 200,
+      "baselineTtfbMs": 36.52,
+      "currentTtfbMs": 41.18,
+      "deltaMs": 4.66,
+      "bytes": 21199
+    },
+    {
+      "path": "/custom-notes",
+      "type": "page",
+      "status": 200,
+      "baselineTtfbMs": 42.21,
+      "currentTtfbMs": 33.91,
+      "deltaMs": -8.3,
+      "bytes": 21344
+    },
+    {
+      "path": "/planly",
+      "type": "page",
+      "status": 200,
+      "baselineTtfbMs": 35.42,
+      "currentTtfbMs": 65.09,
+      "deltaMs": 29.67,
+      "bytes": 41205
+    },
+    {
+      "path": "/aptitude",
+      "type": "page",
+      "status": 200,
+      "baselineTtfbMs": 47.19,
+      "currentTtfbMs": 77.24,
+      "deltaMs": 30.05,
+      "bytes": 38548
+    },
+    {
+      "path": "/dsaquestions",
+      "type": "page",
+      "status": 200,
+      "baselineTtfbMs": 40.89,
+      "currentTtfbMs": 63.59,
+      "deltaMs": 22.7,
+      "bytes": 38545
+    },
+    {
+      "path": "/api/users",
+      "type": "api",
+      "status": 401,
+      "baselineTtfbMs": 62.36,
+      "currentTtfbMs": 7.91,
+      "deltaMs": -54.45,
+      "bytes": 26
+    },
+    {
+      "path": "/api/timetable",
+      "type": "api",
+      "status": 401,
+      "baselineTtfbMs": 10.16,
+      "currentTtfbMs": 7.15,
+      "deltaMs": -3.01,
+      "bytes": 26
+    },
+    {
+      "path": "/api/task",
+      "type": "api",
+      "status": 401,
+      "baselineTtfbMs": 6.71,
+      "currentTtfbMs": 13.53,
+      "deltaMs": 6.82,
+      "bytes": 26
+    },
+    {
+      "path": "/api/tasktoday",
+      "type": "api",
+      "status": 401,
+      "baselineTtfbMs": 13.84,
+      "currentTtfbMs": 12.94,
+      "deltaMs": -0.9,
+      "bytes": 26
+    },
+    {
+      "path": "/api/notes",
+      "type": "api",
+      "status": 401,
+      "baselineTtfbMs": 6.44,
+      "currentTtfbMs": 15.09,
+      "deltaMs": 8.65,
+      "bytes": 26
+    },
+    {
+      "path": "/api/custom-notes",
+      "type": "api",
+      "status": 401,
+      "baselineTtfbMs": 14.01,
+      "currentTtfbMs": 12.53,
+      "deltaMs": -1.48,
+      "bytes": 26
+    },
+    {
+      "path": "/api/dsaquestions",
+      "type": "api",
+      "status": 401,
+      "baselineTtfbMs": 8.61,
+      "currentTtfbMs": 5.94,
+      "deltaMs": -2.67,
+      "bytes": 26
+    },
+    {
+      "path": "/api/habits",
+      "type": "api",
+      "status": 401,
+      "baselineTtfbMs": 11.56,
+      "currentTtfbMs": 7.83,
+      "deltaMs": -3.73,
+      "bytes": 41
+    },
+    {
+      "path": "/api/aptitude",
+      "type": "api",
+      "status": 401,
+      "baselineTtfbMs": 6.62,
+      "currentTtfbMs": 13.78,
+      "deltaMs": 7.16,
+      "bytes": 26
+    }
+  ]
+}
