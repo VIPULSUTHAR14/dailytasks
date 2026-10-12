@@ -153,8 +153,26 @@ export default function RichTextEditor({
     const [isOutlineOpen, setIsOutlineOpen] = useState(false);
     const outlineRef = useRef<HTMLDivElement>(null);
 
+    // Extract headings from editor document
+    const updateHeadingsList = useCallback((editorInstance: Editor) => {
+        if (!editorInstance) return;
+        const list: DocumentHeading[] = [];
+        editorInstance.state.doc.descendants((node, pos) => {
+            if (node.type.name === "heading") {
+                list.push({
+                    pos,
+                    level: (node.attrs.level as number) || 1,
+                    text: node.textContent.trim(),
+                });
+            }
+        });
+        setHeadings(list);
+    }, []);
+
     // Debounce refs & saving status
+    const editorRef = useRef<Editor | null>(null);
     const pendingValueRef = useRef<string | null>(null);
+    const isDirtyRef = useRef<boolean>(false);
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [stats, setStats] = useState({ words: 0, characters: 0 });
@@ -164,13 +182,26 @@ export default function RichTextEditor({
             clearTimeout(debounceTimerRef.current);
             debounceTimerRef.current = null;
         }
-        if (pendingValueRef.current !== null) {
-            const val = pendingValueRef.current;
-            pendingValueRef.current = null;
-            onChange(val);
-            setIsSaving(false);
+        const inst = editorRef.current;
+        if (!inst || inst.isDestroyed || !isDirtyRef.current) {
+            return;
         }
-    }, [onChange]);
+        isDirtyRef.current = false;
+        const rawMarkdown = inst.storage.markdown?.getMarkdown() ?? "";
+        const storableMarkdown = richToStorage(rawMarkdown);
+        pendingValueRef.current = storableMarkdown;
+        onChange(storableMarkdown);
+        setIsSaving(false);
+
+        // Compute words and characters off the typing hot path
+        const text = inst.getText().trim();
+        setStats({
+            words: text ? text.split(/\s+/).length : 0,
+            characters: text.length,
+        });
+
+        updateHeadingsList(inst);
+    }, [onChange, updateHeadingsList]);
 
     // Cleanup and flush on unmount
     useEffect(() => {
@@ -198,22 +229,6 @@ export default function RichTextEditor({
         };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    // Extract headings from editor document
-    const updateHeadingsList = useCallback((editorInstance: Editor) => {
-        if (!editorInstance) return;
-        const list: DocumentHeading[] = [];
-        editorInstance.state.doc.descendants((node, pos) => {
-            if (node.type.name === "heading") {
-                list.push({
-                    pos,
-                    level: (node.attrs.level as number) || 1,
-                    text: node.textContent.trim(),
-                });
-            }
-        });
-        setHeadings(list);
     }, []);
 
     const editor = useEditor({
@@ -258,6 +273,7 @@ export default function RichTextEditor({
         ],
         content: legacyToRich(value || ""),
         onCreate: ({ editor: inst }) => {
+            editorRef.current = inst;
             updateHeadingsList(inst);
             const text = inst.getText().trim();
             setStats({
@@ -265,18 +281,10 @@ export default function RichTextEditor({
                 characters: text.length,
             });
         },
-        onUpdate: ({ editor }) => {
-            const rawMarkdown = editor.storage.markdown?.getMarkdown() ?? "";
-            const storableMarkdown = richToStorage(rawMarkdown);
-            pendingValueRef.current = storableMarkdown;
+        onUpdate: ({ editor: inst }) => {
+            editorRef.current = inst;
+            isDirtyRef.current = true;
             setIsSaving(true);
-
-            // Compute words and characters
-            const text = editor.getText().trim();
-            setStats({
-                words: text ? text.split(/\s+/).length : 0,
-                characters: text.length,
-            });
 
             if (debounceTimerRef.current) {
                 clearTimeout(debounceTimerRef.current);
@@ -284,8 +292,6 @@ export default function RichTextEditor({
             debounceTimerRef.current = setTimeout(() => {
                 flushDebouncedChange();
             }, 350);
-
-            updateHeadingsList(editor);
         },
         editorProps: {
             attributes: {
@@ -308,14 +314,27 @@ export default function RichTextEditor({
         },
     });
 
+    useEffect(() => {
+        editorRef.current = editor;
+    }, [editor]);
+
     // Synchronize external value changes without infinite loop or losing cursor
     useEffect(() => {
-        if (!editor) return;
+        if (!editor || editor.isDestroyed) return;
+        // Skip if user is actively editing or value matches what we already sent
+        if (value !== undefined && (value === pendingValueRef.current || isDirtyRef.current)) {
+            return;
+        }
         const rawMarkdown = editor.storage.markdown?.getMarkdown() ?? "";
         const currentStorable = richToStorage(rawMarkdown);
-        if (value !== undefined && value !== currentStorable && value !== pendingValueRef.current) {
+        if (value !== undefined && value !== currentStorable) {
+            pendingValueRef.current = value;
             editor.commands.setContent(legacyToRich(value || ""), { emitUpdate: false });
-            updateHeadingsList(editor);
+            queueMicrotask(() => {
+                if (!editor.isDestroyed) {
+                    updateHeadingsList(editor);
+                }
+            });
         }
     }, [value, editor, updateHeadingsList]);
 

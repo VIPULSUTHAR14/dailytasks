@@ -357,13 +357,46 @@ function PaginatedNotesBlock({
     const [copied, setCopied] = useState(false);
     const [highlightedLines, setHighlightedLines] = useState<Set<number>>(new Set());
     const [fontSize, setFontSize] = useState<"sm" | "base" | "lg">("sm");
+    const [localText, setLocalText] = useState(value || "");
+    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
     const linesPerPage = 40;
+
+    useEffect(() => {
+        setLocalText(value || "");
+    }, [value]);
+
+    useEffect(() => {
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
+    }, []);
+
+    const handleTextChange = useCallback((newVal: string) => {
+        setLocalText(newVal);
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+        debounceTimerRef.current = setTimeout(() => {
+            onChange(newVal);
+        }, 300);
+    }, [onChange]);
+
+    const handleBlur = useCallback(() => {
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+            debounceTimerRef.current = null;
+        }
+        onChange(localText);
+    }, [localText, onChange]);
 
     // Split value into lines, preserving empty lines
     const lines = useMemo(() => {
-        if (!value) return [];
-        return value.split("\n");
-    }, [value]);
+        const textToUse = isEditing ? localText : value;
+        if (!textToUse) return [];
+        return textToUse.split("\n");
+    }, [isEditing, localText, value]);
 
     const totalPages = Math.max(1, Math.ceil(lines.length / linesPerPage));
 
@@ -481,6 +514,7 @@ function PaginatedNotesBlock({
         else if (syntax === "codeblock") replacement = `\n\`\`\`\n${selected || "// code block"}\n\`\`\`\n`;
 
         const newValue = text.substring(0, start) + replacement + text.substring(end);
+        setLocalText(newValue);
         onChange(newValue);
 
         const restoreFocusAndScroll = () => {
@@ -708,8 +742,9 @@ function PaginatedNotesBlock({
                         {/* Textarea Area */}
                         <textarea
                             id={`textarea-${label}`}
-                            value={value}
-                            onChange={(e) => onChange(e.target.value)}
+                            value={localText}
+                            onChange={(e) => handleTextChange(e.target.value)}
+                            onBlur={handleBlur}
                             placeholder={placeholder}
                             rows={40}
                             className="flex-1 min-w-0 bg-white/[0.02] border border-white/[0.08] rounded-xl p-4 text-sm text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-white/20 focus:bg-white/[0.04] transition-all font-mono leading-relaxed resize-y"
