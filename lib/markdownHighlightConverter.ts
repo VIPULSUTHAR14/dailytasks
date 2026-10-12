@@ -19,6 +19,8 @@
  * Preserves code blocks, inline code, and Mermaid diagrams intact.
  */
 
+import { sanitizeHtml } from "@/lib/sanitize";
+
 export const COLOR_MAP_TO_RICH: Record<string, string> = {
     r: "#f43f5e",
     red: "#f43f5e",
@@ -94,6 +96,7 @@ function protectCodeSegments(markdown: string): {
 
 /**
  * Converts legacy ==r:text== syntax into TipTap-compatible <mark data-color="...">text</mark>
+ * and sanitizes HTML to neutralize script and onerror payloads.
  */
 export function legacyToRich(markdown: string): string {
     if (!markdown) return "";
@@ -126,7 +129,7 @@ export function legacyToRich(markdown: string): string {
         return `<mark data-color="${colorHex}">${content}</mark>`;
     });
 
-    return restore(converted);
+    return sanitizeHtml(restore(converted));
 }
 
 /**

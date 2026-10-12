@@ -1,7 +1,20 @@
 import { dbcollection } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUserId } from "@/lib/auth/session";
+import { verifyCsrfOrigin, csrfForbiddenResponse } from "@/lib/security";
 import notesData from "@/lib/data/notes.json";
+import z from "zod";
+
+const noteTopicSchema = z.object({
+    id: z.number(),
+    name: z.string().optional(),
+    level: z.string().optional(),
+    notes: z.string().optional(),
+    revisionNotes: z.string().optional(),
+    completed: z.boolean().optional(),
+    favorite: z.boolean().optional(),
+    confidence: z.number().optional(),
+}).passthrough();
 
 export async function GET() {
     try {
@@ -48,15 +61,17 @@ export async function GET() {
 
 export async function PATCH(request: NextRequest) {
     try {
+        if (!verifyCsrfOrigin(request)) {
+            return csrfForbiddenResponse();
+        }
+
         const user_id = await getAuthenticatedUserId();
         if (!user_id) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
-        const updatedTopic = await request.json();
-        if (!updatedTopic || typeof updatedTopic.id !== "number") {
-            return NextResponse.json({ message: "Invalid topic data" }, { status: 400 });
-        }
+        const rawBody = await request.json();
+        const updatedTopic = noteTopicSchema.parse(rawBody);
 
         const data = await dbcollection("dsatopics");
 
@@ -100,12 +115,16 @@ export async function PATCH(request: NextRequest) {
                 {
                     $push: { topics: updatedTopic },
                     $set: { updated_at: new Date() }
-                }
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                } as any
             );
         }
 
         return NextResponse.json({ success: true, message: "Topic updated successfully" }, { status: 200 });
     } catch (error: unknown) {
+        if (error instanceof z.ZodError) {
+            return NextResponse.json({ message: error.issues[0]?.message || "Invalid input data" }, { status: 400 });
+        }
         console.error("Notes PATCH error:", error);
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }

@@ -1,6 +1,7 @@
 import { dbcollection } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUserId } from "@/lib/auth/session";
+import { verifyCsrfOrigin, csrfForbiddenResponse } from "@/lib/security";
 import { ObjectId } from "mongodb";
 import z from "zod";
 
@@ -62,6 +63,10 @@ export async function GET() {
 // POST: Create a new habit in the database
 export async function POST(request: NextRequest) {
     try {
+        if (!verifyCsrfOrigin(request)) {
+            return csrfForbiddenResponse();
+        }
+
         const user_id = await getAuthenticatedUserId();
         if (!user_id) {
             return NextResponse.json({ message: "Unauthorized", isGuest: true }, { status: 401 });
@@ -104,6 +109,10 @@ export async function POST(request: NextRequest) {
 // PATCH: Toggle date or update habit attributes
 export async function PATCH(request: NextRequest) {
     try {
+        if (!verifyCsrfOrigin(request)) {
+            return csrfForbiddenResponse();
+        }
+
         const user_id = await getAuthenticatedUserId();
         if (!user_id) {
             return NextResponse.json({ message: "Unauthorized", isGuest: true }, { status: 401 });
@@ -165,6 +174,10 @@ export async function PATCH(request: NextRequest) {
 // DELETE: Delete a habit by id
 export async function DELETE(request: NextRequest) {
     try {
+        if (!verifyCsrfOrigin(request)) {
+            return csrfForbiddenResponse();
+        }
+
         const user_id = await getAuthenticatedUserId();
         if (!user_id) {
             return NextResponse.json({ message: "Unauthorized", isGuest: true }, { status: 401 });

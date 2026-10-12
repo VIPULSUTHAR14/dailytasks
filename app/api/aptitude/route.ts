@@ -1,6 +1,7 @@
 import { dbcollection } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUserId } from "@/lib/auth/session";
+import { verifyCsrfOrigin, csrfForbiddenResponse } from "@/lib/security";
 import z from "zod";
 
 const aptitudeSchema = z.object({
@@ -23,12 +24,17 @@ export async function GET() {
 
         return NextResponse.json({ statuses: aptitude.statuses || {} }, { status: 200 });
     } catch (error: unknown) {
+        console.error("Aptitude GET error:", error);
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }
 }
 
 export async function POST(request: NextRequest) {
     try {
+        if (!verifyCsrfOrigin(request)) {
+            return csrfForbiddenResponse();
+        }
+
         const user_id = await getAuthenticatedUserId();
         if (!user_id) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -62,6 +68,10 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
     try {
+        if (!verifyCsrfOrigin(request)) {
+            return csrfForbiddenResponse();
+        }
+
         const user_id = await getAuthenticatedUserId();
         if (!user_id) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -71,7 +81,7 @@ export async function PATCH(request: NextRequest) {
         const { statuses } = aptitudeSchema.parse(body);
         const data = await dbcollection("aptitude");
 
-        const setPayload: Record<string, any> = { updated_at: new Date() };
+        const setPayload: Record<string, unknown> = { updated_at: new Date() };
 
         if (statuses) {
             for (const [key, val] of Object.entries(statuses)) {

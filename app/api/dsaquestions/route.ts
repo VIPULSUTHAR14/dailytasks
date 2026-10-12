@@ -1,6 +1,7 @@
 import { dbcollection } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUserId } from "@/lib/auth/session";
+import { verifyCsrfOrigin, csrfForbiddenResponse } from "@/lib/security";
 import z from "zod";
 import baseQuestions from "@/lib/data/dsaQuesions.json";
 
@@ -84,6 +85,10 @@ export async function GET() {
 
 export async function PATCH(request: NextRequest) {
     try {
+        if (!verifyCsrfOrigin(request)) {
+            return csrfForbiddenResponse();
+        }
+
         const user_id = await getAuthenticatedUserId();
         if (!user_id) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -94,7 +99,7 @@ export async function PATCH(request: NextRequest) {
         const data = await dbcollection("dsaquestions");
 
         // Build the isolated atomic update payload for MongoDB
-        const setPayload: Record<string, any> = { updated_at: new Date() };
+        const setPayload: Record<string, unknown> = { updated_at: new Date() };
         for (const [key, val] of Object.entries(statuses)) {
             setPayload[`statuses.${key}`] = val;
         }
@@ -124,6 +129,10 @@ export async function PATCH(request: NextRequest) {
 // Save/update notes and pseudoCode for a specific question
 export async function PUT(request: NextRequest) {
     try {
+        if (!verifyCsrfOrigin(request)) {
+            return csrfForbiddenResponse();
+        }
+
         const user_id = await getAuthenticatedUserId();
         if (!user_id) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -133,7 +142,7 @@ export async function PUT(request: NextRequest) {
         const { questionKey: qKey, note, pseudoCode } = notesSchema.parse(body);
         const data = await dbcollection("dsaquestions");
 
-        const setPayload: Record<string, any> = { updated_at: new Date() };
+        const setPayload: Record<string, unknown> = { updated_at: new Date() };
         if (note !== undefined) {
             setPayload[`notes.${qKey}`] = note;
         }

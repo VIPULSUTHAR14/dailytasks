@@ -1,6 +1,40 @@
 import { dbcollection } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedUserId } from "@/lib/auth/session";
+import { verifyCsrfOrigin, csrfForbiddenResponse } from "@/lib/security";
+import z from "zod";
+
+const sectionSchema = z.object({
+    id: z.string().optional(),
+    name: z.string().min(1, "Section name is required"),
+    type: z.string().default("notes"),
+    content: z.string().default(""),
+    items: z.array(z.string()).optional(),
+}).passthrough();
+
+const createCustomTopicSchema = z.object({
+    id: z.string().optional(),
+    title: z.string().min(1, "Topic title is required"),
+    category: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    description: z.string().optional(),
+    color: z.string().optional(),
+    sections: z.array(sectionSchema).optional(),
+    isFavorite: z.boolean().optional(),
+    isPinned: z.boolean().optional(),
+}).passthrough();
+
+const updateCustomTopicSchema = z.object({
+    id: z.string().min(1, "Topic ID is required"),
+    title: z.string().optional(),
+    category: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    description: z.string().optional(),
+    color: z.string().optional(),
+    sections: z.array(sectionSchema).optional(),
+    isFavorite: z.boolean().optional(),
+    isPinned: z.boolean().optional(),
+}).passthrough();
 
 const DEFAULT_STARTER_TOPIC = {
     id: "starter-custom-note-1",
@@ -39,8 +73,8 @@ Here you can create notes for any topic you want with **completely customizable 
 `,
         }
     ],
-    isFavorite: false,
-    isPinned: false,
+    isFavorite: true,
+    isPinned: true,
     created_at: new Date(),
     updated_at: new Date(),
 };
@@ -56,7 +90,7 @@ export async function GET() {
         const record = await data.findOne({ user_id });
 
         if (!record) {
-            // First time user - initialize the document with starter topic
+            // First-time user: seed with starter topic
             const initialDoc = {
                 user_id,
                 topics: [DEFAULT_STARTER_TOPIC],
@@ -67,7 +101,7 @@ export async function GET() {
             return NextResponse.json([DEFAULT_STARTER_TOPIC], { status: 200 });
         }
 
-        if (!record.topics) {
+        if (!record.topics || record.topics.length === 0) {
             await data.updateOne(
                 { user_id },
                 {
@@ -89,25 +123,27 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
     try {
+        if (!verifyCsrfOrigin(request)) {
+            return csrfForbiddenResponse();
+        }
+
         const user_id = await getAuthenticatedUserId();
         if (!user_id) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
-        const body = await request.json();
-        if (!body || !body.title) {
-            return NextResponse.json({ message: "Topic title is required" }, { status: 400 });
-        }
+        const rawBody = await request.json();
+        const body = createCustomTopicSchema.parse(rawBody);
 
         const newTopic = {
-            id: body.id || `topic-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+            id: body.id || `topic-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
             title: body.title.trim(),
             category: body.category?.trim() || "General",
             tags: Array.isArray(body.tags) ? body.tags : [],
             description: body.description?.trim() || "",
             color: body.color || "sky",
             sections: Array.isArray(body.sections) && body.sections.length > 0 
-                ? body.sections.map((s: any, idx: number) => ({
+                ? body.sections.map((s, idx) => ({
                     id: s.id || `sec-${Date.now()}-${idx}`,
                     name: s.name?.trim() || `Section ${idx + 1}`,
                     type: s.type || "notes",
@@ -144,12 +180,16 @@ export async function POST(request: NextRequest) {
                 {
                     $push: { topics: newTopic },
                     $set: { updated_at: new Date() }
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 } as any
             );
         }
 
         return NextResponse.json({ success: true, topic: newTopic }, { status: 201 });
     } catch (error: unknown) {
+        if (error instanceof z.ZodError) {
+            return NextResponse.json({ message: error.issues[0]?.message || "Invalid topic data" }, { status: 400 });
+        }
         console.error("Custom Notes POST error:", error);
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }
@@ -157,18 +197,21 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
     try {
+        if (!verifyCsrfOrigin(request)) {
+            return csrfForbiddenResponse();
+        }
+
         const user_id = await getAuthenticatedUserId();
         if (!user_id) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
-        const updatedTopic = await request.json();
-        if (!updatedTopic || !updatedTopic.id) {
-            return NextResponse.json({ message: "Invalid topic data" }, { status: 400 });
-        }
+        const rawBody = await request.json();
+        const updatedTopic = updateCustomTopicSchema.parse(rawBody);
 
         const data = await dbcollection("custom_notes");
-        updatedTopic.updated_at = new Date();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (updatedTopic as any).updated_at = new Date();
 
         const result = await data.updateOne(
             { user_id, "topics.id": updatedTopic.id },
@@ -187,6 +230,7 @@ export async function PATCH(request: NextRequest) {
                 {
                     $push: { topics: updatedTopic },
                     $set: { updated_at: new Date() }
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 } as any,
                 { upsert: true }
             );
@@ -194,6 +238,9 @@ export async function PATCH(request: NextRequest) {
 
         return NextResponse.json({ success: true, message: "Topic updated successfully", topic: updatedTopic }, { status: 200 });
     } catch (error: unknown) {
+        if (error instanceof z.ZodError) {
+            return NextResponse.json({ message: error.issues[0]?.message || "Invalid topic data" }, { status: 400 });
+        }
         console.error("Custom Notes PATCH error:", error);
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }
@@ -201,6 +248,10 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
     try {
+        if (!verifyCsrfOrigin(request)) {
+            return csrfForbiddenResponse();
+        }
+
         const user_id = await getAuthenticatedUserId();
         if (!user_id) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -219,6 +270,7 @@ export async function DELETE(request: NextRequest) {
             {
                 $pull: { topics: { id: topicId } },
                 $set: { updated_at: new Date() }
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as any
         );
 
