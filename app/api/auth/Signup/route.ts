@@ -1,15 +1,17 @@
 import { generatetoken } from "@/lib/generatetoken";
 import { dbcollection } from "@/lib/mongodb";
+import { SESSION_COOKIE_NAME, SESSION_COOKIE_OPTIONS, SESSION_MAX_AGE_MS } from "@/lib/auth/session";
+import { checkRateLimit } from "@/lib/rateLimit";
 import bcrypt from "bcryptjs";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import z from "zod";
-import crypto from "crypto"
+import crypto from "crypto";
 import { cookies } from "next/headers";
 
 const userSchema = z.object({
     name: z.string().min(3, "Name must be at least 3 characters long"),
     email: z.string().email("Invalid email address"),
-    password: z.string().min(4).max(10)
+    password: z.string().min(4, "Password must be at least 4 characters long"),
 })
 
 const sessionSchema = z.object({
@@ -18,8 +20,15 @@ const sessionSchema = z.object({
     CreatedAt: z.date(),
     ExpireAt: z.date(),
 })
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
+        const rateCheck = checkRateLimit(request, "auth_signup", { limit: 10, windowMs: 60 * 1000 });
+        if (!rateCheck.allowed) {
+            return NextResponse.json(
+                { message: "Too many signup attempts. Please try again later." },
+                { status: 429, headers: { "Retry-After": rateCheck.resetInSeconds.toString() } }
+            );
+        }
 
         const body = await request.json();
         const { name, email, password } = userSchema.parse(body);
@@ -37,19 +46,12 @@ export async function POST(request: Request) {
             userId: userdata.insertedId.toString(),
             hashedToken: hashedToken,
             CreatedAt: new Date(),
-            ExpireAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            ExpireAt: new Date(Date.now() + SESSION_MAX_AGE_MS),
         })
         await session.insertOne(sessiondata);
 
-
         const cookieStore = await cookies();
-        cookieStore.set("session_token", hashedToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            path: "/",
-            maxAge: 60 * 60 * 24 * 7,
-        })
+        cookieStore.set(SESSION_COOKIE_NAME, hashedToken, SESSION_COOKIE_OPTIONS);
         return NextResponse.json({ message: "User Created Successfully" }, { status: 201 })
     } catch (error: unknown) {
         if (error instanceof z.ZodError) {

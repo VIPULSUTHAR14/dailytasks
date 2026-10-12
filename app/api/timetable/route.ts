@@ -1,6 +1,6 @@
 import { dbcollection } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { getAuthenticatedUserId } from "@/lib/auth/session";
 import { ObjectId } from "mongodb";
 import z from "zod";
 
@@ -20,26 +20,6 @@ const rowSchema = z.object({
 const timetableSchema = z.object({
     schedule: z.array(rowSchema),
 });
-
-// Helper to reliably extract the authenticated user from the session cookie
-async function getAuthenticatedUserId(): Promise<string | null> {
-    const cookieStore = await cookies();
-    const hashedToken = cookieStore.get("session_token")?.value;
-
-    if (!hashedToken) return null;
-
-    try {
-        const sessions = await dbcollection("sessions");
-        const session = await sessions.findOne({
-            hashedToken,
-            ExpireAt: { $gt: new Date() },
-        });
-
-        return session ? session.userId : null;
-    } catch {
-        return null;
-    }
-}
 
 // Helper to check if the timetable needs to be reset (if it hasn't been reset since the last 6:00 AM)
 function shouldReset(lastResetAt?: Date | string): boolean {
@@ -72,7 +52,7 @@ export async function GET() {
         }
 
         const timetables = await dbcollection("timetable");
-        let timetable = await timetables.findOne({ userId });
+        const timetable = await timetables.findOne({ userId });
 
         if (!timetable) {
             return NextResponse.json({ message: "Timetable not found" }, { status: 404 });
@@ -80,7 +60,7 @@ export async function GET() {
 
         // Check if automatic reset at 6:00 AM is needed
         if (shouldReset(timetable.lastResetAt)) {
-            const updatedSchedule = timetable.schedule.map((item: any) => ({
+            const updatedSchedule = timetable.schedule.map((item: Record<string, unknown>) => ({
                 ...item,
                 completed: false
             }));
@@ -187,7 +167,7 @@ export async function PATCH(request: NextRequest) {
 
         // 1. Reset checkmarks action (Manually requested by user)
         if (body.action === "reset") {
-            const updatedSchedule = doc.schedule.map((item: any) => ({
+            const updatedSchedule = doc.schedule.map((item: Record<string, unknown>) => ({
                 ...item,
                 completed: false
             }));

@@ -1,6 +1,6 @@
 import { dbcollection } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { getAuthenticatedUserId } from "@/lib/auth/session";
 import z from "zod";
 
 const taskSchema = z.object({
@@ -12,26 +12,6 @@ const taskSchema = z.object({
         updated_at: z.coerce.date().optional(),
     })
 })
-
-// Helper to reliably extract the authenticated user from the session cookie
-async function getAuthenticatedUserId(): Promise<string | null> {
-    const cookieStore = await cookies();
-    const hashedToken = cookieStore.get("session_token")?.value;
-
-    if (!hashedToken) return null;
-
-    try {
-        const sessions = await dbcollection("sessions");
-        const session = await sessions.findOne({
-            hashedToken,
-            ExpireAt: { $gt: new Date() },
-        });
-
-        return session ? session.userId : null;
-    } catch {
-        return null;
-    }
-}
 
 
 export async function GET() {

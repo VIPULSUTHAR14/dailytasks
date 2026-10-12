@@ -1,6 +1,6 @@
 import { dbcollection } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { getAuthenticatedUserId } from "@/lib/auth/session";
 import { ObjectId } from "mongodb";
 import z from "zod";
 
@@ -18,26 +18,6 @@ const patchHabitSchema = z.object({
     dateStr: z.string().optional(), // For atomic single-date toggle
     completedDates: z.array(z.string()).optional(), // For direct array update
 });
-
-// Helper to extract authenticated user from session cookie
-async function getAuthenticatedUserId(): Promise<string | null> {
-    const cookieStore = await cookies();
-    const hashedToken = cookieStore.get("session_token")?.value;
-
-    if (!hashedToken) return null;
-
-    try {
-        const sessions = await dbcollection("sessions");
-        const session = await sessions.findOne({
-            hashedToken,
-            ExpireAt: { $gt: new Date() },
-        });
-
-        return session ? session.userId : null;
-    } catch {
-        return null;
-    }
-}
 
 // Build query to find habit by MongoDB _id or custom string id
 function buildHabitQuery(id: string, user_id: string) {

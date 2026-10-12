@@ -1,25 +1,6 @@
 import { dbcollection } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-
-async function getAuthenticatedUserId(): Promise<string | null> {
-    const cookieStore = await cookies();
-    const hashedToken = cookieStore.get("session_token")?.value;
-
-    if (!hashedToken) return null;
-
-    try {
-        const sessions = await dbcollection("sessions");
-        const session = await sessions.findOne({
-            hashedToken,
-            ExpireAt: { $gt: new Date() },
-        });
-
-        return session ? session.userId : null;
-    } catch {
-        return null;
-    }
-}
+import { getAuthenticatedUserId } from "@/lib/auth/session";
 
 const DEFAULT_STARTER_TOPIC = {
     id: "starter-custom-note-1",
@@ -189,7 +170,7 @@ export async function PATCH(request: NextRequest) {
         const data = await dbcollection("custom_notes");
         updatedTopic.updated_at = new Date();
 
-        let result = await data.updateOne(
+        const result = await data.updateOne(
             { user_id, "topics.id": updatedTopic.id },
             {
                 $set: {

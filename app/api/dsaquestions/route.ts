@@ -1,6 +1,6 @@
 import { dbcollection } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { getAuthenticatedUserId } from "@/lib/auth/session";
 import z from "zod";
 import baseQuestions from "@/lib/data/dsaQuesions.json";
 
@@ -36,25 +36,6 @@ type DsaTopic = {
     name: string;
     questions: DsaQuestion[];
 };
-
-async function getAuthenticatedUserId(): Promise<string | null> {
-    const cookieStore = await cookies();
-    const hashedToken = cookieStore.get("session_token")?.value;
-
-    if (!hashedToken) return null;
-
-    try {
-        const sessions = await dbcollection("sessions");
-        const session = await sessions.findOne({
-            hashedToken,
-            ExpireAt: { $gt: new Date() },
-        });
-
-        return session ? session.userId : null;
-    } catch {
-        return null;
-    }
-}
 
 // Generate a stable unique key for each question (topic-id + slugified question name)
 function questionKey(topicId: string, questionName: string): string {

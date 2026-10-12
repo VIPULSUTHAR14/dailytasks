@@ -1,5 +1,7 @@
 import { generatetoken } from "@/lib/generatetoken";
 import { dbcollection } from "@/lib/mongodb";
+import { SESSION_COOKIE_NAME, SESSION_COOKIE_OPTIONS, SESSION_MAX_AGE_MS } from "@/lib/auth/session";
+import { checkRateLimit } from "@/lib/rateLimit";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { cookies } from "next/headers";
@@ -13,6 +15,14 @@ const LoginSchema = z.object({
 
 export async function POST(request: NextRequest) {
     try {
+        const rateCheck = checkRateLimit(request, "auth_login", { limit: 10, windowMs: 60 * 1000 });
+        if (!rateCheck.allowed) {
+            return NextResponse.json(
+                { message: "Too many login attempts. Please try again later." },
+                { status: 429, headers: { "Retry-After": rateCheck.resetInSeconds.toString() } }
+            );
+        }
+
         const body = await request.json();
         const { email, password } = LoginSchema.parse(body);
         const collection = await dbcollection("users");
@@ -32,17 +42,11 @@ export async function POST(request: NextRequest) {
             userId: user._id.toString(),
             hashedToken,
             CreatedAt: new Date(),
-            ExpireAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            ExpireAt: new Date(Date.now() + SESSION_MAX_AGE_MS),
         });
 
         const cookieStore = await cookies();
-        cookieStore.set("session_token", hashedToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            path: "/",
-            maxAge: 60 * 60 * 24 * 7,
-        });
+        cookieStore.set(SESSION_COOKIE_NAME, hashedToken, SESSION_COOKIE_OPTIONS);
 
         return NextResponse.json({ message: "Logged in successfully" }, { status: 200 });
     } catch (error: unknown) {

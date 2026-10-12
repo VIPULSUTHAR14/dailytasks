@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { dbcollection } from "@/lib/mongodb";
 import { generatetoken } from "@/lib/generatetoken";
+import { invalidateSessionCache, SESSION_COOKIE_NAME, SESSION_COOKIE_OPTIONS, SESSION_MAX_AGE_MS } from "@/lib/auth/session";
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 
@@ -8,7 +9,7 @@ export async function POST() {
     try {
         const cookieStore = await cookies();
         const collection = await dbcollection("sessions");
-        const sessionToken = cookieStore.get("session_token")?.value;
+        const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
         if (!sessionToken) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
         }
@@ -27,22 +28,17 @@ export async function POST() {
         const newhashedRefreshToken = crypto.createHash("sha256").update(newRefreshToken).digest("hex");
 
         // Cycle the session
+        invalidateSessionCache(sessionToken);
         await collection.deleteOne({ _id: session._id })
         await collection.insertOne({
             userId: session.userId,
             hashedToken: newhashedRefreshToken,
             CreatedAt: new Date(),
-            ExpireAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+            ExpireAt: new Date(Date.now() + SESSION_MAX_AGE_MS)
         })
 
         // Set the new session token cookie
-        cookieStore.set("session_token", newhashedRefreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            path: "/",
-            maxAge: 60 * 60 * 24 * 7,
-        })
+        cookieStore.set(SESSION_COOKIE_NAME, newhashedRefreshToken, SESSION_COOKIE_OPTIONS);
 
         return NextResponse.json({ accessToken: newAccessToken })
 

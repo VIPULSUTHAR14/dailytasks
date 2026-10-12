@@ -11,6 +11,18 @@ interface CachedSession {
 const sessionCache = new Map<string, CachedSession>();
 const CACHE_TTL_MS = 60 * 1000;
 
+export const SESSION_COOKIE_NAME = "session_token";
+export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 days
+export const SESSION_MAX_AGE_MS = SESSION_MAX_AGE_SECONDS * 1000;
+
+export const SESSION_COOKIE_OPTIONS = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: SESSION_MAX_AGE_SECONDS,
+};
+
 /**
  * Invalidate a session token from the in-memory cache (e.g. on logout or token rotation)
  */
