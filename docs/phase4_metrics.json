@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-12T06:20:39.809Z",
+  "timestamp": "2026-10-12T06:26:33.982Z",
   "targetUrl": "http://localhost:3000",
   "gitBranch": "perf-security-hardening",
   "phase": "Phase 4 - Session Caching & Performance Verification",
@@ -9,17 +9,17 @@
       "type": "page",
       "status": 200,
       "baselineTtfbMs": 78.51,
-      "currentTtfbMs": 97.49,
-      "deltaMs": 18.98,
-      "bytes": 38544
+      "currentTtfbMs": 79.06,
+      "deltaMs": 0.55,
+      "bytes": 38547
     },
     {
       "path": "/signup",
       "type": "page",
       "status": 200,
       "baselineTtfbMs": 49.35,
-      "currentTtfbMs": 52.87,
-      "deltaMs": 3.52,
+      "currentTtfbMs": 52.25,
+      "deltaMs": 2.9,
       "bytes": 39456
     },
     {
@@ -27,80 +27,80 @@
       "type": "page",
       "status": 200,
       "baselineTtfbMs": 59.08,
-      "currentTtfbMs": 60.96,
-      "deltaMs": 1.88,
-      "bytes": 38542
+      "currentTtfbMs": 45.5,
+      "deltaMs": -13.58,
+      "bytes": 38550
     },
     {
       "path": "/timetable",
       "type": "page",
       "status": 200,
       "baselineTtfbMs": 71.3,
-      "currentTtfbMs": 55.73,
-      "deltaMs": -15.57,
-      "bytes": 38548
+      "currentTtfbMs": 44.55,
+      "deltaMs": -26.75,
+      "bytes": 38553
     },
     {
       "path": "/tasks",
       "type": "page",
       "status": 200,
       "baselineTtfbMs": 63.08,
-      "currentTtfbMs": 62.39,
-      "deltaMs": -0.69,
-      "bytes": 38545
+      "currentTtfbMs": 40.18,
+      "deltaMs": -22.9,
+      "bytes": 38549
     },
     {
       "path": "/notes",
       "type": "page",
       "status": 200,
       "baselineTtfbMs": 36.52,
-      "currentTtfbMs": 41.18,
-      "deltaMs": 4.66,
-      "bytes": 21199
+      "currentTtfbMs": 32.39,
+      "deltaMs": -4.13,
+      "bytes": 21264
     },
     {
       "path": "/custom-notes",
       "type": "page",
       "status": 200,
       "baselineTtfbMs": 42.21,
-      "currentTtfbMs": 33.91,
-      "deltaMs": -8.3,
-      "bytes": 21344
+      "currentTtfbMs": 31.29,
+      "deltaMs": -10.92,
+      "bytes": 21425
     },
     {
       "path": "/planly",
       "type": "page",
       "status": 200,
       "baselineTtfbMs": 35.42,
-      "currentTtfbMs": 65.09,
-      "deltaMs": 29.67,
-      "bytes": 41205
+      "currentTtfbMs": 33.07,
+      "deltaMs": -2.35,
+      "bytes": 41214
     },
     {
       "path": "/aptitude",
       "type": "page",
       "status": 200,
       "baselineTtfbMs": 47.19,
-      "currentTtfbMs": 77.24,
-      "deltaMs": 30.05,
-      "bytes": 38548
+      "currentTtfbMs": 39.57,
+      "deltaMs": -7.62,
+      "bytes": 38552
     },
     {
       "path": "/dsaquestions",
       "type": "page",
       "status": 200,
       "baselineTtfbMs": 40.89,
-      "currentTtfbMs": 63.59,
-      "deltaMs": 22.7,
-      "bytes": 38545
+      "currentTtfbMs": 45.59,
+      "deltaMs": 4.7,
+      "bytes": 38552
     },
     {
       "path": "/api/users",
       "type": "api",
       "status": 401,
       "baselineTtfbMs": 62.36,
-      "currentTtfbMs": 7.91,
-      "deltaMs": -54.45,
+      "currentTtfbMs": 32.44,
+      "deltaMs": -29.92,
       "bytes": 26
     },
     {
@@ -108,8 +108,8 @@
       "type": "api",
       "status": 401,
       "baselineTtfbMs": 10.16,
-      "currentTtfbMs": 7.15,
-      "deltaMs": -3.01,
+      "currentTtfbMs": 6.58,
+      "deltaMs": -3.58,
       "bytes": 26
     },
     {
@@ -117,8 +117,8 @@
       "type": "api",
       "status": 401,
       "baselineTtfbMs": 6.71,
-      "currentTtfbMs": 13.53,
-      "deltaMs": 6.82,
+      "currentTtfbMs": 6.68,
+      "deltaMs": -0.03,
       "bytes": 26
     },
     {
@@ -126,8 +126,8 @@
       "type": "api",
       "status": 401,
       "baselineTtfbMs": 13.84,
-      "currentTtfbMs": 12.94,
-      "deltaMs": -0.9,
+      "currentTtfbMs": 6.19,
+      "deltaMs": -7.65,
       "bytes": 26
     },
     {
@@ -135,8 +135,8 @@
       "type": "api",
       "status": 401,
       "baselineTtfbMs": 6.44,
-      "currentTtfbMs": 15.09,
-      "deltaMs": 8.65,
+      "currentTtfbMs": 6.81,
+      "deltaMs": 0.37,
       "bytes": 26
     },
     {
@@ -144,8 +144,8 @@
       "type": "api",
       "status": 401,
       "baselineTtfbMs": 14.01,
-      "currentTtfbMs": 12.53,
-      "deltaMs": -1.48,
+      "currentTtfbMs": 7.27,
+      "deltaMs": -6.74,
       "bytes": 26
     },
     {
@@ -153,8 +153,8 @@
       "type": "api",
       "status": 401,
       "baselineTtfbMs": 8.61,
-      "currentTtfbMs": 5.94,
-      "deltaMs": -2.67,
+      "currentTtfbMs": 6.7,
+      "deltaMs": -1.91,
       "bytes": 26
     },
     {
@@ -162,8 +162,8 @@
       "type": "api",
       "status": 401,
       "baselineTtfbMs": 11.56,
-      "currentTtfbMs": 7.83,
-      "deltaMs": -3.73,
+      "currentTtfbMs": 6.6,
+      "deltaMs": -4.96,
       "bytes": 41
     },
     {
@@ -171,8 +171,8 @@
       "type": "api",
       "status": 401,
       "baselineTtfbMs": 6.62,
-      "currentTtfbMs": 13.78,
-      "deltaMs": 7.16,
+      "currentTtfbMs": 6.82,
+      "deltaMs": 0.2,
       "bytes": 26
     }
   ]
