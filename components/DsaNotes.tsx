@@ -14,10 +14,20 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import dynamic from "next/dynamic";
 import Sidebar from "@/components/Sidebar";
 import WorkspaceHeader from "@/components/WorkspaceHeader";
 import IdeMarkdownEditor from "@/components/IdeMarkdownEditor";
-import RichTextEditor from "@/components/RichTextEditor";
+
+const RichTextEditor = dynamic(() => import("@/components/RichTextEditor"), {
+    ssr: false,
+    loading: () => (
+        <div className="min-h-[500px] w-full bg-[#10141e]/50 border border-white/5 rounded-xl flex flex-col items-center justify-center p-8 animate-pulse text-zinc-500">
+            <div className="w-8 h-8 rounded-full border-2 border-cyan-500/30 border-t-cyan-500 animate-spin mb-3" />
+            <span className="text-xs font-mono tracking-wider text-zinc-400">Loading DSA Notes Editor...</span>
+        </div>
+    ),
+});
 
 // ── Types ───────────────────────────────────────────────────────────────────
 

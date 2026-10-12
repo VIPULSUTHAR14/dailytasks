@@ -26,7 +26,7 @@ export async function proxy(request: NextRequest) {
     }
 
     if (isPublicRoute && isTokenPresent) {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
+        return NextResponse.redirect(new URL("/timetable", request.url));
     }
 
     return NextResponse.next();

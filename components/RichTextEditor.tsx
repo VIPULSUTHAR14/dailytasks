@@ -15,7 +15,18 @@ import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import Placeholder from "@tiptap/extension-placeholder";
 import Link from "@tiptap/extension-link";
 import { Markdown, type MarkdownStorage } from "tiptap-markdown";
-import { common, createLowlight } from "lowlight";
+import { createLowlight } from "lowlight";
+import javascript from "highlight.js/lib/languages/javascript";
+import typescript from "highlight.js/lib/languages/typescript";
+import python from "highlight.js/lib/languages/python";
+import java from "highlight.js/lib/languages/java";
+import cpp from "highlight.js/lib/languages/cpp";
+import c from "highlight.js/lib/languages/c";
+import sql from "highlight.js/lib/languages/sql";
+import json from "highlight.js/lib/languages/json";
+import xml from "highlight.js/lib/languages/xml";
+import css from "highlight.js/lib/languages/css";
+import bash from "highlight.js/lib/languages/bash";
 import {
     Maximize2, Minimize2, Save, Check, FileText,
     ListTree, ChevronDown, Sparkles, Code2
@@ -65,7 +76,23 @@ export interface DocumentHeading {
     text: string;
 }
 
-const lowlight = createLowlight(common);
+const lowlight = createLowlight();
+lowlight.register("javascript", javascript);
+lowlight.register("js", javascript);
+lowlight.register("typescript", typescript);
+lowlight.register("ts", typescript);
+lowlight.register("python", python);
+lowlight.register("py", python);
+lowlight.register("java", java);
+lowlight.register("cpp", cpp);
+lowlight.register("c", c);
+lowlight.register("sql", sql);
+lowlight.register("json", json);
+lowlight.register("html", xml);
+lowlight.register("xml", xml);
+lowlight.register("css", css);
+lowlight.register("bash", bash);
+lowlight.register("sh", bash);
 
 export default function RichTextEditor({
     label = "Notes",
