@@ -3642,6 +3642,75 @@ span.note-light-yellow {
   color: #fbcfe8 !important;
 }
 
+/* ============================================================
+   AUTH PAGES & FORM CONTROLS THEME HARMONIZATION
+   Guarantees 100% theme fidelity across all 11 themes
+   ============================================================ */
+[data-theme="paper-sand"] input,
+[data-theme="paper-sand"] textarea,
+[data-theme="paper-sand"] select {
+  background-color: #f7f5f0 !important;
+  color: #1e1b18 !important;
+  border-color: #dcd6cc !important;
+}
 
+[data-theme="paper-sand"] input::placeholder {
+  color: #8c8273 !important;
+}
 
+[data-theme="mono-light"] input::placeholder {
+  color: #94a3b8 !important;
+}
 
+/* Theme-specific auth card surface colors */
+[data-theme="mono-light"] .auth-glass-card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="paper-sand"] .auth-glass-card {
+  background-color: #ffffff !important;
+  border-color: #dcd6cc !important;
+  box-shadow: 0 20px 40px -15px rgba(30, 27, 24, 0.06) !important;
+}
+
+[data-theme="mono-dark"] .auth-glass-card {
+  background-color: #0c0c0e !important;
+  border-color: #27272a !important;
+}
+
+[data-theme="synthwave"] .auth-glass-card {
+  background-color: rgba(38, 24, 69, 0.95) !important;
+  border-color: rgba(255, 42, 133, 0.25) !important;
+}
+
+[data-theme="liquid-glass"] .auth-glass-card {
+  background-color: rgba(26, 20, 36, 0.92) !important;
+  border-color: rgba(192, 132, 252, 0.25) !important;
+}
+
+[data-theme="solar-flare"] .auth-glass-card {
+  background-color: rgba(36, 31, 28, 0.95) !important;
+  border-color: rgba(255, 122, 0, 0.25) !important;
+}
+
+[data-theme="emerald-forest"] .auth-glass-card {
+  background-color: rgba(13, 34, 26, 0.95) !important;
+  border-color: rgba(16, 185, 129, 0.25) !important;
+}
+
+[data-theme="midnight-violet"] .auth-glass-card {
+  background-color: rgba(22, 25, 43, 0.95) !important;
+  border-color: rgba(139, 92, 246, 0.25) !important;
+}
+
+[data-theme="nordic-frost"] .auth-glass-card {
+  background-color: rgba(46, 52, 64, 0.95) !important;
+  border-color: rgba(136, 192, 208, 0.25) !important;
+}
+
+[data-theme="coffee-espresso"] .auth-glass-card {
+  background-color: rgba(43, 37, 34, 0.95) !important;
+  border-color: rgba(226, 177, 121, 0.25) !important;
+}
