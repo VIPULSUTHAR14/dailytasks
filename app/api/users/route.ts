@@ -1,16 +1,19 @@
-import { dbcollection } from "@/lib/mongodb";
+import { getAuthenticatedUser } from "@/lib/auth/session";
 import { NextResponse } from "next/server";
 
 export async function GET() {
     try {
-        const users = (await dbcollection("user")).find({});
-        const data = await users.toArray();
-        if (data.length == 0) {
-            return NextResponse.json({ message: "No users found" }, { status: 404 });
+        const user = await getAuthenticatedUser();
+        if (!user) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
-        return NextResponse.json(data);
+
+        return NextResponse.json({
+            id: user.id,
+            name: user.name,
+        });
     } catch (error) {
-        console.log(error);
+        console.error("Error in /api/users GET:", error);
         return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }
 }
