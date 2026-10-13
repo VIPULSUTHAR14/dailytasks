@@ -29,10 +29,9 @@ import css from "highlight.js/lib/languages/css";
 import bash from "highlight.js/lib/languages/bash";
 import {
     Maximize2, Minimize2, Save, Check, FileText,
-    ListTree, ChevronDown, Sparkles, Code2
+    ListTree, ChevronDown
 } from "lucide-react";
 import { legacyToRich, richToStorage } from "@/lib/markdownHighlightConverter";
-import IdeMarkdownEditor from "./IdeMarkdownEditor";
 import RichTextToolbar from "./RichTextToolbar";
 import RichTextSlashMenu from "./RichTextSlashMenu";
 import RichTextFloatingToolbar from "./RichTextFloatingToolbar";
@@ -133,21 +132,6 @@ export default function RichTextEditor({
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [isFullscreen, handleToggleFullscreen]);
 
-    // Mode state: 'rich' or 'markdown'
-    const [editorMode, setEditorMode] = useState<"rich" | "markdown">(() => {
-        if (typeof window !== "undefined") {
-            try {
-                const savedMode = localStorage.getItem("algocraft_editor_mode");
-                if (savedMode === "markdown" || savedMode === "rich") {
-                    return savedMode;
-                }
-            } catch {
-                // Ignore if localStorage unavailable
-            }
-        }
-        return "rich";
-    });
-
     // Outline state
     const [headings, setHeadings] = useState<DocumentHeading[]>([]);
     const [isOutlineOpen, setIsOutlineOpen] = useState(false);
@@ -209,16 +193,6 @@ export default function RichTextEditor({
             flushDebouncedChange();
         };
     }, [flushDebouncedChange]);
-
-    const toggleMode = (newMode: "rich" | "markdown") => {
-        flushDebouncedChange();
-        setEditorMode(newMode);
-        try {
-            localStorage.setItem("algocraft_editor_mode", newMode);
-        } catch {
-            // Ignore
-        }
-    };
 
     // Close outline dropdown on outside click
     useEffect(() => {
@@ -350,48 +324,6 @@ export default function RichTextEditor({
         setIsOutlineOpen(false);
     };
 
-    // If fallback Markdown mode is chosen by user
-    if (editorMode === "markdown") {
-        return (
-            <div className={`relative flex flex-col h-full ${isFullscreen ? "fixed inset-0 z-50" : ""} ${className}`}>
-                {/* Fallback Mode Indicator Banner */}
-                <div className="flex items-center justify-between px-3.5 py-1.5 bg-[#10141e] border-b border-[#1e293b] select-none text-xs">
-                    <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-cyan-400" />
-                        <span className="text-zinc-300 font-mono text-[11px]">
-                            Markdown Mode Fallback
-                        </span>
-                    </div>
-
-                    <button
-                        type="button"
-                        onClick={() => toggleMode("rich")}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 text-xs font-medium transition cursor-pointer"
-                    >
-                        <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-                        <span>Switch to Rich Text Editor (Word-Style)</span>
-                    </button>
-                </div>
-
-                <IdeMarkdownEditor
-                    label={label}
-                    value={value}
-                    onChange={onChange}
-                    placeholder={placeholder}
-                    lineCountBadge={lineCountBadge}
-                    onSave={onSave}
-                    isSaved={isSaved}
-                    onOpenSettings={onOpenSettings}
-                    sections={sections}
-                    activeSectionId={activeSectionId}
-                    onSelectSection={onSelectSection}
-                    isFullscreen={isFullscreen}
-                    onToggleFullscreen={handleToggleFullscreen}
-                />
-            </div>
-        );
-    }
-
     return (
         <div
             className={`font-sans transition-all ${
@@ -459,17 +391,6 @@ export default function RichTextEditor({
                 </div>
 
                 <div className="flex items-center gap-2 text-xs">
-                    {/* Mode Toggle Switch */}
-                    <button
-                        type="button"
-                        onClick={() => toggleMode("markdown")}
-                        className="flex items-center gap-1 px-2 py-1 rounded bg-[#1a202c] hover:bg-slate-800 border border-[#2d3748] text-slate-300 hover:text-white transition text-xs"
-                        title="Switch to raw Markdown Editor mode"
-                    >
-                        <Code2 className="w-3 h-3 text-slate-400" />
-                        <span className="hidden md:inline">Markdown Mode</span>
-                    </button>
-
                     {onSave && (
                         <button
                             type="button"

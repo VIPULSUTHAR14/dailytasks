@@ -29,6 +29,7 @@ export interface ProblemMetadata {
   title: string;
   difficulty: ProblemDifficulty;
   leetcodeUrl?: string;
+  videoUrl?: string;
   intuitionHint?: string;
   pattern?: string;
   timeComplexity?: string;
@@ -52,6 +53,7 @@ export interface PlanTask {
   isCustom?: boolean;
   notes?: string;
   problemUrl?: string;
+  videoUrl?: string;
   difficulty?: ProblemDifficulty;
   intuitionHint?: string;
   attemptsCount?: number;

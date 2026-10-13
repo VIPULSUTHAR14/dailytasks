@@ -19,7 +19,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import Sidebar from "@/components/Sidebar";
 import WorkspaceHeader from "@/components/WorkspaceHeader";
-import IdeMarkdownEditor from "@/components/IdeMarkdownEditor";
 
 const RichTextEditor = dynamic(() => import("@/components/RichTextEditor"), {
     ssr: false,

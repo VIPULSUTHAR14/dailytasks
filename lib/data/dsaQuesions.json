@@ -27,7 +27,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=1xNbjMdbjug"
             },
             {
                 "name": "Reverse Integer",
@@ -53,7 +54,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=1xNbjMdbjug"
             },
             {
                 "name": "Palindrome Number",
@@ -78,7 +80,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=1xNbjMdbjug"
             },
             {
                 "name": "Greatest Common Divisor (Euclid)",
@@ -104,7 +107,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=1xNbjMdbjug"
             },
             {
                 "name": "Armstrong Number",
@@ -130,7 +134,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=1xNbjMdbjug"
             },
             {
                 "name": "Print All Divisors of a Number",
@@ -156,7 +161,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=Ae_Ag_saG9s"
             },
             {
                 "name": "Check for Prime Number",
@@ -182,7 +188,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=MJcckSfoYdI"
             },
             {
                 "name": "Count Primes",
@@ -208,7 +215,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=g5Fuxn_AvSk"
             },
             {
                 "name": "Pow(x, n)",
@@ -234,7 +242,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=hFWckDXE-K8"
             },
             {
                 "name": "Prime Factorization of a Number",
@@ -260,7 +269,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=LT7XhVdeRyg"
             },
             {
                 "name": "Count Frequency of Array Elements",
@@ -286,7 +296,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=KEs5UyBJ39g"
             },
             {
                 "name": "Highest and Lowest Frequency Element",
@@ -311,7 +322,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=KEs5UyBJ39g"
             }
         ]
     },
@@ -343,7 +355,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=HGk_ypEuS24"
             },
             {
                 "name": "Bubble Sort",
@@ -369,7 +382,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=HGk_ypEuS24"
             },
             {
                 "name": "Insertion Sort",
@@ -395,7 +409,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=HGk_ypEuS24"
             },
             {
                 "name": "Merge Sort",
@@ -421,7 +436,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=ogjf7ORKfd8"
             },
             {
                 "name": "Quick Sort",
@@ -447,7 +463,8 @@
                 "spaceComplexity": "O(log n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=WIrA4YexLRQ"
             },
             {
                 "name": "Recursive Bubble Sort",
@@ -473,7 +490,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Recursive+Bubble+Sort"
             },
             {
                 "name": "Recursive Insertion Sort",
@@ -499,7 +517,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Recursive+Insertion+Sort"
             }
         ]
     },
@@ -530,7 +549,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=37E9ckMDdTk"
             },
             {
                 "name": "Second Largest Element in an Array",
@@ -555,7 +575,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=37E9ckMDdTk"
             },
             {
                 "name": "Check if Array Is Sorted and Rotated",
@@ -581,7 +602,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Check+if+Array+Is+Sorted+and+Rotated"
             },
             {
                 "name": "Left Rotate Array by One Place",
@@ -606,7 +628,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=wvcQg43_V8U"
             },
             {
                 "name": "Linear Search",
@@ -631,7 +654,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Linear+Search"
             },
             {
                 "name": "Union of Two Sorted Arrays",
@@ -657,7 +681,8 @@
                 "spaceComplexity": "O(n + m)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=wvcQg43_V8U"
             },
             {
                 "name": "Max Consecutive Ones",
@@ -682,7 +707,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=bYWLJb3vCWY"
             },
             {
                 "name": "Single Number",
@@ -707,7 +733,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=bYWLJb3vCWY"
             },
             {
                 "name": "Longest Subarray with Sum K (Positives)",
@@ -733,7 +760,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=frf7qxiN2qU"
             },
             {
                 "name": "Longest Subarray with Sum K (Positives and Negatives)",
@@ -759,7 +787,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=frf7qxiN2qU"
             },
             {
                 "name": "Print Subarray with Maximum Sum",
@@ -784,7 +813,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=AHZpyENo7k4"
             },
             {
                 "name": "Rearrange Array Elements by Sign",
@@ -809,7 +839,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=h4aBagy4Uok"
             },
             {
                 "name": "Leaders in an Array",
@@ -834,7 +865,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=cHrH9CQ8pmY"
             },
             {
                 "name": "Majority Element II",
@@ -860,7 +892,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=vwZj1K0e9U8"
             },
             {
                 "name": "Largest Subarray with Sum 0",
@@ -886,7 +919,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Largest+Subarray+with+Sum+0"
             },
             {
                 "name": "Count Subarrays with Given XOR",
@@ -912,7 +946,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=eZr-6p0B7ME"
             },
             {
                 "name": "Find the Repeating and Missing Number",
@@ -938,7 +973,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=2D0D8HE6uak"
             },
             {
                 "name": "Count Inversions",
@@ -964,7 +1000,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=AseUmwVNaoY"
             },
             {
                 "name": "Reverse Pairs",
@@ -990,7 +1027,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=0e4bZaP3MDI"
             },
             {
                 "name": "Pascal's Triangle Variations (Row and Element)",
@@ -1016,7 +1054,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=bR7mQgwQ_o8"
             },
             {
                 "name": "Rotate Array by D Places (Left)",
@@ -1042,7 +1081,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=wvcQg43_V8U"
             },
             {
                 "name": "Remove Outermost Parentheses",
@@ -1068,7 +1108,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Remove+Outermost+Parentheses"
             },
             {
                 "name": "Reverse Words in a String",
@@ -1093,7 +1134,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Reverse+Words+in+a+String"
             },
             {
                 "name": "Largest Odd Number in String",
@@ -1118,7 +1160,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Largest+Odd+Number+in+String"
             },
             {
                 "name": "Longest Common Prefix",
@@ -1143,7 +1186,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Longest+Common+Prefix"
             },
             {
                 "name": "Rotate String",
@@ -1169,7 +1213,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Rotate+String"
             },
             {
                 "name": "Sort Characters By Frequency",
@@ -1195,7 +1240,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Sort+Characters+By+Frequency"
             },
             {
                 "name": "Maximum Nesting Depth of the Parentheses",
@@ -1221,7 +1267,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Maximum+Nesting+Depth+of+the+Parentheses"
             },
             {
                 "name": "Roman to Integer",
@@ -1247,7 +1294,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Roman+to+Integer"
             },
             {
                 "name": "String to Integer (atoi)",
@@ -1273,7 +1321,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+String+to+Integer+atoi"
             },
             {
                 "name": "Count Number of Substrings (Sum of Beauty)",
@@ -1299,7 +1348,8 @@
                 "spaceComplexity": "O(26)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Sum+of+Beauty+of+All+Substrings"
             }
         ]
     },
@@ -1330,7 +1380,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=MHf6awe89xw"
             },
             {
                 "name": "Lower Bound",
@@ -1355,7 +1406,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=6zhGS79oQ4k"
             },
             {
                 "name": "Upper Bound",
@@ -1381,7 +1433,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=6zhGS79oQ4k"
             },
             {
                 "name": "Search Insert Position",
@@ -1406,7 +1459,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=6zhGS79oQ4k"
             },
             {
                 "name": "Floor and Ceil in Sorted Array",
@@ -1431,7 +1485,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=6zhGS79oQ4k"
             },
             {
                 "name": "Find First and Last Position of Element in Sorted Array",
@@ -1456,7 +1511,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=hjR1IYVx9lY"
             },
             {
                 "name": "Count Occurrences in Sorted Array",
@@ -1481,7 +1537,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=hjR1IYVx9lY"
             },
             {
                 "name": "Search in Rotated Sorted Array",
@@ -1506,7 +1563,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=5qGrJbHhqFs"
             },
             {
                 "name": "Search in Rotated Sorted Array II",
@@ -1531,7 +1589,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=w2G2W8l__pc"
             },
             {
                 "name": "Find Minimum in Rotated Sorted Array",
@@ -1556,7 +1615,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=nhEMDKMB44g"
             },
             {
                 "name": "Find Rotation Count",
@@ -1581,7 +1641,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=jtSiWTPLwd0"
             },
             {
                 "name": "Single Element in a Sorted Array",
@@ -1606,7 +1667,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=AZOmHuHadxQ"
             },
             {
                 "name": "Find Peak Element",
@@ -1631,7 +1693,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=cXxmbemS6XM"
             },
             {
                 "name": "Sqrt(x)",
@@ -1657,7 +1720,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=Bsv3FPUX_BA"
             },
             {
                 "name": "Nth Root of a Number",
@@ -1683,7 +1747,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=rjEJeYCasHs"
             },
             {
                 "name": "Koko Eating Bananas",
@@ -1709,7 +1774,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=qyfekrNni90"
             },
             {
                 "name": "Minimum Number of Days to Make m Bouquets",
@@ -1735,7 +1801,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=TXAuxeYBTdg"
             },
             {
                 "name": "Find the Smallest Divisor Given a Threshold",
@@ -1761,7 +1828,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=UvBKTVaG6U8"
             },
             {
                 "name": "Capacity To Ship Packages Within D Days",
@@ -1787,7 +1855,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=MG-Ac4TAvTY"
             },
             {
                 "name": "Kth Missing Positive Number",
@@ -1812,7 +1881,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=uZ0N_hZpyps"
             },
             {
                 "name": "Aggressive Cows",
@@ -1839,7 +1909,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=R_Mfw4ew-Vo"
             },
             {
                 "name": "Allocate Books (Book Allocation Problem)",
@@ -1865,7 +1936,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=Z0hwjftStI4"
             },
             {
                 "name": "Split Array Largest Sum",
@@ -1891,7 +1963,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=thUd_WJn6wk"
             },
             {
                 "name": "Painter's Partition Problem",
@@ -1917,7 +1990,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=thUd_WJn6wk"
             },
             {
                 "name": "Minimize Max Distance to Gas Station",
@@ -1943,7 +2017,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=kMSBvlZ-_HA"
             },
             {
                 "name": "Median of Two Sorted Arrays",
@@ -1969,7 +2044,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=F9c7LpRZWVQ"
             },
             {
                 "name": "K-th Element of Two Sorted Arrays",
@@ -1994,7 +2070,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=D1oDwWCq50g"
             },
             {
                 "name": "Row with Maximum Number of 1s",
@@ -2020,7 +2097,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=SCz-1TtYxDI"
             },
             {
                 "name": "Search a 2D Matrix",
@@ -2046,7 +2124,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=JXU4Akft7yk"
             },
             {
                 "name": "Search a 2D Matrix II",
@@ -2071,7 +2150,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=9ZbB397jU4k"
             },
             {
                 "name": "Find a Peak Element II",
@@ -2097,7 +2177,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=nGGp5XBzC4g"
             },
             {
                 "name": "Median of a Row-Wise Sorted Matrix",
@@ -2123,7 +2204,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=Q9wXgdxJq48"
             }
         ]
     },
@@ -2155,7 +2237,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Subsets"
             },
             {
                 "name": "Subset Sum I",
@@ -2180,7 +2263,8 @@
                 "spaceComplexity": "O(2^n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Subset+Sum+I"
             },
             {
                 "name": "Subsets II",
@@ -2206,7 +2290,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Subsets+II"
             },
             {
                 "name": "Combination Sum",
@@ -2232,7 +2317,8 @@
                 "spaceComplexity": "O(k)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Combination+Sum"
             },
             {
                 "name": "Combination Sum II",
@@ -2258,7 +2344,8 @@
                 "spaceComplexity": "O(k)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Combination+Sum+II"
             },
             {
                 "name": "Combination Sum III",
@@ -2283,7 +2370,8 @@
                 "spaceComplexity": "O(k)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Combination+Sum+III"
             },
             {
                 "name": "Palindrome Partitioning",
@@ -2309,7 +2397,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Palindrome+Partitioning"
             },
             {
                 "name": "Letter Combinations of a Phone Number",
@@ -2335,7 +2424,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Letter+Combinations+of+a+Phone+Number"
             },
             {
                 "name": "Generate Parentheses",
@@ -2360,7 +2450,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Generate+Parentheses"
             },
             {
                 "name": "Permutations",
@@ -2386,7 +2477,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Permutations"
             },
             {
                 "name": "Permutations II",
@@ -2412,7 +2504,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Permutations+II"
             },
             {
                 "name": "N-Queens",
@@ -2438,7 +2531,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+N+Queens"
             },
             {
                 "name": "Sudoku Solver",
@@ -2464,7 +2558,8 @@
                 "spaceComplexity": "O(m)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Sudoku+Solver"
             },
             {
                 "name": "Rat in a Maze",
@@ -2490,7 +2585,8 @@
                 "spaceComplexity": "O(n * m)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Rat+in+a+Maze"
             },
             {
                 "name": "Word Break",
@@ -2516,7 +2612,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Word+Break"
             },
             {
                 "name": "M-Coloring Problem",
@@ -2542,7 +2639,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+M+Coloring+Problem"
             },
             {
                 "name": "Permutation Sequence",
@@ -2568,7 +2666,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Permutation+Sequence"
             }
         ]
     },
@@ -2599,7 +2698,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Check+if+the+i-th+Bit+Is+Set"
             },
             {
                 "name": "Check if a Number Is Odd or Even",
@@ -2624,7 +2724,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Check+if+a+Number+Is+Odd+or+Even"
             },
             {
                 "name": "Power of Two",
@@ -2649,7 +2750,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Power+of+Two"
             },
             {
                 "name": "Number of 1 Bits",
@@ -2674,7 +2776,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Number+of+1+Bits"
             },
             {
                 "name": "Set, Clear and Toggle the i-th Bit",
@@ -2699,7 +2802,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Set+Clear+and+Toggle+the+i-th+Bit"
             },
             {
                 "name": "Swap Two Numbers Without a Temporary Variable",
@@ -2724,7 +2828,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Swap+Two+Numbers+Without+a+Temporary+Variable"
             },
             {
                 "name": "Divide Two Integers",
@@ -2750,7 +2855,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Divide+Two+Integers"
             },
             {
                 "name": "Minimum Bit Flips to Convert Number",
@@ -2776,7 +2882,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Minimum+Bit+Flips+to+Convert+Number"
             },
             {
                 "name": "Single Number III",
@@ -2801,7 +2908,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Single+Number+III"
             },
             {
                 "name": "Single Number II",
@@ -2826,7 +2934,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Single+Number+II"
             },
             {
                 "name": "XOR of Numbers in a Given Range",
@@ -2851,7 +2960,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+XOR+of+Numbers+in+a+Given+Range"
             },
             {
                 "name": "Count Set Bits from 1 to N",
@@ -2876,7 +2986,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Count+Set+Bits+from+1+to+N"
             }
         ]
     },
@@ -2908,7 +3019,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=DIX2p7vb9co"
             },
             {
                 "name": "Fractional Knapsack",
@@ -2934,7 +3046,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=1ibsQrnuEEg"
             },
             {
                 "name": "Lemonade Change",
@@ -2960,7 +3073,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=n_tmibEhO6Q"
             },
             {
                 "name": "Valid Parenthesis String",
@@ -2986,7 +3100,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=cHT6sG_hUZI"
             },
             {
                 "name": "Jump Game",
@@ -3012,7 +3127,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=tZAa_jJ3SwQ"
             },
             {
                 "name": "Jump Game II",
@@ -3038,7 +3154,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=7SBVnw7GSTk"
             },
             {
                 "name": "N Meetings in One Room",
@@ -3064,7 +3181,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=mKfhTotEguk"
             },
             {
                 "name": "Non-overlapping Intervals",
@@ -3090,7 +3208,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=HDHQ8lAWakY"
             },
             {
                 "name": "Job Sequencing Problem",
@@ -3116,7 +3235,8 @@
                 "spaceComplexity": "O(d)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=QbwltemZbRg"
             },
             {
                 "name": "Candy",
@@ -3142,7 +3262,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=IIqVFvKE6RY"
             },
             {
                 "name": "Shortest Job First (SJF) Scheduling",
@@ -3168,7 +3289,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=3-QbX1iDbXs"
             },
             {
                 "name": "Minimum Number of Platforms",
@@ -3194,7 +3316,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=AsGzwR_FWok"
             },
             {
                 "name": "Gas Station",
@@ -3220,7 +3343,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Gas+Station"
             }
         ]
     },
@@ -3251,7 +3375,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=VaECK03Dz-g"
             },
             {
                 "name": "Remove Duplicates from Sorted List",
@@ -3276,7 +3401,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Remove+Duplicates+from+Sorted+List"
             },
             {
                 "name": "Remove Linked List Elements",
@@ -3302,7 +3428,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Remove+Linked+List+Elements"
             },
             {
                 "name": "Delete All Occurrences of a Key in a Doubly Linked List",
@@ -3327,7 +3454,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=Mh0NH_SD92k"
             },
             {
                 "name": "Reverse a Doubly Linked List",
@@ -3352,7 +3480,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=u3WUW2qe6ww"
             },
             {
                 "name": "Remove Duplicates from a Sorted Doubly Linked List",
@@ -3377,7 +3506,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=YJKVTnOJXSY"
             },
             {
                 "name": "Find Pairs with a Given Sum in a Doubly Linked List",
@@ -3403,7 +3533,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=YitR4dQsddE"
             },
             {
                 "name": "Sort a Linked List of 0s, 1s and 2s",
@@ -3428,7 +3559,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=gRII7LhdJWc"
             },
             {
                 "name": "Length of the Loop in a Linked List",
@@ -3453,7 +3585,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=I4g1qbkTPus"
             },
             {
                 "name": "Delete the Middle Node of a Linked List",
@@ -3479,7 +3612,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=ePpV-_pfOeI"
             },
             {
                 "name": "Add 1 to a Number Represented by a Linked List",
@@ -3505,7 +3639,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=aXQWhbvT3w0"
             },
             {
                 "name": "Flattening a Linked List",
@@ -3530,7 +3665,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=ykelywHJWLg"
             },
             {
                 "name": "Reverse Linked List II",
@@ -3555,7 +3691,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Reverse+Linked+List+II"
             },
             {
                 "name": "Delete Duplicates from Sorted List II",
@@ -3580,7 +3717,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Remove+Duplicates+from+Sorted+List+II"
             },
             {
                 "name": "Reorder List",
@@ -3606,7 +3744,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Reorder+List"
             },
             {
                 "name": "Swap Nodes in Pairs",
@@ -3631,7 +3770,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Swap+Nodes+in+Pairs"
             },
             {
                 "name": "Partition List",
@@ -3656,7 +3796,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Partition+List"
             }
         ]
     },
@@ -3688,7 +3829,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=tqQ5fTamIN4"
             },
             {
                 "name": "Implement Queue Using Arrays",
@@ -3714,7 +3856,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=tqQ5fTamIN4"
             },
             {
                 "name": "Implement Stack Using a Linked List",
@@ -3740,7 +3883,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=tqQ5fTamIN4"
             },
             {
                 "name": "Implement Queue Using a Linked List",
@@ -3766,7 +3910,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=tqQ5fTamIN4"
             },
             {
                 "name": "Infix to Postfix Conversion",
@@ -3792,7 +3937,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=4pIc9UBHJtk"
             },
             {
                 "name": "Prefix to Infix Conversion",
@@ -3817,7 +3963,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=4pIc9UBHJtk"
             },
             {
                 "name": "Next Smaller Element",
@@ -3842,7 +3989,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=zMdbdGJNlh4"
             },
             {
                 "name": "Sum of Subarray Minimums",
@@ -3867,7 +4015,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=v0e8p9JCgRc"
             },
             {
                 "name": "Sum of Subarray Ranges",
@@ -3892,7 +4041,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=gIrMptNPf5M"
             },
             {
                 "name": "Maximal Rectangle",
@@ -3917,7 +4067,8 @@
                 "spaceComplexity": "O(m)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=ttVu6G7Ayik"
             },
             {
                 "name": "The Celebrity Problem",
@@ -3943,7 +4094,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=cEadsbTeze4"
             },
             {
                 "name": "LRU Cache",
@@ -3969,7 +4121,8 @@
                 "spaceComplexity": "O(capacity)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=z9bJUPxzFOw"
             },
             {
                 "name": "LFU Cache",
@@ -3995,7 +4148,8 @@
                 "spaceComplexity": "O(capacity)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=mzqHlAW7jeE"
             },
             {
                 "name": "Implement Stack Using a Single Queue",
@@ -4020,7 +4174,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Implement+Stack+Using+a+Single+Queue"
             },
             {
                 "name": "Trapping Rain Water (Stack Approach)",
@@ -4045,7 +4200,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=1_5VuquLbXg"
             }
         ]
     },
@@ -4076,7 +4232,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=pBWCOCS636U"
             },
             {
                 "name": "Max Consecutive Ones III",
@@ -4101,7 +4258,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=3E4JBHSLpYk"
             },
             {
                 "name": "Longest Substring with At Most K Distinct Characters",
@@ -4127,7 +4285,8 @@
                 "spaceComplexity": "O(k)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=teM9ZsVRQyc"
             },
             {
                 "name": "Count Number of Nice Subarrays",
@@ -4153,7 +4312,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=j_QOv9OT9Og"
             },
             {
                 "name": "Number of Substrings Containing All Three Characters",
@@ -4178,7 +4338,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=xtqN4qlgr8s"
             },
             {
                 "name": "Subarrays with K Different Integers",
@@ -4204,7 +4365,8 @@
                 "spaceComplexity": "O(k)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=7wYGbV_LsX4"
             },
             {
                 "name": "Longest Subarray with Ones After Deleting One Element",
@@ -4229,7 +4391,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Longest+Subarray+of+1s+After+Deleting+One+Element"
             }
         ]
     },
@@ -4260,7 +4423,8 @@
                 "spaceComplexity": "O(h)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=0ca1nvR0be4"
             },
             {
                 "name": "Vertical Order Traversal of a Binary Tree",
@@ -4286,7 +4450,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=q_a6lpbKJdw"
             },
             {
                 "name": "Top View of a Binary Tree",
@@ -4312,7 +4477,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=Et9OCDNvJ78"
             },
             {
                 "name": "Bottom View of a Binary Tree",
@@ -4338,7 +4504,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=0FtVY6I4pB8"
             },
             {
                 "name": "Left View of a Binary Tree",
@@ -4363,7 +4530,8 @@
                 "spaceComplexity": "O(w)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=KV4mRzTjlAk"
             },
             {
                 "name": "Root to Node Path in a Binary Tree",
@@ -4389,7 +4557,8 @@
                 "spaceComplexity": "O(h)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=fmflMqVOC7k"
             },
             {
                 "name": "Maximum Width of Binary Tree",
@@ -4415,7 +4584,8 @@
                 "spaceComplexity": "O(w)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=ZbybYvcVLks"
             },
             {
                 "name": "Children Sum Property in a Binary Tree",
@@ -4441,7 +4611,8 @@
                 "spaceComplexity": "O(h)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=fnmisPM6cVo"
             },
             {
                 "name": "All Nodes Distance K in Binary Tree",
@@ -4467,7 +4638,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=i9ORlEy6EsI"
             },
             {
                 "name": "Amount of Time for Binary Tree to Be Infected",
@@ -4493,7 +4665,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=2r5wLmQfD6g"
             },
             {
                 "name": "Construct Binary Tree from Inorder and Postorder Traversal",
@@ -4519,7 +4692,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=LgLRTaEMRVc"
             },
             {
                 "name": "Morris Inorder Traversal",
@@ -4545,7 +4719,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=80Zug6D1_r4"
             },
             {
                 "name": "Morris Preorder Traversal",
@@ -4570,7 +4745,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=80Zug6D1_r4"
             },
             {
                 "name": "Preorder, Inorder and Postorder in a Single Traversal",
@@ -4596,7 +4772,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=ySp2epYvgTE"
             },
             {
                 "name": "Check for Children Sum / Mirror Tree",
@@ -4621,7 +4798,8 @@
                 "spaceComplexity": "O(h)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=nKggNAiEpBE"
             },
             {
                 "name": "Count Good Nodes in Binary Tree",
@@ -4646,7 +4824,8 @@
                 "spaceComplexity": "O(h)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Count+Good+Nodes+in+Binary+Tree"
             }
         ]
     },
@@ -4677,7 +4856,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=KcNt6v_56cc"
             },
             {
                 "name": "Minimum and Maximum in a BST",
@@ -4702,7 +4882,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Minimum+and+Maximum+in+a+BST"
             },
             {
                 "name": "Ceil in a BST",
@@ -4727,7 +4908,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=KSsk8AhdOZA"
             },
             {
                 "name": "Floor in a BST",
@@ -4752,7 +4934,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=xm_W1ub-K-w"
             },
             {
                 "name": "Insert into a Binary Search Tree",
@@ -4777,7 +4960,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=FiFiNvM29ps"
             },
             {
                 "name": "Delete Node in a BST",
@@ -4803,7 +4987,8 @@
                 "spaceComplexity": "O(h)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=kouxiP_H5WE"
             },
             {
                 "name": "Kth Largest Element in a BST",
@@ -4829,7 +5014,8 @@
                 "spaceComplexity": "O(h)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=9TJYWh0adfk"
             },
             {
                 "name": "Validate Binary Search Tree",
@@ -4854,7 +5040,8 @@
                 "spaceComplexity": "O(h)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=f-sj7I5oXEI"
             },
             {
                 "name": "Lowest Common Ancestor of a Binary Search Tree",
@@ -4879,7 +5066,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=cX_kPV_foZc"
             },
             {
                 "name": "Construct Binary Search Tree from Preorder Traversal",
@@ -4905,7 +5093,8 @@
                 "spaceComplexity": "O(h)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=UmJT3j26t1I"
             },
             {
                 "name": "Inorder Successor in a BST",
@@ -4930,7 +5119,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=SXKAD2svfmI"
             },
             {
                 "name": "Binary Search Tree Iterator",
@@ -4956,7 +5146,8 @@
                 "spaceComplexity": "O(h)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=D2jMcmxU4bs"
             },
             {
                 "name": "Two Sum IV - Input is a BST",
@@ -4982,7 +5173,8 @@
                 "spaceComplexity": "O(h)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=ssL3sHwPeb4"
             },
             {
                 "name": "Recover Binary Search Tree",
@@ -5007,7 +5199,8 @@
                 "spaceComplexity": "O(h)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=ZWGW7FminDM"
             },
             {
                 "name": "Largest BST in a Binary Tree",
@@ -5033,7 +5226,8 @@
                 "spaceComplexity": "O(h)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=X0oXMdtUDwo"
             }
         ]
     },
@@ -5065,7 +5259,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Implement+Min+Heap"
             },
             {
                 "name": "Heapify (Build Heap)",
@@ -5090,7 +5285,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=Abdul+Bari+Heapify"
             },
             {
                 "name": "Heap Sort",
@@ -5116,7 +5312,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=Abdul+Bari+Heap+Sort"
             },
             {
                 "name": "Kth Smallest Element in an Array",
@@ -5141,7 +5338,8 @@
                 "spaceComplexity": "O(k)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=Aditya+Verma+Kth+Smallest+Element"
             },
             {
                 "name": "Sort a K-Sorted Array",
@@ -5166,7 +5364,8 @@
                 "spaceComplexity": "O(k)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=Aditya+Verma+Sort+a+K+Sorted+Array"
             },
             {
                 "name": "Merge K Sorted Arrays",
@@ -5191,7 +5390,8 @@
                 "spaceComplexity": "O(k)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Merge+K+Sorted+Arrays"
             },
             {
                 "name": "Replace Elements by Their Rank",
@@ -5217,7 +5417,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Rank+Transform+of+an+Array"
             },
             {
                 "name": "Hand of Straights",
@@ -5243,7 +5444,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Hand+of+Straights"
             },
             {
                 "name": "Design Twitter",
@@ -5270,7 +5472,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Design+Twitter"
             },
             {
                 "name": "Minimum Cost to Connect Sticks (Connect Ropes)",
@@ -5296,7 +5499,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=Aditya+Verma+Connect+Ropes+to+Minimise+the+Cost"
             },
             {
                 "name": "Kth Largest Element in a Stream",
@@ -5321,7 +5525,8 @@
                 "spaceComplexity": "O(k)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Kth+Largest+Element+in+a+Stream"
             },
             {
                 "name": "Maximum Sum Combination",
@@ -5347,7 +5552,8 @@
                 "spaceComplexity": "O(k)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Maximum+Sum+Combination"
             },
             {
                 "name": "Reorganize String",
@@ -5373,7 +5579,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Reorganize+String"
             },
             {
                 "name": "Sort Characters by Frequency (Heap)",
@@ -5399,7 +5606,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=Aditya+Verma+Sort+Characters+by+Frequency"
             }
         ]
     },
@@ -5431,7 +5639,8 @@
                 "spaceComplexity": "O(v)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=-tgVpUgsQ5k"
             },
             {
                 "name": "Depth First Search of a Graph",
@@ -5457,7 +5666,8 @@
                 "spaceComplexity": "O(v)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=Qzf1a--rhp8"
             },
             {
                 "name": "Number of Provinces",
@@ -5483,7 +5693,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=ACzkVtewUYA"
             },
             {
                 "name": "Detect Cycle in an Undirected Graph",
@@ -5508,7 +5719,8 @@
                 "spaceComplexity": "O(v)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=BPlrALf1LDU"
             },
             {
                 "name": "01 Matrix",
@@ -5534,7 +5746,8 @@
                 "spaceComplexity": "O(m * n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=edXdVwkYHF8"
             },
             {
                 "name": "Number of Enclaves",
@@ -5559,7 +5772,8 @@
                 "spaceComplexity": "O(m * n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=rxKcepXQgU4"
             },
             {
                 "name": "Word Ladder II",
@@ -5585,7 +5799,8 @@
                 "spaceComplexity": "O(n * m)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=DREutrv2XD0"
             },
             {
                 "name": "Number of Distinct Islands",
@@ -5611,7 +5826,8 @@
                 "spaceComplexity": "O(m * n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=7zmgQSJghpo"
             },
             {
                 "name": "Detect Cycle in a Directed Graph",
@@ -5637,7 +5853,8 @@
                 "spaceComplexity": "O(v)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=9twcmtQj4DU"
             },
             {
                 "name": "Topological Sort (DFS)",
@@ -5663,7 +5880,8 @@
                 "spaceComplexity": "O(v)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=5lZ0iJMrUMk"
             },
             {
                 "name": "Kahn's Algorithm (Topological Sort BFS)",
@@ -5689,7 +5907,8 @@
                 "spaceComplexity": "O(v)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=73sneFXuTEg"
             },
             {
                 "name": "Find Eventual Safe States",
@@ -5715,7 +5934,8 @@
                 "spaceComplexity": "O(v)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=uRbJ1OF9aYM"
             },
             {
                 "name": "Alien Dictionary",
@@ -5741,7 +5961,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=U3N_je7tWAs"
             },
             {
                 "name": "Shortest Path in an Undirected Graph with Unit Weights",
@@ -5766,7 +5987,8 @@
                 "spaceComplexity": "O(v)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=C4gxoTaI71U"
             },
             {
                 "name": "Shortest Path in a Directed Acyclic Graph",
@@ -5791,7 +6013,8 @@
                 "spaceComplexity": "O(v)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=ZUFQfFaU-8U"
             },
             {
                 "name": "Dijkstra's Algorithm",
@@ -5817,7 +6040,8 @@
                 "spaceComplexity": "O(v)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=V6H1qAeB-l4"
             },
             {
                 "name": "Print the Shortest Path (Dijkstra)",
@@ -5842,7 +6066,8 @@
                 "spaceComplexity": "O(v)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=rp1SMw7HSO8"
             },
             {
                 "name": "Path With Minimum Effort",
@@ -5868,7 +6093,8 @@
                 "spaceComplexity": "O(m * n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=0ytpZyiZFhA"
             },
             {
                 "name": "Cheapest Flights Within K Stops",
@@ -5894,7 +6120,8 @@
                 "spaceComplexity": "O(v)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=9XybHVqTHcQ"
             },
             {
                 "name": "Number of Ways to Arrive at Destination",
@@ -5919,7 +6146,8 @@
                 "spaceComplexity": "O(v)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=_-0mx0SmYxA"
             },
             {
                 "name": "Minimum Multiplications to Reach End",
@@ -5944,7 +6172,8 @@
                 "spaceComplexity": "O(100000)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=_BvEJ3VIDWw"
             },
             {
                 "name": "Bellman-Ford Algorithm",
@@ -5970,7 +6199,8 @@
                 "spaceComplexity": "O(v)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=0vVofAhAYjc"
             },
             {
                 "name": "Floyd-Warshall Algorithm",
@@ -5996,7 +6226,8 @@
                 "spaceComplexity": "O(v^2)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=YbY8cVwWAvw"
             },
             {
                 "name": "Find the City With the Smallest Number of Neighbours at a Threshold Distance",
@@ -6021,7 +6252,8 @@
                 "spaceComplexity": "O(v^2)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=PwMVNSJ5SLI"
             },
             {
                 "name": "Minimum Spanning Tree (Prim's Algorithm)",
@@ -6047,7 +6279,8 @@
                 "spaceComplexity": "O(v)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=mJcZjjKzeqk"
             },
             {
                 "name": "Disjoint Set (Union-Find) Implementation",
@@ -6073,7 +6306,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=aBxjDBC4M1U"
             },
             {
                 "name": "Kruskal's Algorithm",
@@ -6099,7 +6333,8 @@
                 "spaceComplexity": "O(v)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=DMnDM_sxVig"
             },
             {
                 "name": "Number of Operations to Make Network Connected",
@@ -6124,7 +6359,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=FYrl7iz9_ZU"
             },
             {
                 "name": "Most Stones Removed with Same Row or Column",
@@ -6149,7 +6385,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=OwMNX8SPavM"
             },
             {
                 "name": "Accounts Merge",
@@ -6175,7 +6412,8 @@
                 "spaceComplexity": "O(n * k)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=FMwpt_aQOGw"
             },
             {
                 "name": "Number of Islands II",
@@ -6201,7 +6439,8 @@
                 "spaceComplexity": "O(m * n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=Rn6B-Q4SNyA"
             },
             {
                 "name": "Making A Large Island",
@@ -6227,7 +6466,8 @@
                 "spaceComplexity": "O(m * n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=lgiz0Oup6gM"
             },
             {
                 "name": "Swim in Rising Water",
@@ -6252,7 +6492,8 @@
                 "spaceComplexity": "O(n^2)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Swim+in+Rising+Water"
             },
             {
                 "name": "Critical Connections in a Network (Bridges)",
@@ -6278,7 +6519,8 @@
                 "spaceComplexity": "O(v)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=qrAub5z8FeA"
             },
             {
                 "name": "Articulation Points in a Graph",
@@ -6304,7 +6546,8 @@
                 "spaceComplexity": "O(v)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=j1QDfU21iZk"
             },
             {
                 "name": "Strongly Connected Components (Kosaraju's Algorithm)",
@@ -6330,7 +6573,8 @@
                 "spaceComplexity": "O(v)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=R6uoSjZ2imo"
             },
             {
                 "name": "Bipartite Graph (Eventual Check with DSU)",
@@ -6356,7 +6600,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=-vu34sct1g8"
             }
         ]
     },
@@ -6388,7 +6633,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=mLfjzJsN8us"
             },
             {
                 "name": "Frog Jump",
@@ -6413,7 +6659,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=EgG3jsGoPvQ"
             },
             {
                 "name": "Frog Jump with K Distances",
@@ -6438,7 +6685,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=Kmh3rhyEtB8"
             },
             {
                 "name": "House Robber",
@@ -6463,7 +6711,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=GrMBfJNk_NY"
             },
             {
                 "name": "House Robber II",
@@ -6488,7 +6737,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=3WaxQMELSkw"
             },
             {
                 "name": "Ninja's Training",
@@ -6513,7 +6763,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=AE39gJYuRog"
             },
             {
                 "name": "Unique Paths",
@@ -6539,7 +6790,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=sdE0A2Oxofw"
             },
             {
                 "name": "Unique Paths II",
@@ -6564,7 +6816,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=TmhpgXScLyY"
             },
             {
                 "name": "Minimum Path Sum",
@@ -6589,7 +6842,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=_rgTlyky1uQ"
             },
             {
                 "name": "Triangle",
@@ -6614,7 +6868,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=SrP-PiLSYC0"
             },
             {
                 "name": "Minimum Falling Path Sum",
@@ -6639,7 +6894,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=N_aJ5qQbYA0"
             },
             {
                 "name": "Cherry Pickup II",
@@ -6664,7 +6920,8 @@
                 "spaceComplexity": "O(m^2)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=QGfn7JeXK54"
             },
             {
                 "name": "Subset Sum Equals Target",
@@ -6690,7 +6947,8 @@
                 "spaceComplexity": "O(target)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=fWX9xDmIzRI"
             },
             {
                 "name": "Partition Equal Subset Sum",
@@ -6715,7 +6973,8 @@
                 "spaceComplexity": "O(sum)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=7win3dcgo3k"
             },
             {
                 "name": "Partition into Two Subsets with Minimum Absolute Sum Difference",
@@ -6740,7 +6999,8 @@
                 "spaceComplexity": "O(sum)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=GS_OqZb2CWc"
             },
             {
                 "name": "Count Subsets with Sum K",
@@ -6765,7 +7025,8 @@
                 "spaceComplexity": "O(k)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=ZHyb-A2Mte4"
             },
             {
                 "name": "Count Partitions with Given Difference",
@@ -6790,7 +7051,8 @@
                 "spaceComplexity": "O(sum)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=zoilQD1kYSg"
             },
             {
                 "name": "0/1 Knapsack",
@@ -6816,7 +7078,8 @@
                 "spaceComplexity": "O(W)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=GqOmJHQZivw"
             },
             {
                 "name": "Coin Change",
@@ -6841,7 +7104,8 @@
                 "spaceComplexity": "O(amount)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=myPeWb3Y68A"
             },
             {
                 "name": "Target Sum",
@@ -6866,7 +7130,8 @@
                 "spaceComplexity": "O(sum)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=b3GD8263-PQ"
             },
             {
                 "name": "Coin Change II",
@@ -6891,7 +7156,8 @@
                 "spaceComplexity": "O(amount)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=HgyouUi11zk"
             },
             {
                 "name": "Unbounded Knapsack",
@@ -6916,7 +7182,8 @@
                 "spaceComplexity": "O(W)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=OgvOZ6OrJoY"
             },
             {
                 "name": "Rod Cutting Problem",
@@ -6941,7 +7208,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=mO8XpGoJwuo"
             },
             {
                 "name": "Longest Common Subsequence",
@@ -6967,7 +7235,8 @@
                 "spaceComplexity": "O(m)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=NPZn9jBrX8U"
             },
             {
                 "name": "Print the Longest Common Subsequence",
@@ -6992,7 +7261,8 @@
                 "spaceComplexity": "O(n * m)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=-zI4mrF2Pb4"
             },
             {
                 "name": "Longest Common Substring",
@@ -7017,7 +7287,8 @@
                 "spaceComplexity": "O(m)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=_wP9mWNPL5w"
             },
             {
                 "name": "Longest Palindromic Subsequence",
@@ -7042,7 +7313,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=6i_T5kkfv4A"
             },
             {
                 "name": "Minimum Insertions to Make a String Palindrome",
@@ -7067,7 +7339,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=xPBLEj41rFU"
             },
             {
                 "name": "Delete Operation for Two Strings",
@@ -7092,7 +7365,8 @@
                 "spaceComplexity": "O(m)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=yMnH0jrir0Q"
             },
             {
                 "name": "Shortest Common Supersequence",
@@ -7117,7 +7391,8 @@
                 "spaceComplexity": "O(n * m)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=xElxAuBcvsU"
             },
             {
                 "name": "Distinct Subsequences",
@@ -7142,7 +7417,8 @@
                 "spaceComplexity": "O(m)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=nVG7eTiD2bY"
             },
             {
                 "name": "Edit Distance",
@@ -7168,7 +7444,8 @@
                 "spaceComplexity": "O(m)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=fJaKO8FbDdo"
             },
             {
                 "name": "Wildcard Matching",
@@ -7194,7 +7471,8 @@
                 "spaceComplexity": "O(m)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=ZmlQ3vgAOMo"
             },
             {
                 "name": "Regular Expression Matching",
@@ -7219,7 +7497,8 @@
                 "spaceComplexity": "O(m)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Regular+Expression+Matching"
             },
             {
                 "name": "Best Time to Buy and Sell Stock II",
@@ -7244,7 +7523,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=nGJmxkUJQGs"
             },
             {
                 "name": "Best Time to Buy and Sell Stock III",
@@ -7269,7 +7549,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=-uQGzhYj8BQ"
             },
             {
                 "name": "Best Time to Buy and Sell Stock IV",
@@ -7294,7 +7575,8 @@
                 "spaceComplexity": "O(k)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=IV1dHbk5CDc"
             },
             {
                 "name": "Best Time to Buy and Sell Stock with Cooldown",
@@ -7319,7 +7601,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=IGIe46xw3YY"
             },
             {
                 "name": "Best Time to Buy and Sell Stock with Transaction Fee",
@@ -7344,7 +7627,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=k4eK-vEmnKg"
             },
             {
                 "name": "Longest Increasing Subsequence",
@@ -7370,7 +7654,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=ekcwMsSIzVc"
             },
             {
                 "name": "Print the Longest Increasing Subsequence",
@@ -7395,7 +7680,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=IFfYfonAFGc"
             },
             {
                 "name": "Largest Divisible Subset",
@@ -7421,7 +7707,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=gDuZwBW9VvM"
             },
             {
                 "name": "Longest String Chain",
@@ -7447,7 +7734,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=YY8iBaYcc4g"
             },
             {
                 "name": "Longest Bitonic Subsequence",
@@ -7472,7 +7760,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=y4vN0WNdrlg"
             },
             {
                 "name": "Number of Longest Increasing Subsequences",
@@ -7497,7 +7786,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=cKVl1TFdNXg"
             },
             {
                 "name": "Matrix Chain Multiplication",
@@ -7523,7 +7813,8 @@
                 "spaceComplexity": "O(n^2)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=vRVfmbCFW7Y"
             },
             {
                 "name": "Burst Balloons",
@@ -7548,7 +7839,8 @@
                 "spaceComplexity": "O(n^2)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=Yz4LlDSlkns"
             },
             {
                 "name": "Palindrome Partitioning II",
@@ -7573,7 +7865,8 @@
                 "spaceComplexity": "O(n^2)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=_H8V5hJUGd0"
             },
             {
                 "name": "Partition Array for Maximum Sum",
@@ -7598,7 +7891,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=PhWWJmaKfMc"
             },
             {
                 "name": "Count Square Submatrices with All Ones",
@@ -7623,7 +7917,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=auS1fynpnjo"
             },
             {
                 "name": "Maximal Square",
@@ -7648,7 +7943,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Maximal+Square"
             },
             {
                 "name": "Minimum Cost to Cut a Stick",
@@ -7673,7 +7969,8 @@
                 "spaceComplexity": "O(c^2)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=xwomavsC86c"
             },
             {
                 "name": "Evaluate Boolean Expression to True",
@@ -7698,7 +7995,8 @@
                 "spaceComplexity": "O(n^2)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/watch?v=MM7fXopgyjw"
             },
             {
                 "name": "Perfect Squares",
@@ -7723,7 +8021,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Perfect+Squares"
             },
             {
                 "name": "Decode Ways",
@@ -7748,7 +8047,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Decode+Ways"
             },
             {
                 "name": "Maximum Product Cutting / Integer Break",
@@ -7773,7 +8073,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Integer+Break"
             }
         ]
     },
@@ -7805,7 +8106,8 @@
                 "spaceComplexity": "O(total characters)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Implement+Trie"
             },
             {
                 "name": "Implement Trie II (Prefix Counts)",
@@ -7830,7 +8132,8 @@
                 "spaceComplexity": "O(total characters)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Implement+Trie+II"
             },
             {
                 "name": "Longest Word in Dictionary (All Prefixes Present)",
@@ -7855,7 +8158,8 @@
                 "spaceComplexity": "O(total characters)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Longest+Word+with+All+Prefixes"
             },
             {
                 "name": "Number of Distinct Substrings in a String",
@@ -7880,7 +8184,8 @@
                 "spaceComplexity": "O(n^2)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Number+of+Distinct+Substrings+in+a+String"
             },
             {
                 "name": "Maximum XOR of Two Numbers in an Array",
@@ -7906,7 +8211,8 @@
                 "spaceComplexity": "O(32 * n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Maximum+XOR+of+Two+Numbers+in+an+Array"
             },
             {
                 "name": "Maximum XOR With an Element From Array",
@@ -7931,7 +8237,8 @@
                 "spaceComplexity": "O(n * 32)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Maximum+XOR+With+an+Element+From+Array"
             },
             {
                 "name": "Search Suggestions System",
@@ -7957,7 +8264,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Search+Suggestions+System"
             },
             {
                 "name": "Word Search II",
@@ -7983,7 +8291,8 @@
                 "spaceComplexity": "O(total characters)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Word+Search+II"
             }
         ]
     },
@@ -8014,7 +8323,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Shortest+Palindrome+KMP"
             },
             {
                 "name": "Implement strStr() (Find the Index of the First Occurrence)",
@@ -8039,7 +8349,8 @@
                 "spaceComplexity": "O(m)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Find+the+Index+of+the+First+Occurrence+in+a+String"
             },
             {
                 "name": "KMP Algorithm (Prefix Function)",
@@ -8065,7 +8376,8 @@
                 "spaceComplexity": "O(m)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=Abdul+Bari+KMP+Algorithm"
             },
             {
                 "name": "Z-Function",
@@ -8090,7 +8402,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Z+Function+Algorithm"
             },
             {
                 "name": "Rabin-Karp Algorithm",
@@ -8116,7 +8429,8 @@
                 "spaceComplexity": "O(1)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=Abdul+Bari+Rabin+Karp+Algorithm"
             },
             {
                 "name": "Count and Say",
@@ -8141,7 +8455,8 @@
                 "spaceComplexity": "O(len)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Count+and+Say"
             },
             {
                 "name": "Compare Version Numbers",
@@ -8166,7 +8481,8 @@
                 "spaceComplexity": "O(n + m)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=NeetCode+Compare+Version+Numbers"
             },
             {
                 "name": "Repeated String Match",
@@ -8191,7 +8507,8 @@
                 "spaceComplexity": "O(n + m)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Repeated+String+Match"
             },
             {
                 "name": "Longest Happy Prefix",
@@ -8216,7 +8533,8 @@
                 "spaceComplexity": "O(n)",
                 "pseudoCode": "",
                 "note": "",
-                "source": "Take U Forward A2Z"
+                "source": "Take U Forward A2Z",
+                "videoUrl": "https://www.youtube.com/results?search_query=takeUforward+Longest+Happy+Prefix"
             }
         ]
     }

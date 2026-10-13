@@ -19,6 +19,7 @@ type DsaQuestion = {
     name: string;
     difficulty: string;
     url: string;
+    videoUrl?: string;
     pseudoCode?: string;
     note?: string;
     description?: string;

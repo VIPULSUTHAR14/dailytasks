@@ -17,7 +17,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import Sidebar from "@/components/Sidebar";
 import WorkspaceHeader from "@/components/WorkspaceHeader";
-import IdeMarkdownEditor from "@/components/IdeMarkdownEditor";
 
 const RichTextEditor = dynamic(() => import("@/components/RichTextEditor"), {
     ssr: false,
@@ -1468,7 +1467,7 @@ function TopicDetailPanel({
                         <div className="bg-[#10141E] border border-[#1E293B] rounded-xl p-6 shadow-xl space-y-6">
                             {activeTab === "theory" && (
                                 <>
-                                    <IdeMarkdownEditor
+                                    <RichTextEditor
                                         label="Important Points"
                                         value={draft.importantPoints.join("\n")}
                                         onChange={(val) => setDraft(prev => ({
@@ -1483,7 +1482,7 @@ function TopicDetailPanel({
                                         isFullscreen={fullscreenEditorKey === "theory-1"}
                                         onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "theory-1" : null)}
                                     />
-                                    <IdeMarkdownEditor
+                                    <RichTextEditor
                                         label="Keywords"
                                         value={draft.keywords.join("\n")}
                                         onChange={(val) => setDraft(prev => ({
@@ -1502,7 +1501,7 @@ function TopicDetailPanel({
                             )}
                             {activeTab === "algorithms" && (
                                 <>
-                                    <IdeMarkdownEditor
+                                    <RichTextEditor
                                         label="Algorithms & Pseudocode"
                                         value={draft.algorithms.join("\n")}
                                         onChange={(val) => setDraft(prev => ({
@@ -1517,7 +1516,7 @@ function TopicDetailPanel({
                                         isFullscreen={fullscreenEditorKey === "algo-1"}
                                         onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "algo-1" : null)}
                                     />
-                                    <IdeMarkdownEditor
+                                    <RichTextEditor
                                         label="Formulas"
                                         value={draft.formulas.join("\n")}
                                         onChange={(val) => setDraft(prev => ({
@@ -1536,7 +1535,7 @@ function TopicDetailPanel({
                             )}
                             {activeTab === "code" && (
                                 <>
-                                    <IdeMarkdownEditor
+                                    <RichTextEditor
                                         label="Code Examples"
                                         value={draft.examples.join("\n")}
                                         onChange={(val) => setDraft(prev => ({
@@ -1551,7 +1550,7 @@ function TopicDetailPanel({
                                         isFullscreen={fullscreenEditorKey === "code-1"}
                                         onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "code-1" : null)}
                                     />
-                                    <IdeMarkdownEditor
+                                    <RichTextEditor
                                         label="Patterns"
                                         value={draft.patterns.join("\n")}
                                         onChange={(val) => setDraft(prev => ({
@@ -1570,7 +1569,7 @@ function TopicDetailPanel({
                             )}
                             {activeTab === "complexities" && (
                                 <>
-                                    <IdeMarkdownEditor
+                                    <RichTextEditor
                                         label="Time Complexities"
                                         value={draft.timeComplexities.join("\n")}
                                         onChange={(val) => setDraft(prev => ({
@@ -1585,7 +1584,7 @@ function TopicDetailPanel({
                                         isFullscreen={fullscreenEditorKey === "comp-1"}
                                         onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "comp-1" : null)}
                                     />
-                                    <IdeMarkdownEditor
+                                    <RichTextEditor
                                         label="Space Complexities"
                                         value={draft.spaceComplexities.join("\n")}
                                         onChange={(val) => setDraft(prev => ({
@@ -1604,7 +1603,7 @@ function TopicDetailPanel({
                             )}
                             {activeTab === "interview" && (
                                 <>
-                                    <IdeMarkdownEditor
+                                    <RichTextEditor
                                         label="Common Mistakes"
                                         value={draft.commonMistakes.join("\n")}
                                         onChange={(val) => setDraft(prev => ({
@@ -1619,7 +1618,7 @@ function TopicDetailPanel({
                                         isFullscreen={fullscreenEditorKey === "interview-1"}
                                         onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "interview-1" : null)}
                                     />
-                                    <IdeMarkdownEditor
+                                    <RichTextEditor
                                         label="Interview Tips"
                                         value={draft.interviewTips.join("\n")}
                                         onChange={(val) => setDraft(prev => ({
@@ -1638,7 +1637,7 @@ function TopicDetailPanel({
                             )}
                             {activeTab === "support" && (
                                 <div className="space-y-6">
-                                    <IdeMarkdownEditor
+                                    <RichTextEditor
                                         label="Tutor Questions"
                                         value={draft.tutorQuestions.join("\n")}
                                         onChange={(val) => setDraft(prev => ({
@@ -1653,7 +1652,7 @@ function TopicDetailPanel({
                                         isFullscreen={fullscreenEditorKey === "support-1"}
                                         onToggleFullscreen={(fs) => setFullscreenEditorKey(fs ? "support-1" : null)}
                                     />
-                                    <IdeMarkdownEditor
+                                    <RichTextEditor
                                         label="Related Topics"
                                         value={draft.relatedTopics.join("\n")}
                                         onChange={(val) => setDraft(prev => ({

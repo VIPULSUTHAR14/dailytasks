@@ -12,13 +12,15 @@ import {
   Zap,
   ArrowRight,
   Trash2,
-  Layers
+  Layers,
+  Youtube
 } from "lucide-react";
 import {
   loadSyncedSprintTasks,
   saveSyncedSprintTasks,
   SyncedSprintTask
 } from "@/lib/planly/storage";
+import { getVideoUrlForQuestion } from "@/lib/planly/pools";
 
 export default function PlanlySprintWidget() {
   const router = useRouter();
@@ -133,6 +135,7 @@ export default function PlanlySprintWidget() {
         {tasks.map((task) => {
           const titleParts = task.title.split(":");
           const questionName = (titleParts[titleParts.length - 1] || task.title).trim();
+          const videoUrl = task.videoUrl || getVideoUrlForQuestion(task.title);
 
           return (
             <div
@@ -208,6 +211,19 @@ export default function PlanlySprintWidget() {
                 </button>
 
                 <div className="flex items-center space-x-1.5">
+                  {videoUrl && (
+                    <a
+                      href={videoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center space-x-1 px-2 py-0.5 rounded bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-[11px] font-medium transition"
+                      title="Watch YouTube Solution Video"
+                    >
+                      <Youtube className="w-3 h-3 text-red-400" />
+                      <span className="hidden sm:inline">Video</span>
+                    </a>
+                  )}
+
                   {task.problemUrl && (
                     <a
                       href={task.problemUrl}

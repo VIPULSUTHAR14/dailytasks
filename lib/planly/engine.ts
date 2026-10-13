@@ -715,6 +715,7 @@ function generateSingleWeekDays(params: GenerateSingleWeekParams): { days: PlanD
           isBacklogEligible: true,
           difficulty: q.difficulty,
           problemUrl: q.leetcodeUrl,
+          videoUrl: q.videoUrl,
           intuitionHint: q.intuitionHint,
           topicId: q.topicId,
           pattern: q.pattern,

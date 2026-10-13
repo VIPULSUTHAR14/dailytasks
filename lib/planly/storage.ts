@@ -20,6 +20,7 @@ export interface SyncedSprintTask {
   completed: boolean;
   difficulty?: string;
   problemUrl?: string;
+  videoUrl?: string;
   intuitionHint?: string;
   pattern?: string;
   timeComplexity?: string;
@@ -260,6 +261,7 @@ export function syncDayToHabitTasks(dayTasks: PlanTask[]): { addedCount: number;
           completed: t.completed,
           difficulty: t.difficulty,
           problemUrl: t.problemUrl,
+          videoUrl: t.videoUrl,
           intuitionHint: t.intuitionHint,
           pattern: t.pattern,
           timeComplexity: t.timeComplexity,

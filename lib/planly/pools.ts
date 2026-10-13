@@ -33,6 +33,7 @@ interface RawQuestion {
   name: string;
   difficulty?: string;
   url?: string;
+  videoUrl?: string;
   hint?: string;
   description?: string;
   pattern?: string;
@@ -53,6 +54,7 @@ export const DSA_TOPICS_POOL: DsaTopicCategory[] = (rawDsaQuestions as RawCatego
     title: q.name,
     difficulty: (q.difficulty as ProblemDifficulty) || "Medium",
     leetcodeUrl: q.url || "https://leetcode.com",
+    videoUrl: q.videoUrl || "",
     intuitionHint: q.hint || q.description || "",
     pattern: q.pattern || "",
     timeComplexity: q.timeComplexity || "",
@@ -69,6 +71,29 @@ export const DSA_TOPICS_POOL: DsaTopicCategory[] = (rawDsaQuestions as RawCatego
     questions
   };
 });
+
+/**
+ * Look up the video solution URL for a question by its name/title.
+ * Handles prefixes like "[Fresh Challenge] " or "Arrays & Strings: "
+ */
+export function getVideoUrlForQuestion(title?: string): string | undefined {
+  if (!title) return undefined;
+  const cleaned = title
+    .replace(/^\[.*?\]\s*/, "")
+    .split(":")
+    .pop()
+    ?.trim()
+    .toLowerCase() || title.trim().toLowerCase();
+
+  for (const cat of DSA_TOPICS_POOL) {
+    for (const q of cat.questions) {
+      if (q.title.trim().toLowerCase() === cleaned && q.videoUrl && q.videoUrl.trim()) {
+        return q.videoUrl;
+      }
+    }
+  }
+  return undefined;
+}
 
 export const CORE_SUBJECTS_POOL = {
   dbms: [

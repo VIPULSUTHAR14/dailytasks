@@ -6,7 +6,6 @@ import {
   Sparkles,
   BarChart3,
   RotateCcw,
-  FileJson,
   Sliders,
   Building2,
   Zap,
@@ -48,7 +47,6 @@ import TodayView from "./TodayView";
 import TimelineView from "./TimelineView";
 import AnalyticsView from "./AnalyticsView";
 import BacklogView from "./BacklogView";
-import JsonView from "./JsonView";
 import OnboardingWizardModal from "./OnboardingWizardModal";
 import SprintSettingsModal from "./SprintSettingsModal";
 
@@ -65,7 +63,7 @@ export default function PlanlyDashboard() {
   });
 
   const [plan, setPlan] = useState<SprintPlan | null>(null);
-  const [activeTab, setActiveTab] = useState<"today" | "timeline" | "analytics" | "backlog" | "json">("today");
+  const [activeTab, setActiveTab] = useState<"today" | "timeline" | "analytics" | "backlog">("today");
   const [activeWeek, setActiveWeek] = useState<number>(1);
   const [currentDayNumber, setCurrentDayNumber] = useState<number>(1);
   const [streaks, setStreaks] = useState({ currentStreak: 1, longestStreak: 1, lastActiveDate: null as string | null });
@@ -422,18 +420,6 @@ export default function PlanlyDashboard() {
                 </span>
               )}
             </button>
-
-            <button
-              onClick={() => setActiveTab("json")}
-              className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition ${
-                activeTab === "json"
-                  ? "bg-[#1E293B] text-white shadow-sm font-bold border border-[#334155]"
-                  : "text-zinc-400 hover:text-white"
-              }`}
-            >
-              <FileJson className="w-3.5 h-3.5 text-purple-400" />
-              <span>Plan JSON</span>
-            </button>
           </div>
 
           {/* Quick Velocity Stat */}
@@ -494,11 +480,6 @@ export default function PlanlyDashboard() {
               onCompleteTask={(id) => handleUpdateTask(id, { completed: true })}
               onTogglePin={(task) => handleUpdateTask(task.id, { isPinned: !task.isPinned })}
             />
-          )}
-
-          {/* TAB 5: JSON EXPORT */}
-          {activeTab === "json" && (
-            <JsonView plan={plan} onImportPlan={(imported) => setPlan(imported)} />
           )}
         </main>
 

@@ -15,9 +15,11 @@ import {
   Pin,
   Sparkles,
   FileText,
-  BookOpen
+  BookOpen,
+  Youtube
 } from "lucide-react";
 import { ConfidenceLevel, PlanTask } from "@/lib/planly/types";
+import { getVideoUrlForQuestion } from "@/lib/planly/pools";
 
 interface ProblemCardProps {
   task: PlanTask;
@@ -31,6 +33,8 @@ export default function ProblemCard({ task, onUpdate, onConfidenceSelect }: Prob
   const [secondsSpent, setSecondsSpent] = useState(task.timeSpentSecs || 0);
   const [showNotes, setShowNotes] = useState(false);
   const [notesText, setNotesText] = useState(task.notes || "");
+
+  const resolvedVideoUrl = task.videoUrl || getVideoUrlForQuestion(task.title);
 
   const openInDsaCatalog = () => {
     const titleParts = task.title.split(":");
@@ -167,6 +171,19 @@ export default function ProblemCard({ task, onUpdate, onConfidenceSelect }: Prob
             >
               <Pin className="w-3.5 h-3.5" />
             </button>
+
+            {resolvedVideoUrl && (
+              <a
+                href={resolvedVideoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Watch Video Solution on YouTube"
+                className="flex items-center space-x-1 px-1.5 py-0.5 rounded bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] font-medium transition"
+              >
+                <Youtube className="w-3 h-3 text-red-400" />
+                <span className="hidden sm:inline">Video</span>
+              </a>
+            )}
 
             {task.problemUrl && (
               <a

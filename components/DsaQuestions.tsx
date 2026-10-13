@@ -7,7 +7,8 @@ import {
     Zap, Flame, Trophy, Filter, Copy, Check, Terminal,
     Eye, EyeOff, AlertTriangle, HelpCircle, Clock,
     Database, GitBranch, MessageCircle, Lightbulb, BookOpen,
-    Pencil, Trash2, Save, FileText, StickyNote, RotateCw
+    Pencil, Trash2, Save, FileText, StickyNote, RotateCw,
+    Youtube
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,6 +21,7 @@ type QuestionItem = {
     name: string;
     difficulty: string;
     url: string;
+    videoUrl?: string;
     completed: boolean;
     pseudoCode?: string;
     note?: string;
@@ -645,12 +647,25 @@ export default function DsaQuestions() {
                                                                         {diffCfg.label}
                                                                     </span>
 
+                                                                    {q.videoUrl && (
+                                                                        <a
+                                                                            href={q.videoUrl}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                            className="p-1 rounded text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors flex items-center justify-center"
+                                                                            title="Watch Video Solution on YouTube"
+                                                                        >
+                                                                            <Youtube size={14} />
+                                                                        </a>
+                                                                    )}
+
                                                                     <a
                                                                         href={q.url}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
                                                                         onClick={(e) => e.stopPropagation()}
-                                                                        className="text-zinc-500 hover:text-cyan-400 transition-colors"
+                                                                        className="p-1 rounded text-zinc-500 hover:text-cyan-400 transition-colors flex items-center justify-center"
                                                                         title="Open LeetCode"
                                                                     >
                                                                         <ExternalLink size={13} />
@@ -709,15 +724,30 @@ export default function DsaQuestions() {
                                             </span>
                                         </div>
 
-                                        <a
-                                            href={selectedQuestion.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-1 text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
-                                        >
-                                            <span>LeetCode</span>
-                                            <ExternalLink size={12} />
-                                        </a>
+                                        <div className="flex items-center gap-2">
+                                            {selectedQuestion.videoUrl && (
+                                                <a
+                                                    href={selectedQuestion.videoUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-semibold transition-colors"
+                                                    title="Watch Video Solution on YouTube"
+                                                >
+                                                    <Youtube size={13} className="text-red-400" />
+                                                    <span>Watch Solution</span>
+                                                </a>
+                                            )}
+
+                                            <a
+                                                href={selectedQuestion.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-1 text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
+                                            >
+                                                <span>LeetCode</span>
+                                                <ExternalLink size={12} />
+                                            </a>
+                                        </div>
                                     </div>
 
                                     {/* Problem Statement */}
