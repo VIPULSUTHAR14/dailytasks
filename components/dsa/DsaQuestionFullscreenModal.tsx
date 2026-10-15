@@ -318,9 +318,8 @@ export default function DsaQuestionFullscreenModal({
                     <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 p-3 sm:p-5 overflow-hidden">
                         {/* Left Side: Rich Text Editor / Notes Area */}
                         <div
-                            className={`${
-                                isNotesMaximized ? "lg:col-span-12" : "lg:col-span-7"
-                            } bg-[#10141E] border border-[#1E293B] rounded-xl flex flex-col min-h-0 overflow-hidden shadow-lg shadow-black/50 transition-all`}
+                            className={`${isNotesMaximized ? "lg:col-span-12" : "lg:col-span-7"
+                                } bg-[#10141E] border border-[#1E293B] rounded-xl flex flex-col min-h-0 overflow-hidden shadow-lg shadow-black/50 transition-all`}
                         >
                             <RichTextEditor
                                 label="Personal Notes & Approaches"
@@ -357,11 +356,10 @@ export default function DsaQuestionFullscreenModal({
                                             <button
                                                 type="button"
                                                 onClick={() => setIsVideoVisible((prev) => !prev)}
-                                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded border text-[11px] font-semibold transition-colors cursor-pointer ${
-                                                    isVideoVisible
+                                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded border text-[11px] font-semibold transition-colors cursor-pointer ${isVideoVisible
                                                         ? "bg-red-500/20 text-red-300 border-red-500/40"
                                                         : "bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/30"
-                                                }`}
+                                                    }`}
                                                 title="Toggle in-page YouTube video player"
                                             >
                                                 <Youtube size={13} className="text-red-400" />
@@ -530,11 +528,10 @@ export default function DsaQuestionFullscreenModal({
                                     <button
                                         type="button"
                                         onClick={() => onToggleStatus(topicId, question.name)}
-                                        className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer ${
-                                            question.completed
+                                        className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer ${question.completed
                                                 ? "bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700"
                                                 : "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-emerald-500/20 font-extrabold"
-                                        }`}
+                                            }`}
                                     >
                                         {question.completed ? (
                                             <>

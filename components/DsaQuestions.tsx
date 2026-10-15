@@ -182,11 +182,11 @@ export default function DsaQuestions() {
             prev.map((t) =>
                 t.id === topicId
                     ? {
-                          ...t,
-                          questions: t.questions.map((q) =>
-                              q.name === questionName ? { ...q, completed: newStatus } : q
-                          ),
-                      }
+                        ...t,
+                        questions: t.questions.map((q) =>
+                            q.name === questionName ? { ...q, completed: newStatus } : q
+                        ),
+                    }
                     : t
             )
         );
@@ -218,11 +218,11 @@ export default function DsaQuestions() {
             prev.map((t) =>
                 t.id === topicId
                     ? {
-                          ...t,
-                          questions: t.questions.map((q) =>
-                              q.name === questionName ? { ...q, note: noteContent } : q
-                          ),
-                      }
+                        ...t,
+                        questions: t.questions.map((q) =>
+                            q.name === questionName ? { ...q, note: noteContent } : q
+                        ),
+                    }
                     : t
             )
         );
@@ -527,11 +527,10 @@ export default function DsaQuestions() {
                                     <button
                                         key={s}
                                         onClick={() => setStatusFilter(s)}
-                                        className={`px-3 py-1 text-xs font-semibold rounded uppercase tracking-wider transition-colors cursor-pointer ${
-                                            statusFilter === s
-                                                ? "bg-[#1E293B] text-white shadow-sm"
-                                                : "text-zinc-400 hover:text-white"
-                                        }`}
+                                        className={`px-3 py-1 text-xs font-semibold rounded uppercase tracking-wider transition-colors cursor-pointer ${statusFilter === s
+                                            ? "bg-[#1E293B] text-white shadow-sm"
+                                            : "text-zinc-400 hover:text-white"
+                                            }`}
                                     >
                                         {s}
                                     </button>
@@ -543,9 +542,8 @@ export default function DsaQuestions() {
                                 <span className="text-zinc-500 font-semibold px-2 uppercase text-[10px]">Level:</span>
                                 <button
                                     onClick={() => setDifficultyFilter("all")}
-                                    className={`px-2.5 py-1 text-xs font-semibold rounded uppercase transition-colors cursor-pointer ${
-                                        difficultyFilter === "all" ? "bg-[#1E293B] text-white" : "text-zinc-400 hover:text-white"
-                                    }`}
+                                    className={`px-2.5 py-1 text-xs font-semibold rounded uppercase transition-colors cursor-pointer ${difficultyFilter === "all" ? "bg-[#1E293B] text-white" : "text-zinc-400 hover:text-white"
+                                        }`}
                                 >
                                     All
                                 </button>
@@ -553,16 +551,14 @@ export default function DsaQuestions() {
                                     <button
                                         key={d}
                                         onClick={() => setDifficultyFilter(d)}
-                                        className={`flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded uppercase transition-colors cursor-pointer ${
-                                            difficultyFilter === d
-                                                ? "bg-[#1E293B] text-white font-bold"
-                                                : "text-zinc-400 hover:text-white"
-                                        }`}
+                                        className={`flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded uppercase transition-colors cursor-pointer ${difficultyFilter === d
+                                            ? "bg-[#1E293B] text-white font-bold"
+                                            : "text-zinc-400 hover:text-white"
+                                            }`}
                                     >
                                         <span
-                                            className={`w-1.5 h-1.5 rounded-full ${
-                                                d === "Easy" ? "bg-emerald-400" : d === "Medium" ? "bg-amber-400" : "bg-rose-400"
-                                            }`}
+                                            className={`w-1.5 h-1.5 rounded-full ${d === "Easy" ? "bg-emerald-400" : d === "Medium" ? "bg-amber-400" : "bg-rose-400"
+                                                }`}
                                         />
                                         {d}
                                     </button>
@@ -681,11 +677,10 @@ export default function DsaQuestions() {
                                                                 onClick={() =>
                                                                     setSelectedQuestion({ ...q, topicName: topic.name })
                                                                 }
-                                                                className={`flex items-center justify-between px-4 py-3 text-xs transition-all cursor-pointer group ${
-                                                                    isSelected
-                                                                        ? "bg-[#181C24] border-l-2 border-l-cyan-400"
-                                                                        : "hover:bg-[#141923]"
-                                                                }`}
+                                                                className={`flex items-center justify-between px-4 py-3 text-xs transition-all cursor-pointer group ${isSelected
+                                                                    ? "bg-[#181C24] border-l-2 border-l-cyan-400"
+                                                                    : "hover:bg-[#141923]"
+                                                                    }`}
                                                             >
                                                                 <div className="flex items-center gap-3 min-w-0 flex-1">
                                                                     <button
@@ -703,13 +698,12 @@ export default function DsaQuestions() {
                                                                     </button>
 
                                                                     <span
-                                                                        className={`font-medium truncate ${
-                                                                            q.completed
-                                                                                ? "text-zinc-500 line-through"
-                                                                                : isSelected
+                                                                        className={`font-medium truncate ${q.completed
+                                                                            ? "text-zinc-500 line-through"
+                                                                            : isSelected
                                                                                 ? "text-cyan-300 font-semibold"
                                                                                 : "text-zinc-200 group-hover:text-white"
-                                                                        }`}
+                                                                            }`}
                                                                     >
                                                                         {q.name}
                                                                     </span>
@@ -724,11 +718,10 @@ export default function DsaQuestions() {
                                                                             setSelectedQuestion({ ...q, topicName: topic.name });
                                                                             setFullscreenQuestion({ ...q, topicId: topic.id, topicName: topic.name });
                                                                         }}
-                                                                        className={`p-1 rounded transition-colors flex items-center justify-center cursor-pointer ${
-                                                                            q.note?.trim()
-                                                                                ? "text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20"
-                                                                                : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
-                                                                        }`}
+                                                                        className={`p-1 rounded transition-colors flex items-center justify-center cursor-pointer ${q.note?.trim()
+                                                                            ? "text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20"
+                                                                            : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
+                                                                            }`}
                                                                         title={q.note?.trim() ? "Edit Notes (Has Notes)" : "Add Notes in Fullscreen"}
                                                                     >
                                                                         <BookOpen size={13} />
@@ -841,9 +834,8 @@ export default function DsaQuestions() {
                                     <div className="flex flex-wrap items-center justify-between gap-2">
                                         <div className="flex items-center gap-2">
                                             <span
-                                                className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase font-mono ${
-                                                    DIFFICULTY_CONFIG[selectedQuestion.difficulty as Difficulty]?.bgColor || "bg-emerald-400/10"
-                                                } ${DIFFICULTY_CONFIG[selectedQuestion.difficulty as Difficulty]?.color || "text-emerald-400"}`}
+                                                className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase font-mono ${DIFFICULTY_CONFIG[selectedQuestion.difficulty as Difficulty]?.bgColor || "bg-emerald-400/10"
+                                                    } ${DIFFICULTY_CONFIG[selectedQuestion.difficulty as Difficulty]?.color || "text-emerald-400"}`}
                                             >
                                                 {selectedQuestion.difficulty}
                                             </span>
@@ -858,11 +850,10 @@ export default function DsaQuestions() {
                                                 <button
                                                     type="button"
                                                     onClick={() => setIsDrawerVideoVisible((prev) => !prev)}
-                                                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded border text-xs font-semibold transition-colors cursor-pointer ${
-                                                        isDrawerVideoVisible
-                                                            ? "bg-red-500/20 text-red-300 border-red-500/40"
-                                                            : "bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/30"
-                                                    }`}
+                                                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded border text-xs font-semibold transition-colors cursor-pointer ${isDrawerVideoVisible
+                                                        ? "bg-red-500/20 text-red-300 border-red-500/40"
+                                                        : "bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/30"
+                                                        }`}
                                                     title="Toggle embedded video solution"
                                                 >
                                                     <Youtube size={13} className="text-red-400" />
@@ -1062,10 +1053,10 @@ export default function DsaQuestions() {
                                             {(selectedQuestion.commonMistakes && selectedQuestion.commonMistakes.length > 0
                                                 ? selectedQuestion.commonMistakes
                                                 : [
-                                                      "O(n^2) nested loop checking every pair.",
-                                                      "Selling before buying chronological index violation.",
-                                                      "Failing to handle strictly descending array edge cases."
-                                                  ]
+                                                    "O(n^2) nested loop checking every pair.",
+                                                    "Selling before buying chronological index violation.",
+                                                    "Failing to handle strictly descending array edge cases."
+                                                ]
                                             ).map((mistake, idx) => (
                                                 <li key={idx}>{mistake}</li>
                                             ))}
@@ -1080,11 +1071,10 @@ export default function DsaQuestions() {
                                             );
                                             if (topic) toggleQuestion(topic.id, selectedQuestion.name);
                                         }}
-                                        className={`w-full py-2.5 rounded-lg text-xs font-bold transition-all shadow-lg cursor-pointer ${
-                                            selectedQuestion.completed
-                                                ? "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
-                                                : "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-emerald-500/20"
-                                        }`}
+                                        className={`w-full py-2.5 rounded-lg text-xs font-bold transition-all shadow-lg cursor-pointer ${selectedQuestion.completed
+                                            ? "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+                                            : "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-emerald-500/20"
+                                            }`}
                                     >
                                         {selectedQuestion.completed ? "Mark as Incomplete" : "Mark as Solved"}
                                     </button>
