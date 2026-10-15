@@ -232,18 +232,10 @@ export default function DsaQuestionFullscreenModal({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 md:p-6"
+                className="fixed inset-0 z-[100] w-screen h-screen bg-[#0B0F17] flex flex-col overflow-hidden m-0 p-0 select-auto"
             >
-                {/* Modal Container */}
-                <motion.div
-                    initial={{ scale: 0.96, opacity: 0, y: 12 }}
-                    animate={{ scale: 1, opacity: 1, y: 0 }}
-                    exit={{ scale: 0.96, opacity: 0, y: 12 }}
-                    transition={{ type: "spring", duration: 0.35, bounce: 0.1 }}
-                    className="bg-[#0B0F17] border border-[#1E293B] rounded-2xl shadow-2xl shadow-black/80 flex flex-col w-full h-full max-h-[96vh] overflow-hidden"
-                >
-                    {/* Top Header Bar */}
-                    <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-[#1E293B] bg-[#10141E]/90 shrink-0">
+                {/* Top Header Bar */}
+                <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-[#1E293B] bg-[#10141E] shrink-0">
                         {/* Title & Topic Breadcrumb */}
                         <div className="flex items-center gap-2.5 min-w-0 pr-4">
                             <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shrink-0" />
@@ -315,11 +307,11 @@ export default function DsaQuestionFullscreenModal({
                     </div>
 
                     {/* Split Layout Body */}
-                    <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 p-3 sm:p-5 overflow-hidden">
+                    <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 p-2 sm:p-3 overflow-hidden">
                         {/* Left Side: Rich Text Editor / Notes Area */}
                         <div
                             className={`${isNotesMaximized ? "lg:col-span-12" : "lg:col-span-7"
-                                } bg-[#10141E] border border-[#1E293B] rounded-xl flex flex-col min-h-0 overflow-hidden shadow-lg shadow-black/50 transition-all`}
+                                } flex flex-col min-h-0 h-full overflow-hidden shadow-lg shadow-black/50 transition-all`}
                         >
                             <RichTextEditor
                                 label="Personal Notes & Approaches"
@@ -330,13 +322,13 @@ export default function DsaQuestionFullscreenModal({
                                 placeholder="Write your intuition, code snippets, edge cases, or complexity explanations here..."
                                 isFullscreen={isNotesMaximized}
                                 onToggleFullscreen={(val) => setIsNotesMaximized(val)}
-                                className="h-full flex flex-col"
+                                className="h-full flex-1 min-h-0 flex flex-col"
                             />
                         </div>
 
                         {/* Right Side: Question Context & Details */}
                         {!isNotesMaximized && (
-                            <div className="lg:col-span-5 bg-[#10141E] border border-[#1E293B] rounded-xl p-4 sm:p-5 overflow-y-auto space-y-4 shadow-lg shadow-black/50 text-xs">
+                            <div className="lg:col-span-5 bg-[#10141E] border border-[#1E293B] rounded-xl p-4 sm:p-5 overflow-y-auto space-y-4 shadow-lg shadow-black/50 text-xs min-h-0 h-full">
                                 {/* Badges & Action Links Bar */}
                                 <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#1E293B]/80">
                                     <div className="flex items-center gap-2 flex-wrap">
@@ -549,7 +541,6 @@ export default function DsaQuestionFullscreenModal({
                             </div>
                         )}
                     </div>
-                </motion.div>
             </motion.div>
         </AnimatePresence>
     );
