@@ -376,7 +376,7 @@ function SprintSettingsModalContent({
               <div>
                 <p className="text-xs font-bold text-amber-100">Confirm Schedule Regeneration</p>
                 <p className="text-[11px] text-amber-300/80">
-                  Future days will be updated with your new topic order. Completed work, past days, and streaks are safely preserved.
+                  A fresh sprint plan will be generated starting from Day 1 based on your updated settings, targets, and topic sequence.
                 </p>
               </div>
             </div>

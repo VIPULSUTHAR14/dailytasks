@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
@@ -12,22 +13,16 @@ import {
   Undo2,
   CheckCircle2,
   ShieldCheck,
-  Compass,
-  Coffee,
-  Check,
-  Layers,
-  Clock,
-  ArrowRight
+  Coffee
 } from "lucide-react";
 import {
   ConfidenceLevel,
   PlanTask,
   SprintPlan,
-  SprintSettings,
-  TargetCompanyKey
+  SprintSettings
 } from "@/lib/planly/types";
 import { COMPANY_PRESETS } from "@/lib/planly/pools";
-import { generateSchedule, regenerateFrom } from "@/lib/planly/engine";
+import { generateSchedule } from "@/lib/planly/engine";
 import {
   applyRestDay,
   executeIntelligentRebalance,
@@ -43,6 +38,12 @@ import {
   syncDayToHabitTasks,
   reconcileWithCompletedHabits
 } from "@/lib/planly/storage";
+import {
+  syncCurrentDayWithCalendar,
+  advanceSprintDay,
+  pullBacklogTaskToDay,
+  pullAllBacklogTasksToDay
+} from "@/lib/planly/progression";
 import TodayView from "./TodayView";
 import TimelineView from "./TimelineView";
 import AnalyticsView from "./AnalyticsView";
@@ -81,19 +82,32 @@ export default function PlanlyDashboard() {
     const savedState = loadPlanlyState();
     setSettings(savedState.settings);
     setStreaks(savedState.streaks);
-    setCurrentDayNumber(savedState.currentDayNumber || 1);
 
-    if (savedState.plan) {
-      const { updatedPlan, syncedCount } = reconcileWithCompletedHabits(savedState.plan);
+    let activePlan = savedState.plan;
+    if (activePlan) {
+      const { updatedPlan, syncedCount } = reconcileWithCompletedHabits(activePlan);
+      activePlan = updatedPlan;
       setPlan(updatedPlan);
       if (syncedCount > 0) {
         triggerNotification(`Synced ${syncedCount} completed task(s) from AlgoCraft Tasks!`);
       }
     } else {
-      const generated = generateSchedule(savedState.settings);
-      setPlan(generated);
+      activePlan = generateSchedule(savedState.settings);
+      setPlan(activePlan);
     }
 
+    // Auto-sync currentDayNumber with real-world calendar if applicable
+    let dayNum = savedState.currentDayNumber || 1;
+    if (activePlan) {
+      const calSync = syncCurrentDayWithCalendar(activePlan, dayNum);
+      if (calSync.changed && calSync.resolvedDay > dayNum) {
+        dayNum = calSync.resolvedDay;
+        triggerNotification(`Welcome back! Synced to Sprint Day ${dayNum} based on today's calendar date.`);
+      }
+    }
+
+    setCurrentDayNumber(dayNum);
+    setActiveWeek(Math.ceil(dayNum / 7));
     setIsLoaded(true);
   }, [triggerNotification]);
 
@@ -148,12 +162,14 @@ export default function PlanlyDashboard() {
 
   const handleRegenerateFromModal = (newSettings: SprintSettings) => {
     setSettings(newSettings);
-    updatePlanWithHistory((prevPlan) => {
-      if (!prevPlan) {
-        return generateSchedule(newSettings);
-      }
-      return regenerateFrom(newSettings, prevPlan, currentDayNumber);
-    }, `Updated sprint plan for ${COMPANY_PRESETS[newSettings.targetCompany]?.name || newSettings.targetCompany.toUpperCase()}! (Completed work preserved)`);
+    const freshPlan = generateSchedule(newSettings);
+    updatePlanWithHistory(
+      () => freshPlan,
+      `Synthesized fresh sprint plan from Day 1 for ${COMPANY_PRESETS[newSettings.targetCompany]?.name || newSettings.targetCompany.toUpperCase()}!`
+    );
+    setCurrentDayNumber(1);
+    setActiveWeek(1);
+    setActiveTab("today");
   };
 
   const handleUpdateTask = (taskId: string, updates: Partial<PlanTask>) => {
@@ -211,12 +227,59 @@ export default function PlanlyDashboard() {
     triggerNotification(result.message);
   };
 
+  const handleSelectDay = (day: number) => {
+    if (!plan) return;
+    const totalDays = plan.metadata.totalDays || plan.weeks.length * 7;
+    const clamped = Math.max(1, Math.min(totalDays, day));
+    setCurrentDayNumber(clamped);
+    setActiveWeek(Math.ceil(clamped / 7));
+  };
+
+  const handleAdvanceDay = (carryOver: boolean) => {
+    if (!plan) return;
+    const { updatedPlan, nextDayNumber, carriedTasksCount } = advanceSprintDay(plan, currentDayNumber, {
+      carryOverUnfinished: carryOver
+    });
+
+    updatePlanWithHistory(() => updatedPlan);
+    setCurrentDayNumber(nextDayNumber);
+    setActiveWeek(Math.ceil(nextDayNumber / 7));
+
+    if (carryOver && carriedTasksCount > 0) {
+      triggerNotification(`Day ${nextDayNumber} started! Carried over ${carriedTasksCount} unfinished task(s) into today.`);
+    } else {
+      triggerNotification(`Day ${nextDayNumber} started! Incomplete tasks from Day ${currentDayNumber} moved to Backlog Debt.`);
+    }
+  };
+
+  const handlePullBacklogTask = (taskId: string) => {
+    if (!plan) return;
+    const { updatedPlan, taskTitle } = pullBacklogTaskToDay(plan, taskId, currentDayNumber);
+    if (taskTitle) {
+      updatePlanWithHistory(() => updatedPlan, `Added "${taskTitle}" to Day ${currentDayNumber}'s active checklist!`);
+    }
+  };
+
+  const handlePullAllBacklog = () => {
+    if (!plan) return;
+    const { updatedPlan, pulledCount } = pullAllBacklogTasksToDay(plan, currentDayNumber);
+    if (pulledCount > 0) {
+      updatePlanWithHistory(() => updatedPlan, `Pulled ${pulledCount} overdue task(s) into Day ${currentDayNumber}'s checklist!`);
+    } else {
+      triggerNotification("No overdue backlog tasks to carry over.");
+    }
+  };
+
   const handleWizardComplete = (newSettings: SprintSettings) => {
     setSettings(newSettings);
-    updatePlanWithHistory(() => {
-      const fresh = generateSchedule(newSettings);
-      return fresh;
-    }, `Personalized sprint synthesized for ${newSettings.targetCompany.toUpperCase()}!`);
+    const freshPlan = generateSchedule(newSettings);
+    updatePlanWithHistory(
+      () => freshPlan,
+      `Personalized sprint synthesized from Day 1 for ${newSettings.targetCompany.toUpperCase()}!`
+    );
+    setCurrentDayNumber(1);
+    setActiveWeek(1);
+    setActiveTab("today");
   };
 
   if (!isLoaded || !plan) {
@@ -448,6 +511,9 @@ export default function PlanlyDashboard() {
               onConfidenceSelect={handleConfidenceSelect}
               onTakeRestDay={handleTakeRestDay}
               onSyncToHabits={handleSyncToHabits}
+              onSelectDay={handleSelectDay}
+              onAdvanceDay={handleAdvanceDay}
+              onPullBacklogToToday={handlePullAllBacklog}
             />
           )}
 
@@ -476,9 +542,12 @@ export default function PlanlyDashboard() {
             <BacklogView
               backlogList={metrics.backlogList}
               debtHours={metrics.debtHours}
+              currentDayNumber={currentDayNumber}
               onExecuteRebalance={handleExecuteRebalance}
               onCompleteTask={(id) => handleUpdateTask(id, { completed: true })}
               onTogglePin={(task) => handleUpdateTask(task.id, { isPinned: !task.isPinned })}
+              onPullBacklogTask={handlePullBacklogTask}
+              onPullAllBacklog={handlePullAllBacklog}
             />
           )}
         </main>

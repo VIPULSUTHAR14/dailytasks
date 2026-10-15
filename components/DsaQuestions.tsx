@@ -8,12 +8,13 @@ import {
     Eye, EyeOff, AlertTriangle, HelpCircle, Clock,
     Database, GitBranch, MessageCircle, Lightbulb, BookOpen,
     Pencil, Trash2, Save, FileText, StickyNote, RotateCw,
-    Youtube
+    Youtube, Maximize2
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "@/components/Sidebar";
 import WorkspaceHeader from "@/components/WorkspaceHeader";
+import DsaQuestionFullscreenModal, { getYouTubeEmbedUrl } from "@/components/dsa/DsaQuestionFullscreenModal";
 
 type Difficulty = "Easy" | "Medium" | "Hard";
 
@@ -100,6 +101,8 @@ export default function DsaQuestions() {
     const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set(["arrays-and-strings"]));
     const [isTopicDropdownOpen, setIsTopicDropdownOpen] = useState(false);
     const [selectedQuestion, setSelectedQuestion] = useState<(QuestionItem & { topicName?: string }) | null>(null);
+    const [fullscreenQuestion, setFullscreenQuestion] = useState<(QuestionItem & { topicId: string; topicName: string }) | null>(null);
+    const [isDrawerVideoVisible, setIsDrawerVideoVisible] = useState(false);
     const [showHint, setShowHint] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -192,6 +195,10 @@ export default function DsaQuestions() {
             setSelectedQuestion((prev) => (prev ? { ...prev, completed: newStatus } : null));
         }
 
+        if (fullscreenQuestion?.name === questionName) {
+            setFullscreenQuestion((prev) => (prev ? { ...prev, completed: newStatus } : null));
+        }
+
         try {
             await fetch(`/api/dsaquestions`, {
                 method: "PATCH",
@@ -200,6 +207,42 @@ export default function DsaQuestions() {
             });
         } catch (e) {
             console.error("Failed to update question status:", e);
+        }
+    };
+
+    const handleSaveNote = async (topicId: string, questionName: string, noteContent: string) => {
+        const key = questionKey(topicId, questionName);
+
+        // Optimistically update topics state
+        setTopics((prev) =>
+            prev.map((t) =>
+                t.id === topicId
+                    ? {
+                          ...t,
+                          questions: t.questions.map((q) =>
+                              q.name === questionName ? { ...q, note: noteContent } : q
+                          ),
+                      }
+                    : t
+            )
+        );
+
+        if (selectedQuestion?.name === questionName) {
+            setSelectedQuestion((prev) => (prev ? { ...prev, note: noteContent } : null));
+        }
+
+        if (fullscreenQuestion?.name === questionName) {
+            setFullscreenQuestion((prev) => (prev ? { ...prev, note: noteContent } : null));
+        }
+
+        const res = await fetch(`/api/dsaquestions`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ questionKey: key, note: noteContent }),
+        });
+
+        if (!res.ok) {
+            throw new Error("Failed to save note");
         }
     };
 
@@ -265,6 +308,45 @@ export default function DsaQuestions() {
             })
             .filter((t) => t.questions.length > 0);
     }, [topics, topicFilter, statusFilter, difficultyFilter, searchTerm]);
+
+    // Flat list of filtered questions for next/prev navigation in fullscreen modal
+    const allFilteredQuestions = useMemo(() => {
+        const list: Array<{ topicId: string; topicName: string; question: QuestionItem }> = [];
+        filteredTopics.forEach((t) => {
+            t.questions.forEach((q) => {
+                list.push({ topicId: t.id, topicName: t.name, question: q });
+            });
+        });
+        return list;
+    }, [filteredTopics]);
+
+    const currentFullscreenIdx = useMemo(() => {
+        if (!fullscreenQuestion) return -1;
+        return allFilteredQuestions.findIndex(
+            (item) => item.question.name === fullscreenQuestion.name && item.topicId === fullscreenQuestion.topicId
+        );
+    }, [fullscreenQuestion, allFilteredQuestions]);
+
+    const hasPrevFullscreen = currentFullscreenIdx > 0;
+    const hasNextFullscreen = currentFullscreenIdx >= 0 && currentFullscreenIdx < allFilteredQuestions.length - 1;
+
+    const handleNavigatePrev = () => {
+        if (hasPrevFullscreen) {
+            const prev = allFilteredQuestions[currentFullscreenIdx - 1];
+            setFullscreenQuestion({ ...prev.question, topicId: prev.topicId, topicName: prev.topicName });
+            setSelectedQuestion({ ...prev.question, topicName: prev.topicName });
+            setExpandedTopics((set) => new Set([...set, prev.topicId]));
+        }
+    };
+
+    const handleNavigateNext = () => {
+        if (hasNextFullscreen) {
+            const next = allFilteredQuestions[currentFullscreenIdx + 1];
+            setFullscreenQuestion({ ...next.question, topicId: next.topicId, topicName: next.topicName });
+            setSelectedQuestion({ ...next.question, topicName: next.topicName });
+            setExpandedTopics((set) => new Set([...set, next.topicId]));
+        }
+    };
 
     const currentTopicObj = topics.find((t) => t.id === topicFilter);
 
@@ -633,13 +715,38 @@ export default function DsaQuestions() {
                                                                     </span>
                                                                 </div>
 
-                                                                <div className="flex items-center gap-3 shrink-0 ml-3">
-                                                                    <span title="View notes">
-                                                                        <BookOpen
-                                                                            size={13}
-                                                                            className="text-zinc-500 group-hover:text-zinc-300"
-                                                                        />
-                                                                    </span>
+                                                                <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-3">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setSidebarOpen(false);
+                                                                            setSelectedQuestion({ ...q, topicName: topic.name });
+                                                                            setFullscreenQuestion({ ...q, topicId: topic.id, topicName: topic.name });
+                                                                        }}
+                                                                        className={`p-1 rounded transition-colors flex items-center justify-center cursor-pointer ${
+                                                                            q.note?.trim()
+                                                                                ? "text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20"
+                                                                                : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
+                                                                        }`}
+                                                                        title={q.note?.trim() ? "Edit Notes (Has Notes)" : "Add Notes in Fullscreen"}
+                                                                    >
+                                                                        <BookOpen size={13} />
+                                                                    </button>
+
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setSidebarOpen(false);
+                                                                            setSelectedQuestion({ ...q, topicName: topic.name });
+                                                                            setFullscreenQuestion({ ...q, topicId: topic.id, topicName: topic.name });
+                                                                        }}
+                                                                        className="p-1 rounded text-zinc-500 hover:text-cyan-400 hover:bg-zinc-800 transition-colors flex items-center justify-center cursor-pointer opacity-70 group-hover:opacity-100"
+                                                                        title="Open Fullscreen View"
+                                                                    >
+                                                                        <Maximize2 size={13} />
+                                                                    </button>
 
                                                                     <span
                                                                         className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase font-mono ${diffCfg.bgColor} ${diffCfg.color} border ${diffCfg.borderColor}`}
@@ -700,12 +807,34 @@ export default function DsaQuestions() {
                                             </p>
                                         </div>
 
-                                        <button
-                                            onClick={() => setSelectedQuestion(null)}
-                                            className="p-1 rounded text-zinc-500 hover:text-white"
-                                        >
-                                            <X size={16} />
-                                        </button>
+                                        <div className="flex items-center gap-1 shrink-0">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const topic = topics.find((t) =>
+                                                        t.questions.some((q) => q.name === selectedQuestion.name)
+                                                    );
+                                                    if (topic) {
+                                                        setSidebarOpen(false);
+                                                        setFullscreenQuestion({
+                                                            ...selectedQuestion,
+                                                            topicId: topic.id,
+                                                            topicName: topic.name,
+                                                        });
+                                                    }
+                                                }}
+                                                className="p-1 rounded text-zinc-400 hover:text-cyan-400 hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                                title="Open Fullscreen View & Notes"
+                                            >
+                                                <Maximize2 size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => setSelectedQuestion(null)}
+                                                className="p-1 rounded text-zinc-500 hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer"
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                        </div>
                                     </div>
 
                                     {/* Badges Bar */}
@@ -726,16 +855,19 @@ export default function DsaQuestions() {
 
                                         <div className="flex items-center gap-2">
                                             {selectedQuestion.videoUrl && (
-                                                <a
-                                                    href={selectedQuestion.videoUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-semibold transition-colors"
-                                                    title="Watch Video Solution on YouTube"
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsDrawerVideoVisible((prev) => !prev)}
+                                                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded border text-xs font-semibold transition-colors cursor-pointer ${
+                                                        isDrawerVideoVisible
+                                                            ? "bg-red-500/20 text-red-300 border-red-500/40"
+                                                            : "bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/30"
+                                                    }`}
+                                                    title="Toggle embedded video solution"
                                                 >
                                                     <Youtube size={13} className="text-red-400" />
-                                                    <span>Watch Solution</span>
-                                                </a>
+                                                    <span>{isDrawerVideoVisible ? "Hide Video" : "Watch Solution"}</span>
+                                                </button>
                                             )}
 
                                             <a
@@ -750,15 +882,106 @@ export default function DsaQuestions() {
                                         </div>
                                     </div>
 
+                                    {/* Embedded YouTube Solution in Drawer */}
+                                    {(() => {
+                                        const ytEmbedUrl = getYouTubeEmbedUrl(selectedQuestion.videoUrl);
+                                        if (!ytEmbedUrl || !isDrawerVideoVisible) return null;
+
+                                        return (
+                                            <div className="space-y-1.5 bg-[#0B0F17]/90 border border-red-500/20 rounded-xl p-2.5 shadow-md shadow-black/40">
+                                                <div className="flex items-center justify-between px-1">
+                                                    <span className="text-[10px] font-bold text-red-400 uppercase tracking-widest flex items-center gap-1.5 font-mono">
+                                                        <Youtube size={13} />
+                                                        VIDEO WALKTHROUGH
+                                                    </span>
+                                                    <a
+                                                        href={selectedQuestion.videoUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-zinc-500 hover:text-red-400 transition-colors"
+                                                        title="Open in new tab on YouTube"
+                                                    >
+                                                        <ExternalLink size={11} />
+                                                    </a>
+                                                </div>
+                                                <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black border border-[#1E293B] shadow-inner">
+                                                    <iframe
+                                                        src={ytEmbedUrl}
+                                                        title={`${selectedQuestion.name} Video Solution`}
+                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                        allowFullScreen
+                                                        className="absolute inset-0 w-full h-full border-0"
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+
                                     {/* Problem Statement */}
                                     <div className="space-y-1.5">
-                                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block">
+                                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block font-mono">
                                             PROBLEM STATEMENT
                                         </span>
-                                        <p className="text-xs text-zinc-300 leading-relaxed">
+                                        <p className="text-xs text-zinc-300 leading-relaxed font-sans">
                                             {selectedQuestion.description ||
                                                 "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume each input would have exactly one solution."}
                                         </p>
+                                    </div>
+
+                                    {/* Personal Notes Card in Right Drawer */}
+                                    <div className="border border-[#1E293B] rounded-lg p-3.5 bg-[#0B0F17]/70 space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-1.5 text-cyan-400 font-semibold font-mono text-[11px]">
+                                                <BookOpen size={13} />
+                                                <span>PERSONAL NOTES</span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const topic = topics.find((t) =>
+                                                        t.questions.some((q) => q.name === selectedQuestion.name)
+                                                    );
+                                                    if (topic) {
+                                                        setSidebarOpen(false);
+                                                        setFullscreenQuestion({
+                                                            ...selectedQuestion,
+                                                            topicId: topic.id,
+                                                            topicName: topic.name,
+                                                        });
+                                                    }
+                                                }}
+                                                className="flex items-center gap-1 text-[11px] text-cyan-400 hover:text-cyan-300 font-medium transition-colors cursor-pointer"
+                                            >
+                                                <Maximize2 size={11} />
+                                                <span>{selectedQuestion.note?.trim() ? "Edit in Fullscreen" : "Add Notes"}</span>
+                                            </button>
+                                        </div>
+
+                                        {selectedQuestion.note?.trim() ? (
+                                            <div
+                                                onClick={() => {
+                                                    const topic = topics.find((t) =>
+                                                        t.questions.some((q) => q.name === selectedQuestion.name)
+                                                    );
+                                                    if (topic) {
+                                                        setSidebarOpen(false);
+                                                        setFullscreenQuestion({
+                                                            ...selectedQuestion,
+                                                            topicId: topic.id,
+                                                            topicName: topic.name,
+                                                        });
+                                                    }
+                                                }}
+                                                className="text-xs text-zinc-300 bg-[#141923] p-2.5 rounded border border-[#1E293B] max-h-32 overflow-y-auto cursor-pointer hover:border-cyan-500/40 transition-colors whitespace-pre-wrap leading-relaxed"
+                                                title="Click to open full rich text editor"
+                                            >
+                                                {selectedQuestion.note}
+                                            </div>
+                                        ) : (
+                                            <p className="text-xs text-zinc-500 italic">
+                                                No notes added yet for this question. Click &quot;Add Notes&quot; to write code and intuition in full screen.
+                                            </p>
+                                        )}
                                     </div>
 
                                     {/* Interview Prompt Focus (Cyan callout box matching Screenshot 5) */}
@@ -875,6 +1098,23 @@ export default function DsaQuestions() {
                     </div>
                 </main>
             </div>
+
+            {/* Fullscreen Question View & Notes Modal matching Wireframe */}
+            {fullscreenQuestion && (
+                <DsaQuestionFullscreenModal
+                    isOpen={Boolean(fullscreenQuestion)}
+                    onClose={() => setFullscreenQuestion(null)}
+                    question={fullscreenQuestion}
+                    topicId={fullscreenQuestion.topicId}
+                    topicName={fullscreenQuestion.topicName}
+                    onToggleStatus={toggleQuestion}
+                    onSaveNote={handleSaveNote}
+                    onNavigatePrev={handleNavigatePrev}
+                    onNavigateNext={handleNavigateNext}
+                    hasPrev={hasPrevFullscreen}
+                    hasNext={hasNextFullscreen}
+                />
+            )}
         </div>
     );
 }

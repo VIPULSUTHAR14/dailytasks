@@ -90,6 +90,11 @@ export interface AuthenticatedUser {
     id: string;
     name: string;
     email: string;
+    avatarEmoji?: string;
+    targetRole?: string;
+    targetCompany?: string;
+    dailyHours?: number;
+    preferredTheme?: string;
 }
 
 /**
@@ -110,7 +115,16 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
         }
 
         const user = await users.findOne(query, {
-            projection: { name: 1, email: 1, _id: 1 },
+            projection: {
+                name: 1,
+                email: 1,
+                _id: 1,
+                avatarEmoji: 1,
+                targetRole: 1,
+                targetCompany: 1,
+                dailyHours: 1,
+                preferredTheme: 1,
+            },
         });
 
         if (!user) {
@@ -121,6 +135,11 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
             id: user._id.toString(),
             name: user.name || "",
             email: user.email || "",
+            avatarEmoji: user.avatarEmoji || "🧑‍💻",
+            targetRole: user.targetRole || "Software Developer",
+            targetCompany: user.targetCompany || "Tier-1 Tech",
+            dailyHours: typeof user.dailyHours === "number" ? user.dailyHours : 4,
+            preferredTheme: user.preferredTheme || "current",
         };
     } catch (error) {
         console.error("User resolution error:", error);

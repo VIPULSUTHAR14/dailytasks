@@ -1,23 +1,29 @@
 "use client";
 
 import React from "react";
-import { AlertTriangle, Sparkles, CheckCircle2, RotateCcw, Pin } from "lucide-react";
+import { AlertTriangle, Sparkles, CheckCircle2, Pin, ArrowDownToLine } from "lucide-react";
 import { PlanTask } from "@/lib/planly/types";
 
 interface BacklogViewProps {
   backlogList: (PlanTask & { dayNumber: number; weekNumber: number })[];
   debtHours: string;
+  currentDayNumber?: number;
   onExecuteRebalance: () => void;
   onCompleteTask: (taskId: string) => void;
   onTogglePin: (task: PlanTask) => void;
+  onPullBacklogTask?: (taskId: string) => void;
+  onPullAllBacklog?: () => void;
 }
 
 export default function BacklogView({
   backlogList,
   debtHours,
+  currentDayNumber,
   onExecuteRebalance,
   onCompleteTask,
-  onTogglePin
+  onTogglePin,
+  onPullBacklogTask,
+  onPullAllBacklog
 }: BacklogViewProps) {
   const isDebtHeavy = Number(debtHours) > 3;
 
@@ -40,18 +46,33 @@ export default function BacklogView({
           </div>
           <p className="text-xs text-zinc-400 mt-1 max-w-xl">
             Tasks you missed from earlier days accumulate here. Execute an Intelligent Rebalance
-            to automatically redistribute them into upcoming weekend/buffer slots without bloating weekday schedules.
+            to automatically redistribute them into upcoming weekend/buffer slots without bloating weekday schedules,
+            or carry them directly into today&apos;s session.
           </p>
         </div>
 
-        <button
-          onClick={onExecuteRebalance}
-          disabled={backlogList.length === 0}
-          className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-black font-bold text-xs flex items-center justify-center space-x-2 transition shadow-lg shadow-amber-500/20 shrink-0"
-        >
-          <Sparkles className="w-4 h-4 fill-black" />
-          <span>Execute Intelligent Rebalance</span>
-        </button>
+        <div className="flex items-center space-x-2.5 flex-wrap gap-y-2 shrink-0">
+          {onPullAllBacklog && currentDayNumber && (
+            <button
+              onClick={onPullAllBacklog}
+              disabled={backlogList.length === 0}
+              className="px-3.5 py-2.5 rounded-xl bg-[#141923] hover:bg-[#1E293B] disabled:opacity-40 text-emerald-300 border border-emerald-500/30 font-semibold text-xs flex items-center space-x-1.5 transition"
+              title={`Pull all overdue debt directly into Day ${currentDayNumber}'s active checklist`}
+            >
+              <ArrowDownToLine className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Pull All to Today (Day {currentDayNumber})</span>
+            </button>
+          )}
+
+          <button
+            onClick={onExecuteRebalance}
+            disabled={backlogList.length === 0}
+            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-black font-bold text-xs flex items-center justify-center space-x-2 transition shadow-lg shadow-amber-500/20 shrink-0"
+          >
+            <Sparkles className="w-4 h-4 fill-black" />
+            <span>Execute Intelligent Rebalance</span>
+          </button>
+        </div>
       </div>
 
       {/* Debt Velocity Metric Row */}
@@ -98,6 +119,17 @@ export default function BacklogView({
               </div>
 
               <div className="flex items-center space-x-2 shrink-0">
+                {onPullBacklogTask && currentDayNumber && (
+                  <button
+                    onClick={() => onPullBacklogTask(t.id)}
+                    className="px-2.5 py-1.5 rounded-lg bg-teal-500/15 hover:bg-teal-500/25 text-teal-300 text-xs border border-teal-500/30 font-medium flex items-center space-x-1 transition"
+                    title={`Carry over directly into Day ${currentDayNumber}'s active checklist`}
+                  >
+                    <ArrowDownToLine className="w-3 h-3 text-teal-400" />
+                    <span>Move to Today</span>
+                  </button>
+                )}
+
                 <button
                   onClick={() => onTogglePin(t)}
                   className={`p-1.5 rounded-lg border text-xs transition ${

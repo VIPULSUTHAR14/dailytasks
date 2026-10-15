@@ -1089,6 +1089,13 @@ export default function CustomNotes() {
         if (topic.sections.length > 0) {
             setActiveSectionId(topic.sections[0].id);
         }
+        if (typeof window !== "undefined") {
+            try {
+                localStorage.setItem("algocraft_last_custom_note_id", topic.id);
+            } catch {
+                // Ignore storage errors
+            }
+        }
     };
 
     // Update section content

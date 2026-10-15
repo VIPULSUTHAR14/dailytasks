@@ -18,6 +18,7 @@ import {
     ChevronRight,
     Menu,
     Sparkles,
+    LayoutDashboard,
 } from "lucide-react";
 import CommandPalette from "@/components/CommandPalette";
 
@@ -30,11 +31,12 @@ export interface NavItem {
 }
 
 export const ALGO_NAV_ITEMS: NavItem[] = [
-    { name: "Planly AI", href: "/planly", icon: Sparkles, badge: "AI Sprint", badgeColor: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" },
-    { name: "Tasks", href: "/tasks", icon: CheckSquare, badge: "1", badgeColor: "bg-[#1E293B] text-zinc-300" },
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, badge: "1", badgeColor: "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30" },
+    { name: "Planly AI", href: "/planly", icon: Sparkles, badge: "Sprint", badgeColor: "bg-purple-500/20 text-purple-300 border border-purple-500/30" },
+    { name: "Tasks", href: "/tasks", icon: CheckSquare, badge: "6", badgeColor: "bg-[#1E293B] text-zinc-400" },
     { name: "Aptitude Prep", href: "/aptitude", icon: GraduationCap, badge: "5%", badgeColor: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" },
     { name: "DSA Questions", href: "/dsaquestions", icon: Code2, badge: "147", badgeColor: "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30" },
-    { name: "DSA Notes", href: "/notes", icon: BookOpen, badge: "29", badgeColor: "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30" },
+    { name: "DSA Notes", href: "/notes", icon: BookOpen, badge: "29", badgeColor: "bg-[#1E293B] text-zinc-400" },
     { name: "Custom Notes", href: "/custom-notes", icon: StickyNote, badge: "3", badgeColor: "bg-[#1E293B] text-zinc-400" },
     { name: "Daily Time Table", href: "/timetable", icon: Clock, badge: "Active", badgeColor: "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30" },
 ];
@@ -171,10 +173,10 @@ export default function Sidebar({
                 >
                     <div
                         className="flex items-center gap-2.5 overflow-hidden cursor-pointer"
-                        onClick={() => handleNavigate("/tasks")}
+                        onClick={() => handleNavigate("/dashboard")}
                     >
                         <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center shrink-0 shadow-lg shadow-cyan-500/10">
-                            <Terminal size={18} className="text-cyan-400" />
+                            <Code2 size={18} className="text-cyan-400" />
                         </div>
                         {(!isCollapsed || activeMobileOpen) && (
                             <div className="flex items-center gap-2 truncate">
@@ -219,10 +221,10 @@ export default function Sidebar({
                         >
                             <div className="flex items-center gap-2">
                                 <Search size={14} className="text-zinc-500 group-hover:text-cyan-400" />
-                                <span>Quick jump...</span>
+                                <span className="text-zinc-400">Search commands, notes...</span>
                             </div>
                             <kbd className="px-1.5 py-0.5 rounded bg-[#181C24] border border-[#1E293B] text-[10px] font-mono text-zinc-400 group-hover:text-cyan-300">
-                                ⌘K
+                                ⌘ K
                             </kbd>
                         </button>
                     ) : (
@@ -252,8 +254,9 @@ export default function Sidebar({
 
                     {/* Navigation Header */}
                     {(!isCollapsed || activeMobileOpen) && (
-                        <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider px-2">
-                            Navigation
+                        <div className="flex items-center justify-between px-2 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                            <span>PLATFORM</span>
+                            <span className="text-[9px] text-zinc-600 font-mono lowercase">esc to clear</span>
                         </div>
                     )}
 
@@ -294,7 +297,7 @@ export default function Sidebar({
                                     onClick={() => handleNavigate(item.href)}
                                     className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all group cursor-pointer ${
                                         isActive
-                                            ? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-semibold shadow-sm"
+                                            ? "bg-[#10141E] text-cyan-300 border border-cyan-500/40 font-semibold shadow-[0_0_15px_rgba(6,182,212,0.12)]"
                                             : "text-zinc-400 hover:bg-[#141923] hover:text-white border border-transparent"
                                     }`}
                                 >

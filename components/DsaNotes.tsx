@@ -2141,7 +2141,14 @@ export default function DsaNotes() {
                         <TopicCard
                             key={topic.id}
                             topic={topic}
-                            onClick={() => setSelectedTopic(topic)}
+                            onClick={() => {
+                                setSelectedTopic(topic);
+                                if (typeof window !== "undefined") {
+                                    try {
+                                        localStorage.setItem("algocraft_last_dsa_topic_id", topic.id.toString());
+                                    } catch {}
+                                }
+                            }}
                             index={i}
                         />
                     ))}
