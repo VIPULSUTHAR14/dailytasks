@@ -748,7 +748,7 @@ export default function DsaQuestions() {
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
                                                                             setSidebarOpen(false);
-                                                                            setSelectedQuestion({ ...q, topicName: topic.name });
+                                                                            setSelectedQuestion({ ...q, topicId: topic.id, topicName: topic.name });
                                                                             setFullscreenQuestion({ ...q, topicId: topic.id, topicName: topic.name });
                                                                         }}
                                                                         className={`p-1 rounded transition-colors flex items-center justify-center cursor-pointer ${q.note?.trim()
@@ -765,7 +765,7 @@ export default function DsaQuestions() {
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
                                                                             setSidebarOpen(false);
-                                                                            setSelectedQuestion({ ...q, topicName: topic.name });
+                                                                            setSelectedQuestion({ ...q, topicId: topic.id, topicName: topic.name });
                                                                             setFullscreenQuestion({ ...q, topicId: topic.id, topicName: topic.name });
                                                                         }}
                                                                         className="p-1 rounded text-zinc-500 hover:text-cyan-400 hover:bg-zinc-800 transition-colors flex items-center justify-center cursor-pointer opacity-70 group-hover:opacity-100"

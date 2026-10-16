@@ -238,7 +238,7 @@ export default function DsaQuestionFullscreenModal({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[9999] w-screen h-screen bg-[#0B0F17] flex flex-col overflow-hidden m-0 p-0 select-auto relative"
+                className="fixed inset-0 z-[9999] w-screen h-screen bg-[#0B0F17] flex flex-col overflow-hidden m-0 p-0 select-auto"
             >
                 {/* Dynamic Ambient Background Elements */}
                 <div className="absolute top-[-10%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-cyan-500/10 blur-[130px] pointer-events-none" />
@@ -350,9 +350,9 @@ export default function DsaQuestionFullscreenModal({
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <span
                                             className={`pill-glass font-mono text-[11px] font-bold uppercase ${
-                                                question.difficulty.toLowerCase().includes("easy")
+                                                (question.difficulty || "Easy").toLowerCase().includes("easy")
                                                     ? "pill-easy"
-                                                    : question.difficulty.toLowerCase().includes("hard")
+                                                    : (question.difficulty || "Easy").toLowerCase().includes("hard")
                                                     ? "pill-hard"
                                                     : "pill-medium"
                                             }`}
