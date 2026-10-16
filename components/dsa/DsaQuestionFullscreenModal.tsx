@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import {
     X,
     CheckCircle2,
@@ -126,6 +127,11 @@ export default function DsaQuestionFullscreenModal({
     hasPrev = false,
     hasNext = false,
 }: DsaQuestionFullscreenModalProps) {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const [noteDraft, setNoteDraft] = useState<string>("");
     const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved");
     const [showHint, setShowHint] = useState<boolean>(false);
@@ -222,20 +228,30 @@ export default function DsaQuestionFullscreenModal({
         };
     }, []);
 
-    if (!isOpen || !question) return null;
+    if (!isOpen || !question || !mounted || typeof document === "undefined") return null;
 
     const diffCfg = DIFFICULTY_CONFIG[question.difficulty] || DIFFICULTY_CONFIG.Easy;
 
-    return (
+    return createPortal(
         <AnimatePresence>
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[100] w-screen h-screen bg-[#0B0F17] flex flex-col overflow-hidden m-0 p-0 select-auto"
+                className="fixed inset-0 z-[9999] w-screen h-screen bg-[#0B0F17] flex flex-col overflow-hidden m-0 p-0 select-auto relative"
             >
+                {/* Dynamic Ambient Background Elements */}
+                <div className="absolute top-[-10%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-cyan-500/10 blur-[130px] pointer-events-none" />
+                <div className="absolute bottom-[-15%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-emerald-500/10 blur-[140px] pointer-events-none" />
+                
+                {/* High-tech Blueprint Grid Pattern */}
+                <div
+                    className="absolute inset-0 blueprint-grid pointer-events-none"
+                    aria-hidden="true"
+                />
+
                 {/* Top Header Bar */}
-                <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-[#1E293B] bg-[#10141E] shrink-0">
+                <div className="glass glass-header shrink-0 flex items-center justify-between px-4 sm:px-6 py-3 relative z-10">
                         {/* Title & Topic Breadcrumb */}
                         <div className="flex items-center gap-2.5 min-w-0 pr-4">
                             <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shrink-0" />
@@ -307,7 +323,7 @@ export default function DsaQuestionFullscreenModal({
                     </div>
 
                     {/* Split Layout Body */}
-                    <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 p-2 sm:p-3 overflow-hidden">
+                    <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 p-2 sm:p-3 overflow-hidden relative z-10">
                         {/* Left Side: Rich Text Editor / Notes Area */}
                         <div
                             className={`${isNotesMaximized ? "lg:col-span-12" : "lg:col-span-7"
@@ -333,12 +349,18 @@ export default function DsaQuestionFullscreenModal({
                                 <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#1E293B]/80">
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <span
-                                            className={`px-2.5 py-0.5 rounded text-[11px] font-bold uppercase font-mono ${diffCfg.bgColor} ${diffCfg.color} border ${diffCfg.borderColor}`}
+                                            className={`pill-glass font-mono text-[11px] font-bold uppercase ${
+                                                question.difficulty.toLowerCase().includes("easy")
+                                                    ? "pill-easy"
+                                                    : question.difficulty.toLowerCase().includes("hard")
+                                                    ? "pill-hard"
+                                                    : "pill-medium"
+                                            }`}
                                         >
                                             {diffCfg.label}
                                         </span>
 
-                                        <span className="px-2.5 py-0.5 rounded text-[11px] font-mono bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                                        <span className="pill-glass font-mono text-[11px]">
                                             {question.pattern || "Algorithmic Logic"}
                                         </span>
                                     </div>
@@ -542,6 +564,7 @@ export default function DsaQuestionFullscreenModal({
                         )}
                     </div>
             </motion.div>
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 }

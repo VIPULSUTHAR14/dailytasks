@@ -44,6 +44,7 @@ async function ensureIndexes(db: Db) {
             db.collection("timetable").createIndex({ userId: 1 }),
             db.collection("aptitude").createIndex({ user_id: 1 }),
             db.collection("habits").createIndex({ user_id: 1 }),
+            db.collection("habit_tracker").createIndex({ userId: 1 }),
         ]);
     } catch (e) {
         console.error("Failed to ensure indexes:", e);

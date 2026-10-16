@@ -139,7 +139,7 @@ export async function getAuthenticatedUser(): Promise<AuthenticatedUser | null> 
             targetRole: user.targetRole || "Software Developer",
             targetCompany: user.targetCompany || "Tier-1 Tech",
             dailyHours: typeof user.dailyHours === "number" ? user.dailyHours : 4,
-            preferredTheme: user.preferredTheme || "current",
+            preferredTheme: user.preferredTheme || "striking-simple",
         };
     } catch (error) {
         console.error("User resolution error:", error);

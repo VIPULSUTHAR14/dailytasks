@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
@@ -12,9 +13,10 @@ import {
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import Sidebar from "@/components/Sidebar";
 import WorkspaceHeader from "@/components/WorkspaceHeader";
 import DsaQuestionFullscreenModal, { getYouTubeEmbedUrl } from "@/components/dsa/DsaQuestionFullscreenModal";
+import { useDelayedLoading } from "@/hooks/useDelayedLoading";
+import DsaQuestionsTableSkeleton from "@/components/dsa/DsaQuestionsTable.skeleton";
 
 type Difficulty = "Easy" | "Medium" | "Hard";
 
@@ -92,6 +94,7 @@ function questionKey(topicId: string, questionName: string): string {
 export default function DsaQuestions() {
     const [topics, setTopics] = useState<TopicGroup[]>([]);
     const [loading, setLoading] = useState(true);
+    const [fetchError, setFetchError] = useState<string | null>(null);
     const [syncing, setSyncing] = useState(false);
     const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "completed">("all");
     const [difficultyFilter, setDifficultyFilter] = useState<"all" | Difficulty>("all");
@@ -100,7 +103,7 @@ export default function DsaQuestions() {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set(["arrays-and-strings"]));
     const [isTopicDropdownOpen, setIsTopicDropdownOpen] = useState(false);
-    const [selectedQuestion, setSelectedQuestion] = useState<(QuestionItem & { topicName?: string }) | null>(null);
+    const [selectedQuestion, setSelectedQuestion] = useState<(QuestionItem & { topicId?: string; topicName?: string }) | null>(null);
     const [fullscreenQuestion, setFullscreenQuestion] = useState<(QuestionItem & { topicId: string; topicName: string }) | null>(null);
     const [isDrawerVideoVisible, setIsDrawerVideoVisible] = useState(false);
     const [showHint, setShowHint] = useState(false);
@@ -109,8 +112,11 @@ export default function DsaQuestions() {
     const queryParam = searchParams?.get("q") || searchParams?.get("search");
     const topicParam = searchParams?.get("topic");
 
+    const { showSkeleton, ariaProps } = useDelayedLoading(loading);
+
     const fetchQuestions = useCallback(async () => {
         setLoading(true);
+        setFetchError(null);
         try {
             const res = await fetch(`/api/dsaquestions`);
             if (res.ok) {
@@ -121,14 +127,18 @@ export default function DsaQuestions() {
                     if (data.topics[0]?.questions[0]) {
                         setSelectedQuestion({
                             ...data.topics[0].questions[0],
+                            topicId: data.topics[0].id,
                             topicName: data.topics[0].name,
                         });
                     }
                     setExpandedTopics(new Set([data.topics[0].id]));
                 }
+            } else {
+                setFetchError("Unable to load question bank. Please verify network or retry.");
             }
         } catch (e) {
             console.error("Failed to fetch DSA questions", e);
+            setFetchError("Network error while connecting to question repository.");
         } finally {
             setLoading(false);
         }
@@ -348,19 +358,31 @@ export default function DsaQuestions() {
         }
     };
 
+    const handleOpenFullscreenForSelected = (targetQuestion?: any) => {
+        const q = targetQuestion || selectedQuestion;
+        if (!q) return;
+        const topic = topics.find((t) =>
+            t.questions.some((item) => item.name.trim().toLowerCase() === q.name.trim().toLowerCase()) ||
+            t.id === q.topicId
+        );
+        const resolvedTopicId = q.topicId || topic?.id || topics[0]?.id || "arrays";
+        const resolvedTopicName = q.topicName || topic?.name || topics[0]?.name || "DSA Questions";
+
+        setSidebarOpen(false);
+        setFullscreenQuestion({
+            ...q,
+            topicId: resolvedTopicId,
+            topicName: resolvedTopicName,
+        });
+    };
+
     const currentTopicObj = topics.find((t) => t.id === topicFilter);
 
     return (
-        <div className="min-h-screen bg-[#0B0F17] text-[#F1F5F9] font-sans flex flex-col md:flex-row">
-            <Sidebar
-                isMobileOpen={isSidebarOpen}
-                onMobileClose={() => setSidebarOpen(false)}
-            />
+        <div className="flex-1 flex flex-col min-w-0 min-h-full">
+            <WorkspaceHeader onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
 
-            <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto">
-                <WorkspaceHeader onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
-
-                <main className="p-4 sm:p-6 md:p-8 pb-16 md:pb-8 max-w-7xl mx-auto w-full space-y-6 flex-1">
+            <main className="p-4 sm:p-6 md:p-8 pb-16 md:pb-8 max-w-7xl mx-auto w-full space-y-6 flex-1 bg-transparent">
                     {/* Header Row */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="space-y-1">
@@ -612,16 +634,27 @@ export default function DsaQuestions() {
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 pb-16 items-start">
                         {/* Left Questions List (7 Cols on desktop) */}
                         <div className="lg:col-span-7 space-y-4">
-                            {loading ? (
-                                <div className="flex items-center justify-center p-16 text-zinc-500">
-                                    <Loader2 className="animate-spin text-cyan-400" size={24} />
+                            {showSkeleton ? (
+                                <div {...ariaProps} className="skeleton-crossfade">
+                                    <DsaQuestionsTableSkeleton />
+                                </div>
+                            ) : fetchError ? (
+                                <div className="surface-1 rounded-xl p-8 border border-rose-500/30 text-center space-y-3">
+                                    <p className="text-sm font-semibold text-rose-300">{fetchError}</p>
+                                    <button
+                                        onClick={fetchQuestions}
+                                        className="btn-quiet px-3.5 py-1.5 rounded-lg text-xs text-white"
+                                    >
+                                        Retry Loading Questions
+                                    </button>
                                 </div>
                             ) : filteredTopics.length === 0 ? (
                                 <div className="text-center p-16 rounded-xl border border-dashed border-[#1E293B] bg-[#10141E]/40 text-xs text-zinc-500">
                                     No questions match your filter criteria.
                                 </div>
                             ) : (
-                                filteredTopics.map((topic) => {
+                                <div className="skeleton-crossfade space-y-4">
+                                {filteredTopics.map((topic) => {
                                     const isExpanded = expandedTopics.has(topic.id);
                                     const completedInTopic = topic.questions.filter((q) => q.completed).length;
                                     const topicPct =
@@ -675,7 +708,7 @@ export default function DsaQuestions() {
                                                             <div
                                                                 key={q.name}
                                                                 onClick={() =>
-                                                                    setSelectedQuestion({ ...q, topicName: topic.name })
+                                                                    setSelectedQuestion({ ...q, topicId: topic.id, topicName: topic.name })
                                                                 }
                                                                 className={`flex items-center justify-between px-4 py-3 text-xs transition-all cursor-pointer group ${isSelected
                                                                     ? "bg-[#181C24] border-l-2 border-l-cyan-400"
@@ -778,7 +811,8 @@ export default function DsaQuestions() {
                                             )}
                                         </div>
                                     );
-                                })
+                                })}
+                                </div>
                             )}
                         </div>
 
@@ -803,19 +837,7 @@ export default function DsaQuestions() {
                                         <div className="flex items-center gap-1 shrink-0">
                                             <button
                                                 type="button"
-                                                onClick={() => {
-                                                    const topic = topics.find((t) =>
-                                                        t.questions.some((q) => q.name === selectedQuestion.name)
-                                                    );
-                                                    if (topic) {
-                                                        setSidebarOpen(false);
-                                                        setFullscreenQuestion({
-                                                            ...selectedQuestion,
-                                                            topicId: topic.id,
-                                                            topicName: topic.name,
-                                                        });
-                                                    }
-                                                }}
+                                                onClick={() => handleOpenFullscreenForSelected()}
                                                 className="p-1 rounded text-zinc-400 hover:text-cyan-400 hover:bg-[#1E293B] transition-colors cursor-pointer"
                                                 title="Open Fullscreen View & Notes"
                                             >
@@ -928,19 +950,7 @@ export default function DsaQuestions() {
                                             </div>
                                             <button
                                                 type="button"
-                                                onClick={() => {
-                                                    const topic = topics.find((t) =>
-                                                        t.questions.some((q) => q.name === selectedQuestion.name)
-                                                    );
-                                                    if (topic) {
-                                                        setSidebarOpen(false);
-                                                        setFullscreenQuestion({
-                                                            ...selectedQuestion,
-                                                            topicId: topic.id,
-                                                            topicName: topic.name,
-                                                        });
-                                                    }
-                                                }}
+                                                onClick={() => handleOpenFullscreenForSelected()}
                                                 className="flex items-center gap-1 text-[11px] text-cyan-400 hover:text-cyan-300 font-medium transition-colors cursor-pointer"
                                             >
                                                 <Maximize2 size={11} />
@@ -950,19 +960,7 @@ export default function DsaQuestions() {
 
                                         {selectedQuestion.note?.trim() ? (
                                             <div
-                                                onClick={() => {
-                                                    const topic = topics.find((t) =>
-                                                        t.questions.some((q) => q.name === selectedQuestion.name)
-                                                    );
-                                                    if (topic) {
-                                                        setSidebarOpen(false);
-                                                        setFullscreenQuestion({
-                                                            ...selectedQuestion,
-                                                            topicId: topic.id,
-                                                            topicName: topic.name,
-                                                        });
-                                                    }
-                                                }}
+                                                onClick={() => handleOpenFullscreenForSelected()}
                                                 className="text-xs text-zinc-300 bg-[#141923] p-2.5 rounded border border-[#1E293B] max-h-32 overflow-y-auto cursor-pointer hover:border-cyan-500/40 transition-colors whitespace-pre-wrap leading-relaxed"
                                                 title="Click to open full rich text editor"
                                             >
@@ -1087,7 +1085,6 @@ export default function DsaQuestions() {
                         </div>
                     </div>
                 </main>
-            </div>
 
             {/* Fullscreen Question View & Notes Modal matching Wireframe */}
             {fullscreenQuestion && (

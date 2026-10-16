@@ -108,10 +108,10 @@ export default function ProblemCard({ task, onUpdate, onConfidenceSelect }: Prob
 
   return (
     <div
-      className={`border rounded-xl transition duration-200 ${
+      className={`surface-2 hover-depth spotlight border rounded-xl transition duration-200 ${
         task.completed
-          ? "bg-emerald-500/5 border-emerald-500/40 shadow-sm"
-          : "bg-[#10141E] border-[#1E293B] hover:border-[#334155] shadow-md"
+          ? "bg-emerald-500/5 border-emerald-500/40"
+          : "border-[#1E293B]"
       }`}
     >
       <div className="p-3.5 space-y-3">
@@ -128,8 +128,12 @@ export default function ProblemCard({ task, onUpdate, onConfidenceSelect }: Prob
 
             {task.difficulty && (
               <span
-                className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
-                  difficultyColors[task.difficulty]
+                className={`pill-glass text-[10px] font-mono px-2 py-0.5 rounded-full ${
+                  task.difficulty.toLowerCase().includes("easy")
+                    ? "pill-easy"
+                    : task.difficulty.toLowerCase().includes("hard")
+                    ? "pill-hard"
+                    : "pill-medium"
                 }`}
               >
                 {task.difficulty}

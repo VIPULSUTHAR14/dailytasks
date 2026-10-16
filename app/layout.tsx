@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { SpotlightClient } from "@/components/SpotlightClient";
+import { AppShell } from "@/components/AppShell";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,8 +32,11 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var saved = localStorage.getItem('algocraft_theme') || 'current';
+                  var saved = localStorage.getItem('algocraft_theme') || 'striking-simple';
+                  var lightThemes = ['mono-light','metallic-chic','vibrant-calm','minimal-warm','youthful-fun','close-to-nature','lively-soothing'];
+                  var mode = lightThemes.indexOf(saved) !== -1 ? 'light' : 'dark';
                   document.documentElement.setAttribute('data-theme', saved);
+                  document.documentElement.setAttribute('data-mode', mode);
                 } catch(e) {}
               })();
             `,
@@ -41,7 +46,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <SpotlightClient />
+        <div className="app-canvas min-h-screen w-full flex flex-col">
+          <AppShell>
+            {children}
+          </AppShell>
+        </div>
       </body>
     </html>
   );

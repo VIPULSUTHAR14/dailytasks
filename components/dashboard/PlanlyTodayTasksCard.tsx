@@ -1,335 +1,439 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
+  Check,
   CheckCircle2,
-  CheckSquare,
-  Plus,
-  Trash2,
   ExternalLink,
+  Code2,
+  Zap,
+  Clock,
+  ArrowUpRight,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
+  loadPlanlyState,
+  savePlanlyState,
   loadSyncedSprintTasks,
   saveSyncedSprintTasks,
-  SyncedSprintTask,
 } from "@/lib/planly/storage";
+import { syncCurrentDayWithCalendar } from "@/lib/planly/progression";
+import { PlanDay, PlanTask, PlanlyState, SprintPlan } from "@/lib/planly/types";
 
-export interface UnifiedTodayTask {
+export interface TodayTaskItem {
   id: string;
+  planTaskId: string;
   title: string;
+  track: string;
+  subject: string;
+  details: string[];
+  timeMins: number;
   completed: boolean;
-  source: "planly" | "custom";
-  timeMins?: number;
-  difficulty?: "Easy" | "Medium" | "Hard";
+  difficulty?: "Easy" | "Medium" | "Hard" | string;
   problemUrl?: string;
-  trackSubtitle?: string;
+  videoUrl?: string;
+  intuitionHint?: string;
+  pattern?: string;
+  timeComplexity?: string;
+  spaceComplexity?: string;
+  topicId?: string;
 }
 
-const DEFAULT_SCREENSHOT_TASKS: UnifiedTodayTask[] = [
+// Canonical algorithmic fallback tasks if user hasn't initialized custom sprint plan yet
+const FALLBACK_TODAY_TASKS: TodayTaskItem[] = [
   {
     id: "task-1",
+    planTaskId: "task-1",
     title: "Largest Element in an Array",
-    completed: false,
-    source: "planly",
+    track: "Warmup",
+    subject: "Arrays & Strings (Java)",
+    details: ["Iterative scan", "O(N) single pass"],
     timeMins: 30,
+    completed: false,
     difficulty: "Easy",
-    trackSubtitle: "Warmup · Arrays & Strings (Java)",
+    pattern: "Single Pass Traversal",
+    timeComplexity: "O(N)",
+    spaceComplexity: "O(1)",
+    problemUrl: "https://leetcode.com/problems/largest-element-in-an-array/",
+    topicId: "arrays-strings",
   },
   {
     id: "task-2",
+    planTaskId: "task-2",
     title: "Longest Subarray with Sum K (Pos & Neg)",
-    completed: false,
-    source: "planly",
+    track: "Core Pattern",
+    subject: "Arrays & Strings (Java)",
+    details: ["Prefix Sum + Hash Map", "Zero-index handling"],
     timeMins: 45,
+    completed: false,
     difficulty: "Medium",
-    trackSubtitle: "Core Pattern · Arrays & Strings (Java)",
+    pattern: "Prefix Sum & Hash Map",
+    timeComplexity: "O(N)",
+    spaceComplexity: "O(N)",
+    problemUrl: "https://leetcode.com/problems/subarray-sum-equals-k/",
+    topicId: "arrays-strings",
   },
   {
     id: "task-3",
+    planTaskId: "task-3",
     title: "Rearrange Array Elements by Sign",
-    completed: false,
-    source: "planly",
+    track: "Deep Application",
+    subject: "Arrays & Strings (Java)",
+    details: ["Two-pointer placement", "Positive & negative interleaving"],
     timeMins: 45,
+    completed: false,
     difficulty: "Medium",
-    trackSubtitle: "Deep Application · Arrays & Strings (Java)",
+    pattern: "Two Pointers",
+    timeComplexity: "O(N)",
+    spaceComplexity: "O(N)",
+    problemUrl: "https://leetcode.com/problems/rearrange-array-elements-by-sign/",
+    topicId: "arrays-strings",
   },
   {
     id: "task-4",
+    planTaskId: "task-4",
     title: "String to Integer (atoi)",
-    completed: false,
-    source: "planly",
+    track: "Deep Application",
+    subject: "Strings (Java)",
+    details: ["Sign handling", "Overflow clamping", "Whitespace trimming"],
     timeMins: 45,
+    completed: false,
     difficulty: "Medium",
-    trackSubtitle: "Deep Application · Strings (Java)",
+    pattern: "State Machine / Parsing",
+    timeComplexity: "O(N)",
+    spaceComplexity: "O(1)",
+    problemUrl: "https://leetcode.com/problems/string-to-integer-atoi/",
+    topicId: "arrays-strings",
   },
   {
     id: "task-5",
+    planTaskId: "task-5",
     title: "Rotate Array by D Places (Left)",
-    completed: false,
-    source: "planly",
+    track: "Deep Application",
+    subject: "Arrays & Strings (Java)",
+    details: ["Triple reverse algorithm", "Modular shift"],
     timeMins: 45,
+    completed: false,
     difficulty: "Medium",
-    trackSubtitle: "Deep Application · Arrays & Strings (Java)",
+    pattern: "Reversal Algorithm",
+    timeComplexity: "O(N)",
+    spaceComplexity: "O(1)",
+    problemUrl: "https://leetcode.com/problems/rotate-array/",
+    topicId: "arrays-strings",
   },
   {
     id: "task-6",
+    planTaskId: "task-6",
     title: "Middle of the Linked List",
-    completed: false,
-    source: "planly",
+    track: "Core Pattern",
+    subject: "Linked List (Java)",
+    details: ["Fast & slow pointers (Tortoise & Hare)"],
     timeMins: 30,
+    completed: false,
     difficulty: "Easy",
-    trackSubtitle: "Core Pattern · Linked List (Java)",
+    pattern: "Fast & Slow Pointers",
+    timeComplexity: "O(N)",
+    spaceComplexity: "O(1)",
+    problemUrl: "https://leetcode.com/problems/middle-of-the-linked-list/",
+    topicId: "linked-list",
   },
 ];
 
 export default function PlanlyTodayTasksCard() {
-  const [tasks, setTasks] = useState<UnifiedTodayTask[]>(DEFAULT_SCREENSHOT_TASKS);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const router = useRouter();
+  const [planlyState, setPlanlyState] = useState<PlanlyState | null>(null);
   const [filter, setFilter] = useState<"all" | "pending" | "completed">("all");
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  const loadAllTodayTasks = useCallback(async () => {
+  // Dynamic calendar resolution for today's tasks
+  const refreshTodayTasks = useCallback(() => {
     try {
-      const sprintTasks: SyncedSprintTask[] = loadSyncedSprintTasks();
+      const state = loadPlanlyState();
+      if (!state || !state.plan) {
+        setIsLoaded(true);
+        return;
+      }
 
-      if (sprintTasks && sprintTasks.length > 0) {
-        const mappedSprint: UnifiedTodayTask[] = sprintTasks.map((st) => ({
-          id: st.id,
-          title: st.title,
-          completed: st.completed,
-          source: "planly",
-          timeMins: st.timeMins || 45,
-          difficulty: (st.difficulty as "Easy" | "Medium" | "Hard") || "Medium",
-          problemUrl: st.problemUrl,
-          trackSubtitle: `${st.subject || "DSA"} · ${st.track || "Sprint"} (Java)`,
-        }));
-        setTasks(mappedSprint);
+      setPlanlyState(state);
+
+      // Auto-sync calendar day with real-world date
+      const syncResult = syncCurrentDayWithCalendar(state.plan, state.currentDayNumber || 1);
+
+      // If the day advanced to the next day, persist the state immediately
+      if (syncResult.changed) {
+        const updatedState: PlanlyState = {
+          ...state,
+          currentDayNumber: syncResult.resolvedDay,
+          updatedAt: new Date().toISOString(),
+        };
+        savePlanlyState(updatedState);
+        setPlanlyState(updatedState);
       }
     } catch (err) {
-      console.error("Error loading today tasks:", err);
+      console.error("Failed to load today's sprint tasks:", err);
+    } finally {
+      setIsLoaded(true);
     }
   }, []);
 
+  // Initialize and attach automatic daily sync listeners
   useEffect(() => {
-    let active = true;
-    const run = async () => {
-      if (active) {
-        await loadAllTodayTasks();
+    refreshTodayTasks();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refreshTodayTasks();
       }
     };
-    run();
 
-    const handleSync = () => loadAllTodayTasks();
-    window.addEventListener("algocraft-planly-sync-updated", handleSync);
+    const interval = setInterval(refreshTodayTasks, 60000);
+
+    window.addEventListener("algocraft-planly-sync-updated", refreshTodayTasks);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
-      active = false;
-      window.removeEventListener("algocraft-planly-sync-updated", handleSync);
+      clearInterval(interval);
+      window.removeEventListener("algocraft-planly-sync-updated", refreshTodayTasks);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [loadAllTodayTasks]);
+  }, [refreshTodayTasks]);
 
-  const toggleTask = (task: UnifiedTodayTask) => {
-    const updatedStatus = !task.completed;
-    const updated = tasks.map((t) =>
-      t.id === task.id ? { ...t, completed: updatedStatus } : t
-    );
-    setTasks(updated);
+  // Extract ONLY today's tasks from the active Sprint day
+  const todayTasks: TodayTaskItem[] = useMemo(() => {
+    if (!planlyState?.plan?.weeks) {
+      return FALLBACK_TODAY_TASKS;
+    }
 
-    if (task.source === "planly") {
-      const sprintTasks = loadSyncedSprintTasks();
-      const updatedSprint = sprintTasks.map((st) =>
-        st.id === task.id || st.title.toLowerCase() === task.title.toLowerCase()
-          ? { ...st, completed: updatedStatus }
+    const currentDay = planlyState.currentDayNumber || 1;
+    let foundDay: PlanDay | null = null;
+
+    for (const w of planlyState.plan.weeks) {
+      const d = w.days.find((day) => day.dayNumber === currentDay);
+      if (d) {
+        foundDay = d;
+        break;
+      }
+    }
+
+    if (!foundDay || !foundDay.tasks || foundDay.tasks.length === 0) {
+      return FALLBACK_TODAY_TASKS;
+    }
+
+    return foundDay.tasks.map((t) => ({
+      id: t.id,
+      planTaskId: t.id,
+      title: t.title,
+      track: t.track || "Practice",
+      subject: t.subject || "Algorithms",
+      details: t.details || [],
+      timeMins: t.timeMins || 45,
+      completed: !!t.completed,
+      difficulty: t.difficulty || "Medium",
+      problemUrl: t.problemUrl,
+      videoUrl: t.videoUrl,
+      intuitionHint: t.intuitionHint,
+      pattern: t.pattern,
+      timeComplexity: t.timeComplexity,
+      spaceComplexity: t.spaceComplexity,
+      topicId: t.topicId,
+    }));
+  }, [planlyState]);
+
+  // Toggle completion in real-time
+  const handleToggleTask = (task: TodayTaskItem) => {
+    const nextCompleted = !task.completed;
+
+    if (planlyState?.plan) {
+      const currentDay = planlyState.currentDayNumber || 1;
+      const updatedWeeks = planlyState.plan.weeks.map((w) => ({
+        ...w,
+        days: w.days.map((d) => {
+          if (d.dayNumber !== currentDay) return d;
+          return {
+            ...d,
+            tasks: d.tasks.map((t) =>
+              t.id === task.planTaskId || t.title.toLowerCase() === task.title.toLowerCase()
+                ? { ...t, completed: nextCompleted }
+                : t
+            ),
+          };
+        }),
+      }));
+
+      const updatedPlan: SprintPlan = {
+        ...planlyState.plan,
+        weeks: updatedWeeks,
+      };
+
+      const updatedState: PlanlyState = {
+        ...planlyState,
+        plan: updatedPlan,
+        updatedAt: new Date().toISOString(),
+      };
+
+      savePlanlyState(updatedState);
+      setPlanlyState(updatedState);
+    }
+
+    // Two-way sync to synced store & dispatch global event
+    try {
+      const existing = loadSyncedSprintTasks();
+      const updatedExisting = existing.map((st) =>
+        st.planTaskId === task.planTaskId || st.title.toLowerCase() === task.title.toLowerCase()
+          ? { ...st, completed: nextCompleted }
           : st
       );
-      saveSyncedSprintTasks(updatedSprint);
-    }
+      saveSyncedSprintTasks(updatedExisting);
+    } catch {}
   };
 
-  const removeTask = (taskId: string) => {
-    const target = tasks.find((t) => t.id === taskId);
-    const updated = tasks.filter((t) => t.id !== taskId);
-    setTasks(updated);
-
-    if (target?.source === "planly") {
-      const sprintTasks = loadSyncedSprintTasks().filter((st) => st.id !== taskId);
-      saveSyncedSprintTasks(sprintTasks);
-    }
+  // Open problem directly in DSA Sheet with auto-selection
+  const handleOpenInDsaSheet = (task: TodayTaskItem) => {
+    const titleParts = task.title.split(":");
+    const questionName = (titleParts[titleParts.length - 1] || task.title).trim();
+    const topicParam = task.topicId ? `&topic=${encodeURIComponent(task.topicId)}` : "";
+    router.push(`/dsaquestions?q=${encodeURIComponent(questionName)}${topicParam}`);
   };
 
-  const handleAddNewTask = (e: React.FormEvent) => {
-    e.preventDefault();
-    const title = newTaskTitle.trim();
-    if (!title) return;
+  // Metrics
+  const totalCount = todayTasks.length;
+  const completedCount = todayTasks.filter((t) => t.completed).length;
 
-    const newTask: UnifiedTodayTask = {
-      id: `task-${Date.now()}`,
-      title,
-      completed: false,
-      source: "custom",
-      timeMins: 30,
-      difficulty: "Medium",
-      trackSubtitle: "Custom Practice · General",
-    };
-
-    setTasks((prev) => [...prev, newTask]);
-    setNewTaskTitle("");
-  };
-
-  const completedCount = tasks.filter((t) => t.completed).length;
-  const totalCount = tasks.length;
-  const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-
-  const filteredTasks = tasks.filter((t) => {
+  // Filter tasks
+  const filteredTasks = todayTasks.filter((t) => {
     if (filter === "pending") return !t.completed;
     if (filter === "completed") return t.completed;
     return true;
   });
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: 0.15 }}
-      className="group rounded-2xl bg-[#10141E]/90 border border-white/[0.08] p-5 backdrop-blur-xl shadow-xl hover:border-white/15 transition-all flex flex-col justify-between h-full"
-    >
-      <div>
-        {/* Header */}
-        <div className="flex items-center justify-between pb-3.5 border-b border-white/[0.06]">
-          <div className="flex items-center gap-2.5">
-            <span className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-              <CheckSquare className="w-4 h-4" />
-            </span>
-            <div>
-              <h3 className="text-base font-bold text-white tracking-tight leading-none">
-                Planly Today Tasks
-              </h3>
-              <p className="text-[11px] text-zinc-500 mt-1">Algorithmic execution board</p>
+    <div className="relative overflow-hidden rounded-2xl bg-[var(--surface)]/95 border border-[var(--border-subtle)] p-4 sm:p-4.5 shadow-xl backdrop-blur-xl transition-all flex flex-col justify-between h-full select-none">
+      {/* Ambient soft glow */}
+      <div className="absolute top-0 right-0 w-64 h-32 bg-[rgb(var(--accent-rgb)/0.06)] blur-2xl pointer-events-none rounded-full -mr-12 -mt-12" />
+
+      <div className="relative z-10">
+        {/* ================= COMPACT HEADER WITH INLINE FILTER PILLS ================= */}
+        <div className="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)] gap-2">
+          {/* Title & Count Badge */}
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="p-1.5 rounded-lg bg-[rgb(var(--accent-rgb)/0.12)] text-[rgb(var(--accent-rgb))] border border-[rgb(var(--accent-rgb)/0.25)] shadow-sm shrink-0">
+              <Zap className="w-3.5 h-3.5" />
             </div>
-          </div>
-
-          <Link
-            href="/planly"
-            className="text-xs px-2.5 py-1 rounded-lg bg-[#141923] hover:bg-[#1E2430] border border-white/10 text-cyan-300 font-semibold transition-all flex items-center gap-1"
-          >
-            <span>AI Sprint</span>
-            <ExternalLink className="w-3 h-3" />
-          </Link>
-        </div>
-
-        {/* Progress Tracker */}
-        <div className="mt-4 p-3.5 rounded-xl bg-[#0B0F17]/80 border border-white/5 space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-zinc-400 font-medium">Daily Target Progress</span>
-            <span className="font-mono font-bold text-cyan-300">
-              {completedCount}/{totalCount} completed ({progressPercent}%)
+            <h3 className="text-sm font-bold text-[var(--foreground)] tracking-tight truncate">
+              Planly Today Tasks
+            </h3>
+            <span className="text-[11px] font-mono font-bold px-1.5 py-0.2 rounded bg-[var(--card)] text-[rgb(var(--accent-rgb))] border border-[var(--border-subtle)] shrink-0">
+              {completedCount}/{totalCount}
             </span>
           </div>
 
-          {/* Progress Bar */}
-          <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${progressPercent}%` }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
-              className="h-full rounded-full bg-cyan-400"
-            />
+          {/* Compact Filter Tabs */}
+          <div className="flex items-center bg-[var(--card)] border border-[var(--border-subtle)] rounded-lg p-0.5 text-[11px] shrink-0">
+            <button
+              type="button"
+              onClick={() => setFilter("all")}
+              className={`px-2 py-0.5 rounded-md font-semibold transition-all cursor-pointer ${
+                filter === "all"
+                  ? "bg-[var(--surface)] text-[var(--foreground)] font-bold shadow-xs border border-[var(--border-subtle)]"
+                  : "text-zinc-400 hover:text-[var(--foreground)]"
+              }`}
+            >
+              All
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilter("pending")}
+              className={`px-2 py-0.5 rounded-md font-semibold transition-all cursor-pointer ${
+                filter === "pending"
+                  ? "bg-[var(--surface)] text-[var(--foreground)] font-bold shadow-xs border border-[var(--border-subtle)]"
+                  : "text-zinc-400 hover:text-[var(--foreground)]"
+              }`}
+            >
+              Pending ({totalCount - completedCount})
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilter("completed")}
+              className={`px-2 py-0.5 rounded-md font-semibold transition-all cursor-pointer ${
+                filter === "completed"
+                  ? "bg-[var(--surface)] text-[var(--foreground)] font-bold shadow-xs border border-[var(--border-subtle)]"
+                  : "text-zinc-400 hover:text-[var(--foreground)]"
+              }`}
+            >
+              Done ({completedCount})
+            </button>
           </div>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex items-center gap-1 mt-3">
-          <button
-            onClick={() => setFilter("all")}
-            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-              filter === "all"
-                ? "bg-[#181C24] text-white border border-white/10 shadow-sm"
-                : "text-zinc-400 hover:text-white"
-            }`}
-          >
-            All ({totalCount})
-          </button>
-          <button
-            onClick={() => setFilter("pending")}
-            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-              filter === "pending"
-                ? "bg-[#181C24] text-white border border-white/10 shadow-sm"
-                : "text-zinc-400 hover:text-white"
-            }`}
-          >
-            Pending
-          </button>
-          <button
-            onClick={() => setFilter("completed")}
-            className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-              filter === "completed"
-                ? "bg-[#181C24] text-white border border-white/10 shadow-sm"
-                : "text-zinc-400 hover:text-white"
-            }`}
-          >
-            Completed
-          </button>
-        </div>
-
-        {/* Task Checklist Items */}
-        <div className="mt-3 space-y-2 max-h-[460px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-zinc-800">
-          <AnimatePresence>
+        {/* ================= COMPACT TASK ITEMS ================= */}
+        <div className="mt-3 space-y-2 max-h-[520px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-zinc-800">
+          <AnimatePresence initial={false}>
             {filteredTasks.map((task) => (
               <motion.div
                 key={task.id}
                 layout
-                initial={{ opacity: 0, y: 6 }}
+                initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                className={`group/task flex items-center justify-between gap-3 p-3 rounded-xl border transition-all ${
+                exit={{ opacity: 0, scale: 0.98 }}
+                className={`group/task relative overflow-hidden rounded-xl border transition-all duration-150 ${
                   task.completed
-                    ? "bg-[#0B0F17]/40 border-white/5 opacity-50"
-                    : "bg-[#0B0F17]/80 hover:bg-[#0E131F] border-white/5 hover:border-white/10"
+                    ? "bg-[var(--card)]/40 border-[var(--border-subtle)]/60 opacity-60"
+                    : "bg-[var(--card)]/75 hover:bg-[var(--card)] border-[var(--border-subtle)] hover:border-[rgb(var(--accent-rgb)/0.4)] shadow-xs"
                 }`}
               >
-                {/* Checkbox + Title + Meta */}
-                <div className="flex items-start gap-3 min-w-0 flex-1">
+                <div className="p-2.5 sm:p-3 flex items-center justify-between gap-2.5">
+                  {/* Custom Checkbox */}
                   <button
-                    onClick={() => toggleTask(task)}
-                    className="mt-0.5 shrink-0 text-zinc-500 hover:text-cyan-400 transition-colors"
+                    type="button"
+                    onClick={() => handleToggleTask(task)}
+                    className="shrink-0 text-zinc-500 hover:text-[rgb(var(--accent-rgb))] transition-colors cursor-pointer focus:outline-none"
                     title={task.completed ? "Mark pending" : "Mark completed"}
+                    aria-label={`Toggle ${task.title}`}
                   >
                     {task.completed ? (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400 fill-emerald-500/10" />
+                      <div className="w-4.5 h-4.5 rounded-md bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shadow-xs">
+                        <Check className="w-3 h-3 stroke-[3]" />
+                      </div>
                     ) : (
-                      <div className="w-4 h-4 rounded-md border border-zinc-600 hover:border-cyan-400 transition-colors mt-0.5" />
+                      <div className="w-4.5 h-4.5 rounded-md border border-[var(--border-subtle)] bg-[var(--surface)] hover:border-[rgb(var(--accent-rgb))] transition-all" />
                     )}
                   </button>
 
+                  {/* Title & Metadata */}
                   <div className="min-w-0 flex-1">
                     <p
-                      onClick={() => toggleTask(task)}
-                      className={`text-xs font-bold cursor-pointer transition-all ${
+                      onClick={() => handleToggleTask(task)}
+                      className={`text-xs font-bold cursor-pointer transition-colors leading-tight truncate ${
                         task.completed
                           ? "line-through text-zinc-500"
-                          : "text-white group-hover/task:text-cyan-200"
+                          : "text-[var(--foreground)] group-hover/task:text-[rgb(var(--accent-rgb))]"
                       }`}
+                      title={task.title}
                     >
                       {task.title}
                     </p>
 
-                    <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px]">
-                      <span className="text-zinc-500 font-mono">
-                        {task.trackSubtitle || "Arrays & Strings (Java)"}
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1 text-[10px]">
+                      <span className="text-zinc-400 font-mono">
+                        {task.track} · {task.subject}
                       </span>
+
                       {task.timeMins && (
                         <span className="text-zinc-500 font-mono flex items-center gap-0.5">
-                          • ⏱ {task.timeMins}m
+                          • {task.timeMins}m
                         </span>
                       )}
+
                       {task.difficulty && (
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.2 rounded ${
+                          className={`font-bold px-1.5 py-0.2 rounded font-mono ${
                             task.difficulty === "Easy"
-                              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                              ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
                               : task.difficulty === "Medium"
-                              ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                              : "bg-rose-500/20 text-rose-300 border border-rose-500/30"
+                              ? "bg-amber-500/15 text-amber-400 border border-amber-500/30"
+                              : "bg-rose-500/15 text-rose-400 border border-rose-500/30"
                           }`}
                         >
                           {task.difficulty}
@@ -337,41 +441,54 @@ export default function PlanlyTodayTasksCard() {
                       )}
                     </div>
                   </div>
-                </div>
 
-                {/* Remove task */}
-                <button
-                  onClick={() => removeTask(task.id)}
-                  className="opacity-0 group-hover/task:opacity-100 p-1 text-zinc-600 hover:text-rose-400 transition-opacity"
-                  title="Remove task"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                  {/* Actions: DSA Sheet Button + LeetCode */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenInDsaSheet(task)}
+                      title="Open in DSA Sheet"
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-[rgb(var(--accent-rgb)/0.12)] hover:bg-[rgb(var(--accent-rgb)/0.22)] text-[rgb(var(--accent-rgb))] border border-[rgb(var(--accent-rgb)/0.25)] transition-all cursor-pointer shadow-xs group/btn"
+                    >
+                      <Code2 className="w-3 h-3 transition-transform group-hover/btn:scale-110" />
+                      <span>DSA Sheet</span>
+                    </button>
+
+                    {task.problemUrl && (
+                      <a
+                        href={task.problemUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Open on LeetCode"
+                        className="p-1 rounded-lg text-zinc-400 hover:text-[var(--foreground)] hover:bg-[var(--surface)] transition-colors"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
+                </div>
               </motion.div>
             ))}
           </AnimatePresence>
         </div>
       </div>
 
-      {/* Inline Quick Add Input */}
-      <form onSubmit={handleAddNewTask} className="mt-4 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={newTaskTitle}
-            onChange={(e) => setNewTaskTitle(e.target.value)}
-            placeholder="+ Add a new task (e.g. Invert Binary Tree)..."
-            className="flex-1 px-3.5 py-2 rounded-xl bg-[#0B0F17] border border-white/10 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-cyan-400 transition-all font-sans"
-          />
-          <button
-            type="submit"
-            disabled={!newTaskTitle.trim()}
-            className="px-3.5 py-2 rounded-xl bg-[#181C24] text-white text-xs font-semibold hover:bg-white/10 border border-white/10 disabled:opacity-30 transition-all flex items-center gap-1 shrink-0"
-          >
-            <Plus className="w-3.5 h-3.5" /> Add
-          </button>
-        </div>
-      </form>
-    </motion.div>
+      {/* ================= COMPACT FOOTER ================= */}
+      <div className="relative z-10 mt-3 pt-2.5 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px] text-zinc-400">
+        <span>
+          {completedCount === totalCount
+            ? "All tasks completed!"
+            : `${totalCount - completedCount} problem(s) remaining`}
+        </span>
+
+        <Link
+          href="/dsaquestions"
+          className="font-semibold text-[rgb(var(--accent-rgb))] hover:underline flex items-center gap-0.5 transition-all"
+        >
+          <span>Question Matrix</span>
+          <ArrowUpRight className="w-3 h-3" />
+        </Link>
+      </div>
+    </div>
   );
 }

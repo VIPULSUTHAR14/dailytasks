@@ -29,7 +29,12 @@
 
 /* Light theme overrides for high contrast (WCAG AA > 4.5:1) */
 [data-theme="mono-light"],
-[data-theme="paper-sand"] {
+[data-theme="metallic-chic"],
+[data-theme="vibrant-calm"],
+[data-theme="minimal-warm"],
+[data-theme="youthful-fun"],
+[data-theme="close-to-nature"],
+[data-theme="lively-soothing"] {
   --note-hl-rose-bg: rgba(225, 29, 72, 0.12);
   --note-hl-rose-text: #9f1239;
   --note-hl-rose-border: rgba(225, 29, 72, 0.35);
@@ -73,7 +78,12 @@
 }
 
 [data-theme="mono-light"] .tiptap.ProseMirror p.is-editor-empty:first-child::before,
-[data-theme="paper-sand"] .tiptap.ProseMirror p.is-editor-empty:first-child::before {
+[data-theme="metallic-chic"] .tiptap.ProseMirror p.is-editor-empty:first-child::before,
+[data-theme="vibrant-calm"] .tiptap.ProseMirror p.is-editor-empty:first-child::before,
+[data-theme="minimal-warm"] .tiptap.ProseMirror p.is-editor-empty:first-child::before,
+[data-theme="youthful-fun"] .tiptap.ProseMirror p.is-editor-empty:first-child::before,
+[data-theme="close-to-nature"] .tiptap.ProseMirror p.is-editor-empty:first-child::before,
+[data-theme="lively-soothing"] .tiptap.ProseMirror p.is-editor-empty:first-child::before {
   color: #94a3b8;
   opacity: 0.8;
 }

@@ -15,7 +15,6 @@ import {
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
-import Sidebar from "@/components/Sidebar";
 import WorkspaceHeader from "@/components/WorkspaceHeader";
 
 const RichTextEditor = dynamic(() => import("@/components/RichTextEditor"), {
@@ -1322,20 +1321,10 @@ function TopicDetailPanel({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex bg-[#0B0F17] overflow-hidden select-none"
+            className="flex-1 flex flex-col min-w-0 h-full overflow-hidden select-none bg-transparent relative z-10"
         >
-                <Sidebar
-                    isMobileOpen={panelSidebarOpen}
-                    onMobileClose={() => setPanelSidebarOpen(false)}
-                    hideBottomNav={true}
-                />
-
-                <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-                    {/* Top Workspace Header */}
-                    <WorkspaceHeader onToggleSidebar={() => setPanelSidebarOpen((prev) => !prev)} />
-
-                    {/* Compact, responsive Topic Header */}
-                    <div className="px-3.5 py-2.5 sm:px-6 sm:py-3.5 bg-[#0B0F17] border-b border-[#1E293B] flex flex-col md:flex-row md:items-center justify-between gap-2.5 shrink-0">
+            {/* Compact, responsive Topic Header */}
+            <div className="px-3.5 py-2.5 sm:px-6 sm:py-3.5 bg-[#10141E] border-b border-[#1E293B] flex flex-col md:flex-row md:items-center justify-between gap-2.5 shrink-0">
                         <div className="space-y-1 min-w-0">
                             {/* Top row: Back button on mobile, Level badge, ID */}
                             <div className="flex items-center gap-2 flex-wrap">
@@ -1697,7 +1686,6 @@ function TopicDetailPanel({
                         </div>
                     )}
                 </div>
-            </div>
         </motion.div>
     );
 }
@@ -1994,18 +1982,24 @@ export default function DsaNotes() {
     );
 
     return (
-        <div className="min-h-screen bg-[#0B0F17] text-slate-100 flex font-sans antialiased tracking-wide">
-            {/* Sidebar */}
-            <Sidebar
-                isMobileOpen={sidebarOpen}
-                onMobileClose={() => setSidebarOpen(false)}
-            />
+        <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden bg-transparent text-slate-100 font-sans antialiased tracking-wide relative">
+            {/* Dynamic Ambient Background Elements */}
+            <div className="absolute top-[-10%] right-[-10%] w-[35vw] h-[35vw] rounded-full bg-cyan-500/10 blur-[130px] pointer-events-none" />
+            <div className="absolute bottom-[-15%] left-[-10%] w-[35vw] h-[35vw] rounded-full bg-emerald-500/10 blur-[140px] pointer-events-none" />
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-                <WorkspaceHeader onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
+            <WorkspaceHeader onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
 
-                <main className="flex-1 p-3.5 sm:p-6 md:p-8 pb-16 md:pb-8 overflow-y-auto">
+            <AnimatePresence mode="wait">
+                {selectedTopic ? (
+                    <TopicDetailPanel
+                        key={selectedTopic.id}
+                        topic={selectedTopic}
+                        onSave={saveTopicUpdate}
+                        onClose={() => setSelectedTopic(null)}
+                    />
+                ) : (
+                    <main className="flex-1 p-3.5 sm:p-6 md:p-8 pb-16 md:pb-8 overflow-y-auto relative z-10 bg-transparent">
                     {/* Header */}
                     <header className="mb-6 hidden md:block font-sans">
                         <div className="flex items-center gap-3 mb-1">
@@ -2021,35 +2015,7 @@ export default function DsaNotes() {
                         </div>
                     </header>
 
-                {/* Stats bar */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5 sm:gap-3 mb-6 font-sans">
-                    {[
-                        { label: "Total", value: stats.total, icon: BookOpen, color: "text-white" },
-                        { label: "Completed", value: stats.completed, icon: CheckCircle2, color: "text-emerald-400" },
-                        { label: "Favorites", value: stats.favorites, icon: Star, color: "text-amber-400" },
-                        { label: "Mastery", value: `${stats.avgMastery}%`, icon: Target, color: "text-violet-400" },
-                        { label: "Confidence", value: `${stats.avgConfidence}%`, icon: TrendingUp, color: "text-cyan-400" },
-                    ].map((stat, i) => {
-                        const StatIcon = stat.icon;
-                        return (
-                            <motion.div
-                                key={stat.label}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.04 }}
-                                className={`flex items-center gap-2.5 sm:gap-3 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl bg-white/[0.03] border border-white/[0.06] ${
-                                    i === 4 ? "col-span-2 sm:col-span-1" : ""
-                                }`}
-                            >
-                                <StatIcon className={`w-4 h-4 ${stat.color} shrink-0`} />
-                                <div>
-                                    <div className={`text-base sm:text-lg font-bold ${stat.color} font-mono`}>{stat.value}</div>
-                                    <div className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">{stat.label}</div>
-                                </div>
-                            </motion.div>
-                        );
-                    })}
-                </div>
+
 
                 {/* Search */}
                 <div className="mb-6 font-sans">
@@ -2161,17 +2127,7 @@ export default function DsaNotes() {
                         <p className="text-sm text-zinc-600">Try adjusting your search or filters</p>
                     </motion.div>
                 )}
-                </main>
-            </div>
-
-            {/* Topic Detail Panel */}
-            <AnimatePresence>
-                {selectedTopic && (
-                    <TopicDetailPanel
-                        topic={selectedTopic}
-                        onSave={saveTopicUpdate}
-                        onClose={() => setSelectedTopic(null)}
-                    />
+                    </main>
                 )}
             </AnimatePresence>
         </div>

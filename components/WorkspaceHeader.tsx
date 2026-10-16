@@ -41,7 +41,7 @@ export default function WorkspaceHeader({
   const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState<ThemeMode>("current");
+  const [currentTheme, setCurrentTheme] = useState<ThemeMode>("striking-simple");
 
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
@@ -83,7 +83,7 @@ export default function WorkspaceHeader({
   };
 
   return (
-    <header className="w-full h-14 bg-[#0B0F17] border-b border-[#1E293B] px-3.5 sm:px-4 md:px-6 flex items-center justify-between z-30 sticky top-0 shrink-0 select-none">
+    <header className="glass glass-header w-full h-14 px-3.5 sm:px-4 md:px-6 flex items-center justify-between z-30 sticky top-0 shrink-0 select-none">
       {/* Left Breadcrumbs + Mobile Navigation Toggle */}
       <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar py-1">
         {/* Mobile Menu Hamburger Button */}
@@ -96,7 +96,7 @@ export default function WorkspaceHeader({
               window.dispatchEvent(new CustomEvent("toggle-mobile-sidebar"));
             }
           }}
-          className="md:hidden p-1.5 rounded-lg bg-[#141923] border border-[#1E293B] text-zinc-300 hover:text-white hover:border-cyan-500/40 transition-colors shrink-0 cursor-pointer flex items-center justify-center"
+          className="md:hidden p-1.5 rounded-lg bg-[#141923] border border-[#1E293B] text-zinc-300 hover:text-white hover:border-cyan-500/40 transition-colors shrink-0 cursor-pointer flex items-center justify-center btn-quiet"
           title="Open Navigation Menu"
           aria-label="Open Navigation Menu"
         >
@@ -119,7 +119,7 @@ export default function WorkspaceHeader({
       <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-4">
         {/* Track Badge */}
         {activeTrack && (
-          <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded bg-[#141923] border border-[#1E293B] text-[11px] font-medium text-cyan-400">
+          <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-lg surface-1 text-[11px] font-medium text-cyan-400">
             <Terminal size={12} className="text-cyan-400 shrink-0" />
             <span>{activeTrack}</span>
           </div>
@@ -127,7 +127,7 @@ export default function WorkspaceHeader({
 
         {/* Sprint Progress Pill */}
         {sprintNumber !== undefined && (
-          <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded bg-[#141923] border border-[#1E293B] text-[11px] text-zinc-300">
+          <div className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-lg surface-1 text-[11px] text-zinc-300">
             <span className="font-semibold text-zinc-200">Sprint {sprintNumber}</span>
             {sprintProgress !== undefined && (
               <>
@@ -151,7 +151,7 @@ export default function WorkspaceHeader({
           <button
             type="button"
             onClick={() => setShowNotifications((prev) => !prev)}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-400 hover:text-white hover:bg-[#141923] border border-transparent hover:border-[#1E293B] transition-colors relative cursor-pointer"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-zinc-400 hover:text-white hover:bg-[#141923] border border-transparent hover:border-[#1E293B] transition-colors relative cursor-pointer btn-quiet"
             title="Notifications"
             aria-label="Notifications"
           >
@@ -160,20 +160,20 @@ export default function WorkspaceHeader({
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 mt-2 w-72 bg-[#10141E] border border-[#1E293B] rounded-xl shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
+            <div className="glass surface-3 absolute right-0 mt-2 w-72 rounded-xl p-4 z-50 animate-in fade-in zoom-in-95 duration-150">
               <div className="flex items-center justify-between pb-2 border-b border-[#1E293B]">
                 <span className="text-xs font-bold uppercase tracking-wider text-white">System Feed</span>
                 <span className="text-[10px] font-mono text-cyan-400">Live Sync</span>
               </div>
               <div className="py-3 space-y-2.5 text-xs">
-                <div className="p-2 rounded bg-[#141923] border border-[#1E293B]/60 flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
+                <div className="p-2 rounded-lg surface-1 flex items-start gap-2">
+                  <span className="pip-live mt-1 shrink-0" />
                   <div>
                     <p className="text-zinc-200 font-medium">Sprint 4 targets active</p>
                     <p className="text-[10px] text-zinc-500">Sliding Window & DP milestone on track</p>
                   </div>
                 </div>
-                <div className="p-2 rounded bg-[#141923] border border-[#1E293B]/60 flex items-start gap-2">
+                <div className="p-2 rounded-lg surface-1 flex items-start gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5 shrink-0" />
                   <div>
                     <p className="text-zinc-200 font-medium">Daily Cadence Shield</p>
@@ -189,7 +189,7 @@ export default function WorkspaceHeader({
         {onNewAction && (
           <button
             onClick={onNewAction}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-zinc-950 text-xs font-bold rounded shadow-lg shadow-cyan-500/20 hover:shadow-cyan-400/30 transition-all cursor-pointer"
+            className="btn-haptic flex items-center gap-1.5 px-3 py-1.5 text-zinc-950 text-xs font-bold rounded-lg cursor-pointer"
           >
             <Plus size={14} strokeWidth={2.5} />
             <span>{newActionLabel}</span>
@@ -201,17 +201,17 @@ export default function WorkspaceHeader({
           <button
             type="button"
             onClick={() => setShowProfileMenu((prev) => !prev)}
-            className="relative w-8 h-8 rounded-lg bg-[#141923] border border-[#1E293B] flex items-center justify-center text-cyan-400 hover:border-cyan-500/50 hover:bg-[#1a2232] transition-all cursor-pointer focus:outline-none"
+            className="relative w-8 h-8 rounded-lg bg-[#141923] border border-[#1E293B] flex items-center justify-center text-cyan-400 hover:border-cyan-500/50 hover:bg-[#1a2232] transition-all cursor-pointer focus:outline-none btn-quiet"
             title="Profile & Theme Settings"
             aria-label="Open Profile and Theme Settings Menu"
           >
             <User size={15} />
-            <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-[#0B0F17]" />
+            <span className="absolute bottom-0.5 right-0.5 pip-live" />
           </button>
 
           {/* Interactive Mini Menu Popover */}
           {showProfileMenu && (
-            <div className="absolute right-0 top-full mt-2 w-72 bg-[#10141E] border border-[#1E293B] rounded-2xl shadow-2xl p-3.5 z-50 animate-in fade-in zoom-in-95 duration-150 select-none text-xs">
+            <div className="glass surface-3 absolute right-0 top-full mt-2 w-72 rounded-2xl p-3.5 z-50 animate-in fade-in zoom-in-95 duration-150 select-none text-xs">
               {/* Profile Card Header */}
               <div className="flex items-center gap-3 pb-3 border-b border-[#1E293B]">
                 <div className="w-9 h-9 rounded-xl bg-[#141923] border border-[#1E293B] flex items-center justify-center text-cyan-400 font-bold font-mono text-sm shrink-0">
@@ -250,19 +250,8 @@ export default function WorkspaceHeader({
                             : "bg-[#0B0F17]/50 border-[#1E293B] hover:border-zinc-700 hover:bg-[#141923]/60"
                         }`}
                       >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          {/* Visual Theme Swatch */}
-                          <div
-                            className="w-5 h-5 rounded-full border border-white/20 flex items-center justify-center shrink-0 shadow-inner overflow-hidden"
-                            style={{ backgroundColor: theme.preview.bg }}
-                          >
-                            <div
-                              className="w-2.5 h-2.5 rounded-full"
-                              style={{ background: theme.preview.accent }}
-                            />
-                          </div>
-
-                          <div className="min-w-0">
+                        <div className="flex flex-col gap-1.5 min-w-0 flex-1 pr-2">
+                          <div className="flex items-center justify-between gap-1.5">
                             <p
                               className={`text-xs font-semibold truncate ${
                                 isSelected ? "text-white" : "text-zinc-300"
@@ -270,14 +259,32 @@ export default function WorkspaceHeader({
                             >
                               {theme.name}
                             </p>
-                            <p className="text-[10px] text-zinc-500 truncate leading-tight">
-                              {theme.description}
-                            </p>
+                            <span
+                              className={`text-[9px] font-mono uppercase px-1.5 py-0.2 rounded border ${
+                                theme.mode === "dark"
+                                  ? "bg-zinc-800/80 text-zinc-400 border-zinc-700/50"
+                                  : "bg-amber-500/10 text-amber-300 border-amber-500/20"
+                              }`}
+                            >
+                              {theme.mode}
+                            </span>
+                          </div>
+
+                          {/* 5-Color Palette Strip wrapped in .surface-well */}
+                          <div className="surface-well p-1 flex items-center gap-1 w-full rounded-md">
+                            {theme.palette.map((color, idx) => (
+                              <span
+                                key={idx}
+                                className="h-2 flex-1 rounded-xs border border-white/10"
+                                style={{ backgroundColor: color }}
+                                title={color}
+                              />
+                            ))}
                           </div>
                         </div>
 
                         {isSelected && (
-                          <div className="w-4 h-4 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 ml-2">
+                          <div className="w-4 h-4 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
                             <Check size={11} strokeWidth={3} />
                           </div>
                         )}

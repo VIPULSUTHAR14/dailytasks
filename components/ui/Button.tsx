@@ -31,11 +31,11 @@ export function Button({
 
   const variantStyles = {
     primary:
-      "bg-cyan-500 hover:bg-cyan-400 text-[#0B0F17] font-bold shadow-lg shadow-cyan-500/20 border border-cyan-400/40",
+      "btn-haptic text-zinc-950 font-bold",
     secondary:
-      "bg-[#141923] hover:bg-[#1a2232] text-white border border-[#1E293B] hover:border-cyan-500/40",
+      "btn-quiet text-white",
     outline:
-      "bg-transparent hover:bg-white/5 text-white border border-[#1E293B] hover:border-[#334155]",
+      "btn-quiet text-white",
     ghost: "bg-transparent hover:bg-white/5 text-zinc-400 hover:text-white",
   };
 

@@ -10,7 +10,7 @@ interface AuthThemeSelectorProps {
 }
 
 export function AuthThemeSelector({ className = "", compact = false }: AuthThemeSelectorProps) {
-  const [currentTheme, setCurrentTheme] = useState<ThemeMode>("current");
+  const [currentTheme, setCurrentTheme] = useState<ThemeMode>("striking-simple");
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -92,13 +92,13 @@ export function AuthThemeSelector({ className = "", compact = false }: AuthTheme
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-[#10141E] border border-[#1E293B] rounded-2xl shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 duration-150 backdrop-blur-xl">
+        <div className="glass surface-3 absolute right-0 top-full mt-2 w-72 sm:w-80 rounded-2xl p-3 z-50 animate-in fade-in zoom-in-95 duration-150">
           <div className="flex items-center justify-between pb-2.5 mb-2 border-b border-[#1E293B] px-1">
             <span className="text-xs font-bold text-white flex items-center gap-1.5">
               <Sparkles size={13} className="text-cyan-400" />
               Workspace Themes
             </span>
-            <span className="text-[10px] font-mono text-zinc-400">11 Themes Synced</span>
+            <span className="text-[10px] font-mono text-zinc-400">{THEMES.length} Themes Synced</span>
           </div>
 
           <div className="space-y-1 max-h-[320px] overflow-y-auto pr-1 select-none">
@@ -115,19 +115,8 @@ export function AuthThemeSelector({ className = "", compact = false }: AuthTheme
                       : "bg-[#0B0F17]/40 border-transparent hover:border-[#1E293B] hover:bg-[#141923]/70"
                   }`}
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    {/* Visual Color Preview Swatch */}
-                    <div
-                      className="w-5 h-5 rounded-full border border-white/20 flex items-center justify-center shrink-0 shadow-inner"
-                      style={{ backgroundColor: theme.preview.bg }}
-                    >
-                      <div
-                        className="w-2.5 h-2.5 rounded-full"
-                        style={{ background: theme.preview.accent }}
-                      />
-                    </div>
-
-                    <div className="min-w-0">
+                  <div className="flex flex-col gap-1.5 min-w-0 flex-1 pr-2">
+                    <div className="flex items-center justify-between gap-1.5">
                       <p
                         className={`text-xs font-medium truncate ${
                           isSelected ? "text-white font-semibold" : "text-zinc-300"
@@ -135,14 +124,32 @@ export function AuthThemeSelector({ className = "", compact = false }: AuthTheme
                       >
                         {theme.name}
                       </p>
-                      <p className="text-[10px] text-zinc-500 truncate leading-tight">
-                        {theme.description}
-                      </p>
+                      <span
+                        className={`text-[9px] font-mono uppercase px-1 py-0.2 rounded border ${
+                          theme.mode === "dark"
+                            ? "bg-zinc-800/80 text-zinc-400 border-zinc-700/50"
+                            : "bg-amber-500/10 text-amber-300 border-amber-500/20"
+                        }`}
+                      >
+                        {theme.mode}
+                      </span>
+                    </div>
+
+                    {/* 5-Color Palette Strip wrapped in .surface-well */}
+                    <div className="surface-well p-1 flex items-center gap-1 w-full rounded-md">
+                      {theme.palette.map((color, idx) => (
+                        <span
+                          key={idx}
+                          className="h-1.5 flex-1 rounded-xs border border-white/10"
+                          style={{ backgroundColor: color }}
+                          title={color}
+                        />
+                      ))}
                     </div>
                   </div>
 
                   {isSelected && (
-                    <div className="w-4 h-4 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0 ml-2">
+                    <div className="w-4 h-4 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
                       <Check size={11} strokeWidth={3} />
                     </div>
                   )}

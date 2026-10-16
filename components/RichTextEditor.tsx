@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -35,6 +36,7 @@ import { legacyToRich, richToStorage } from "@/lib/markdownHighlightConverter";
 import RichTextToolbar from "./RichTextToolbar";
 import RichTextSlashMenu from "./RichTextSlashMenu";
 import RichTextFloatingToolbar from "./RichTextFloatingToolbar";
+import RichTextEditorSkeleton from "./RichTextEditor.skeleton";
 import "./rich-editor.css";
 
 declare module "@tiptap/core" {
@@ -109,6 +111,11 @@ export default function RichTextEditor({
     onToggleFullscreen,
     className = ""
 }: RichTextEditorProps) {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     // Fullscreen state with external or internal fallback
     const [internalIsFullscreen, setInternalIsFullscreen] = useState(false);
     const isFullscreen = externalIsFullscreen !== undefined ? externalIsFullscreen : internalIsFullscreen;
@@ -324,16 +331,29 @@ export default function RichTextEditor({
         setIsOutlineOpen(false);
     };
 
-    return (
+    if (!editor) {
+        return <RichTextEditorSkeleton />;
+    }
+
+    const editorContent = (
         <div
             className={`font-sans transition-all ${
                 isFullscreen
-                    ? "fixed inset-0 z-[100] w-screen h-screen w-[100vw] h-[100vh] bg-[var(--background,#0B0F17)] flex flex-col overflow-hidden m-0 p-0 rounded-none border-0 shadow-none text-[var(--foreground,#f1f5f9)]"
+                    ? "fixed inset-0 z-[99999] w-screen h-screen bg-[#0B0F17] flex flex-col overflow-hidden m-0 p-0 rounded-none border-0 shadow-none text-[var(--foreground,#f1f5f9)]"
                     : `relative flex flex-col bg-[var(--card,#0d1117)] border border-[var(--border-subtle,#21262d)] text-[var(--foreground,#f1f5f9)] rounded-xl overflow-hidden shadow-xl ${className}`
             }`}
         >
+            {/* Fullscreen Blueprint Grid & Ambient Lighting */}
+            {isFullscreen && (
+                <>
+                    <div className="absolute top-[-10%] right-[-10%] w-[45vw] h-[45vw] rounded-full bg-cyan-500/10 blur-[130px] pointer-events-none" />
+                    <div className="absolute bottom-[-15%] left-[-10%] w-[45vw] h-[45vw] rounded-full bg-emerald-500/10 blur-[140px] pointer-events-none" />
+                    <div className="absolute inset-0 blueprint-grid pointer-events-none" aria-hidden="true" />
+                </>
+            )}
+
             {/* Header bar */}
-            <div className={`flex items-center justify-between border-b border-[var(--border-subtle,#21262d)] text-[var(--foreground,#f1f5f9)] select-none transition-all ${
+            <div className={`flex items-center justify-between border-b border-[var(--border-subtle,#21262d)] text-[var(--foreground,#f1f5f9)] select-none transition-all relative z-10 ${
                 isFullscreen ? "px-6 py-2.5 bg-[var(--surface,#161b22)] shadow-md" : "px-4 py-2 bg-[var(--surface,#161b22)]"
             }`}>
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -477,7 +497,7 @@ export default function RichTextEditor({
             <RichTextToolbar editor={editor} />
 
             {/* Editor body with Slash Menu & Floating Selection Toolbar */}
-            <div className={`relative flex-1 overflow-y-auto bg-[var(--background,#0d1117)] text-[var(--foreground,#f1f5f9)] tiptap-container ${isFullscreen ? "px-4 sm:px-12 py-8" : ""}`}>
+            <div className={`relative flex-1 overflow-y-auto ${isFullscreen ? "bg-transparent px-4 sm:px-12 py-8 relative z-10" : "bg-[var(--background,#0d1117)]"} text-[var(--foreground,#f1f5f9)] tiptap-container`}>
                 <div className={isFullscreen ? "max-w-4xl mx-auto w-full min-h-full" : "w-full min-h-full"}>
                     <RichTextSlashMenu editor={editor} />
                     <RichTextFloatingToolbar editor={editor} />
@@ -486,7 +506,7 @@ export default function RichTextEditor({
             </div>
 
             {/* Footer Status Bar: Word Count & Save Indicator */}
-            <div className="flex items-center justify-between px-4 py-1 bg-[var(--surface,#161b22)] border-t border-[var(--border-subtle,#21262d)] text-[11px] text-slate-400 select-none">
+            <div className="flex items-center justify-between px-4 py-1 bg-[var(--surface,#161b22)] border-t border-[var(--border-subtle,#21262d)] text-[11px] text-slate-400 select-none relative z-10">
                 <div className="flex items-center gap-3">
                     <span>{stats.words} {stats.words === 1 ? "word" : "words"}</span>
                     <span className="opacity-40">•</span>
@@ -513,4 +533,10 @@ export default function RichTextEditor({
             </div>
         </div>
     );
+
+    if (isFullscreen && mounted && typeof document !== "undefined") {
+        return createPortal(editorContent, document.body);
+    }
+
+    return editorContent;
 }

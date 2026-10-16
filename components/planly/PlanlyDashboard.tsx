@@ -50,6 +50,8 @@ import AnalyticsView from "./AnalyticsView";
 import BacklogView from "./BacklogView";
 import OnboardingWizardModal from "./OnboardingWizardModal";
 import SprintSettingsModal from "./SprintSettingsModal";
+import { useDelayedLoading } from "@/hooks/useDelayedLoading";
+import PlanlyDashboardSkeleton from "./PlanlyDashboard.skeleton";
 
 export default function PlanlyDashboard() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -282,13 +284,19 @@ export default function PlanlyDashboard() {
     setActiveTab("today");
   };
 
+  const { showSkeleton, ariaProps } = useDelayedLoading(!isLoaded || !plan);
+
   if (!isLoaded || !plan) {
-    return (
-      <div className="min-h-screen bg-[#0B0F17] flex items-center justify-center text-zinc-400">
-        <div className="flex items-center space-x-2">
-          <Sparkles className="w-5 h-5 text-emerald-400 animate-spin" />
-          <span>Initializing Planly AI Engine...</span>
+    if (showSkeleton) {
+      return (
+        <div {...ariaProps} className="skeleton-crossfade min-h-screen">
+          <PlanlyDashboardSkeleton />
         </div>
+      );
+    }
+    return (
+      <div className="min-h-screen" aria-busy="true">
+        <span className="sr-only">Initializing Planly AI Engine...</span>
       </div>
     );
   }
@@ -308,7 +316,7 @@ export default function PlanlyDashboard() {
   }
 
   return (
-    <div className="min-h-full bg-[#0B0F17] text-zinc-100 font-sans flex flex-col antialiased selection:bg-emerald-500/30 selection:text-emerald-300">
+    <div className="skeleton-crossfade min-h-full bg-transparent text-zinc-100 font-sans flex flex-col antialiased selection:bg-emerald-500/30 selection:text-emerald-300 p-2 sm:p-4">
       {/* Top Banner & Notification Toast */}
       {notification && (
         <div className="bg-emerald-950/90 border-b border-emerald-500/30 text-emerald-300 px-4 py-2.5 text-xs text-center flex items-center justify-center space-x-2 sticky top-0 z-40 backdrop-blur-md animate-fadeIn">
@@ -317,8 +325,8 @@ export default function PlanlyDashboard() {
         </div>
       )}
 
-      {/* Main Container - FULL WIDTH, decluttered */}
-      <div className="flex-1 max-w-[1600px] w-full mx-auto p-3 sm:p-5 md:p-6 space-y-5">
+      {/* Main Container - Fully transparent wrapper so cards float on blueprint grid */}
+      <div className="flex-1 max-w-[1600px] w-full mx-auto p-3 sm:p-5 md:p-6 space-y-5 bg-transparent">
         {/* TOP COCKPIT BAR: Sprint Status & Quick Actions */}
         <div className="bg-[#10141E] border border-[#1E293B] rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           {/* Left: Sprint Identity & Config Badge */}

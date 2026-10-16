@@ -36,7 +36,7 @@ export function LoginFormContent() {
       <div className="absolute top-[-10%] left-[-10%] w-[45vw] h-[45vw] rounded-full bg-cyan-500/10 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-15%] right-[-10%] w-[45vw] h-[45vw] rounded-full bg-emerald-500/10 blur-[130px] pointer-events-none" />
       <div
-        className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b12_1px,transparent_1px),linear-gradient(to_bottom,#1e293b12_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"
+        className="absolute inset-0 blueprint-grid pointer-events-none"
         aria-hidden="true"
       />
 
@@ -277,7 +277,7 @@ export function LoginFormContent() {
       <footer className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-500 border-t border-[#1E293B]/60">
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-          <span>All 11 AlgoCraft themes synchronized</span>
+          <span>All workspace themes synchronized</span>
         </div>
         <p className="text-center font-mono text-[11px]">
           AlgoCraft Workspace • High-velocity algorithmic sprint tracking

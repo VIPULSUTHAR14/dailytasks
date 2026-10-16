@@ -46,10 +46,10 @@ export function Input({
       </div>
 
       <div
-        className={`relative flex items-center w-full rounded-xl bg-[#0B0F17]/60 border transition-all duration-200 ${
+        className={`relative flex items-center w-full input-tactile transition-all duration-200 ${
           error
             ? "border-red-500/60 focus-within:border-red-500 focus-within:ring-2 focus-within:ring-red-500/20"
-            : "border-[#1E293B] hover:border-[#334155] focus-within:border-cyan-500/70 focus-within:ring-2 focus-within:ring-cyan-500/20"
+            : "focus-within:border-cyan-500/70 focus-within:ring-2 focus-within:ring-cyan-500/20"
         }`}
       >
         {/* Left Icon */}

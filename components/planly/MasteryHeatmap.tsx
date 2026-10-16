@@ -24,7 +24,7 @@ export default function MasteryHeatmap({ stats }: MasteryHeatmapProps) {
   };
 
   return (
-    <div className="bg-[#10141E] border border-[#1E293B] rounded-2xl p-5 sm:p-6 space-y-5 shadow-sm">
+    <div className="surface-2 p-5 sm:p-6 space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#1E293B] gap-2">
         <div className="flex items-center space-x-2.5">
           <div className="p-1.5 rounded-lg bg-cyan-500/15 border border-cyan-500/25 text-cyan-400">
@@ -52,7 +52,7 @@ export default function MasteryHeatmap({ stats }: MasteryHeatmapProps) {
           return (
             <div
               key={item.id || `${item.tag}-${item.topic}`}
-              className="bg-[#141923] border border-[#1E293B] rounded-xl p-3.5 flex flex-col justify-between space-y-3 hover:border-cyan-500/40 transition shadow-sm hover:shadow"
+              className="surface-1 hover-depth spotlight rounded-xl p-3.5 flex flex-col justify-between space-y-3"
             >
               <div>
                 <div className="flex items-center justify-between gap-1 mb-2">

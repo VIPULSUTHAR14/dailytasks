@@ -161,9 +161,11 @@ export default function Sidebar({
 
             {/* Main Sidebar */}
             <aside
-                className={`fixed md:sticky top-0 h-screen bg-[#0B0F17] border-r border-[#1E293B] z-[70] transform transition-all duration-300 ease-in-out flex flex-col shrink-0 select-none ${
-                    activeMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-                } ${isCollapsed ? "md:w-20 w-64" : "w-64"}`}
+                className={`fixed md:sticky top-0 h-screen bg-[#0B0F17] border-r border-[#1E293B] ${
+                    activeMobileOpen ? "z-[70] translate-x-0" : "z-20 -translate-x-full md:translate-x-0"
+                } transform transition-all duration-300 ease-in-out flex flex-col shrink-0 select-none ${
+                    isCollapsed ? "md:w-20 w-64" : "w-64"
+                }`}
             >
                 {/* Header / Logo */}
                 <div

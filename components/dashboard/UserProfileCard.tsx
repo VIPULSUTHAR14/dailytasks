@@ -40,13 +40,13 @@ export default function UserProfileCard({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="group relative rounded-2xl bg-[#10141E]/90 border border-white/[0.08] p-5 backdrop-blur-xl shadow-xl hover:border-white/15 transition-all overflow-hidden"
+        className="group relative surface-2 rim-gradient spotlight p-5 overflow-hidden transition-all"
       >
         {/* Card Header Row */}
         <div className="flex items-center justify-between pb-4 border-b border-white/[0.06]">
           {/* Left Title + Session # */}
           <div className="flex items-center gap-2.5">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
+            <span className="pip-live shrink-0" />
             <span className="text-sm font-bold text-cyan-300 tracking-tight">
               Profile & Focus Hub
             </span>
@@ -168,13 +168,13 @@ export default function UserProfileCard({
                   cx="26"
                   cy="26"
                   r={radius}
-                  stroke="#06B6D4"
+                  stroke="rgb(var(--accent-rgb))"
                   strokeWidth="4"
                   fill="transparent"
                   strokeDasharray={circumference}
                   strokeDashoffset={strokeDashoffset}
                   strokeLinecap="round"
-                  className="transition-all duration-700 ease-out"
+                  className="ring-neon transition-all duration-700 ease-out"
                 />
               </svg>
               <span className="absolute text-[10px] font-mono font-bold text-white">

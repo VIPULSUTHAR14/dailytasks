@@ -48,7 +48,7 @@ export default function CommandPalette({ isOpen, onClose }: CommandPaletteProps)
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-[80] flex items-start justify-center pt-20 px-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150">
       <div className="w-full max-w-lg bg-[#10141E] border border-[#1E293B] rounded-xl shadow-2xl overflow-hidden shadow-black/80">
         <div className="flex items-center px-4 py-3 border-b border-[#1E293B]">
           <Search size={16} className="text-zinc-500 mr-2 shrink-0" />

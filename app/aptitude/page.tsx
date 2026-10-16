@@ -10,7 +10,6 @@ import {
     AlertTriangle,
     Lightbulb
 } from "lucide-react";
-import Sidebar from "@/components/Sidebar";
 import WorkspaceHeader from "@/components/WorkspaceHeader";
 import { APTITUDE_DATA, type Status, type Topic, type Category } from "@/lib/data/aptitudeData";
 
@@ -103,16 +102,10 @@ export default function AptitudePage() {
     }, [searchTerm, filterWeight]);
 
     return (
-        <div className="min-h-screen bg-[#0B0F17] text-[#F1F5F9] font-sans flex flex-col md:flex-row">
-            <Sidebar
-                isMobileOpen={isSidebarOpen}
-                onMobileClose={() => setSidebarOpen(false)}
-            />
+        <div className="flex-1 flex flex-col min-w-0 min-h-full">
+            <WorkspaceHeader onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
 
-            <div className="flex-1 flex flex-col min-w-0 min-h-screen overflow-y-auto">
-                <WorkspaceHeader onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
-
-                <main className="p-4 sm:p-6 md:p-8 pb-16 md:pb-8 max-w-7xl mx-auto w-full space-y-6 flex-1">
+            <main className="p-4 sm:p-6 md:p-8 pb-16 md:pb-8 max-w-7xl mx-auto w-full space-y-6 flex-1 bg-transparent">
                     {/* Header Section matching Screenshot 4 */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="space-y-1.5">
@@ -383,6 +376,5 @@ export default function AptitudePage() {
                     </div>
                 </main>
             </div>
-        </div>
     );
 }

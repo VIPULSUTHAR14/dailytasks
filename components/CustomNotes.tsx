@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo, useCallback, useRef, ReactNode } from "react";
+import { createPortal } from "react-dom";
 import {
     Search, X, Filter, Menu, LogOut,
     BookOpen, Save, Star, StarOff, CheckCircle2, Circle,
@@ -17,7 +18,6 @@ import {
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
-import Sidebar from "@/components/Sidebar";
 import WorkspaceHeader from "@/components/WorkspaceHeader";
 
 const RichTextEditor = dynamic(() => import("@/components/RichTextEditor"), {
@@ -838,6 +838,11 @@ export default function CustomNotes() {
     const [filterStatus, setFilterStatus] = useState<"All" | "Favorites">("All");
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     // Active detail view
     const [activeTopic, setActiveTopic] = useState<CustomTopic | null>(null);
     const [activeSectionId, setActiveSectionId] = useState<string>("");
@@ -1340,18 +1345,14 @@ export default function CustomNotes() {
     }
 
     return (
-        <div className="min-h-screen bg-[#0B0F17] text-slate-100 flex font-sans antialiased tracking-wide">
-            {/* Sidebar */}
-            <Sidebar
-                isMobileOpen={sidebarOpen}
-                onMobileClose={() => setSidebarOpen(false)}
-            />
+        <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden text-slate-100 font-sans antialiased tracking-wide relative">
+            {/* Dynamic Ambient Background Elements */}
+            <div className="absolute top-[-10%] right-[-10%] w-[35vw] h-[35vw] rounded-full bg-cyan-500/10 blur-[130px] pointer-events-none" />
+            <div className="absolute bottom-[-15%] left-[-10%] w-[35vw] h-[35vw] rounded-full bg-emerald-500/10 blur-[140px] pointer-events-none" />
 
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-                <WorkspaceHeader onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
+            <WorkspaceHeader onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
 
-                <AnimatePresence mode="wait">
+            <AnimatePresence mode="wait">
                     {activeTopic ? (
                         <motion.div
                             key={activeTopic.id}
@@ -1359,7 +1360,7 @@ export default function CustomNotes() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -6 }}
                             transition={{ duration: 0.15 }}
-                            className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-[#0B0F17]"
+                            className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-transparent relative z-10"
                         >
                             {/* Top IDE Header */}
                             <header className="shrink-0 px-3.5 py-2.5 sm:px-6 sm:py-3.5 border-b border-[#1E293B] bg-[#10141E]">
@@ -1551,55 +1552,81 @@ export default function CustomNotes() {
                             </div>
 
                             {/* Section Content Canvas - Directly full width, NO side section sidebar! */}
-                            <main className="flex-1 overflow-y-auto px-2.5 sm:px-6 md:px-8 pb-16 md:pb-8 pt-2.5 sm:pt-4 bg-[#0B0F17]">
+                            <main className="flex-1 overflow-y-auto px-2.5 sm:px-6 md:px-8 pb-16 md:pb-8 pt-2.5 sm:pt-4 bg-transparent">
                                 {currentSection ? (
                                     <div className="w-full max-w-7xl mx-auto">
                                         {currentSection.type === "list" ? (
-                                            <div className={isEditorFullscreen ? "fixed inset-0 z-[100] w-screen h-screen w-[100vw] h-[100vh] bg-[#0B0F17] flex flex-col overflow-hidden m-0 p-0" : "max-w-4xl mx-auto"}>
-                                                {isEditorFullscreen && (
-                                                    <div className="sticky top-0 z-30 flex items-center justify-between px-4 py-2.5 sm:px-8 sm:py-3 bg-[#0B0F17]/98 backdrop-blur-md border-b border-[#1E293B] shadow-[0_4px_20px_rgba(0,0,0,0.5)] flex-wrap gap-2">
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#141923] border border-[#1E293B] text-xs font-semibold text-white">
-                                                                <Layers size={13} className="text-cyan-400" />
-                                                                <span>{currentSection.name}</span>
+                                            isEditorFullscreen && mounted && typeof document !== "undefined" ? (
+                                                createPortal(
+                                                    <div className="fixed inset-0 z-[99999] w-screen h-screen bg-[#0B0F17] flex flex-col overflow-hidden m-0 p-0 font-sans relative">
+                                                        {/* Fullscreen Blueprint Grid & Ambient Lighting */}
+                                                        <div className="absolute top-[-10%] right-[-10%] w-[45vw] h-[45vw] rounded-full bg-cyan-500/10 blur-[130px] pointer-events-none" />
+                                                        <div className="absolute bottom-[-15%] left-[-10%] w-[45vw] h-[45vw] rounded-full bg-emerald-500/10 blur-[140px] pointer-events-none" />
+                                                        <div className="absolute inset-0 blueprint-grid pointer-events-none" aria-hidden="true" />
+
+                                                        <div className="sticky top-0 z-30 flex items-center justify-between px-4 py-2.5 sm:px-8 sm:py-3 bg-[#0B0F17]/98 backdrop-blur-md border-b border-[#1E293B] shadow-[0_4px_20px_rgba(0,0,0,0.5)] flex-wrap gap-2 relative">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#141923] border border-[#1E293B] text-xs font-semibold text-white">
+                                                                    <Layers size={13} className="text-cyan-400" />
+                                                                    <span>{currentSection.name}</span>
+                                                                </div>
+                                                                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-wider">
+                                                                    LIST
+                                                                </span>
                                                             </div>
-                                                            <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-wider">
-                                                                LIST
-                                                            </span>
+                                                            <div className="flex items-center gap-2">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={handleManualSave}
+                                                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-md cursor-pointer ${
+                                                                        manualSaved
+                                                                            ? "bg-emerald-400 text-zinc-950 shadow-emerald-500/25 ring-2 ring-emerald-300"
+                                                                            : "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-emerald-500/20"
+                                                                    }`}
+                                                                >
+                                                                    {manualSaved ? <CheckCircle2 size={13} /> : <Save size={13} />}
+                                                                    <span>{manualSaved ? "Saved!" : "Save Changes"}</span>
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => openEditModal(activeTopic)}
+                                                                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] border border-[#1E293B] text-zinc-300 hover:text-white text-xs font-semibold transition-all cursor-pointer"
+                                                                >
+                                                                    <Edit3 size={13} />
+                                                                    <span>Settings</span>
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setIsEditorFullscreen(false)}
+                                                                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-xs font-semibold transition-all cursor-pointer"
+                                                                >
+                                                                    <Minimize2 size={13} />
+                                                                    <span>Exit Full</span>
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <button
-                                                                type="button"
-                                                                onClick={handleManualSave}
-                                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-md cursor-pointer ${
-                                                                    manualSaved
-                                                                        ? "bg-emerald-400 text-zinc-950 shadow-emerald-500/25 ring-2 ring-emerald-300"
-                                                                        : "bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-emerald-500/20"
-                                                                }`}
-                                                            >
-                                                                {manualSaved ? <CheckCircle2 size={13} /> : <Save size={13} />}
-                                                                <span>{manualSaved ? "Saved!" : "Save Changes"}</span>
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => openEditModal(activeTopic)}
-                                                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] border border-[#1E293B] text-zinc-300 hover:text-white text-xs font-semibold transition-all cursor-pointer"
-                                                            >
-                                                                <Edit3 size={13} />
-                                                                <span>Settings</span>
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setIsEditorFullscreen(false)}
-                                                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-xs font-semibold transition-all cursor-pointer"
-                                                            >
-                                                                <Minimize2 size={13} />
-                                                                <span>Exit Full</span>
-                                                            </button>
+                                                        <div className="flex-1 overflow-y-auto p-4 sm:p-8 max-w-4xl mx-auto w-full relative z-10 bg-transparent">
+                                                            <div className="flex items-center gap-2 mb-4">
+                                                                <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
+                                                                    Section
+                                                                </span>
+                                                                <span className="text-xs text-zinc-600">•</span>
+                                                                <h3 className="text-lg font-bold text-white tracking-tight">
+                                                                    {currentSection.name}
+                                                                </h3>
+                                                            </div>
+                                                            <EditableListField
+                                                                label={currentSection.name}
+                                                                items={currentSection.items || []}
+                                                                onChange={(newItems) => updateActiveSectionItems(currentSection.id, newItems)}
+                                                                placeholder="Add list entry..."
+                                                            />
                                                         </div>
-                                                    </div>
-                                                )}
-                                                <div className={isEditorFullscreen ? "flex-1 overflow-y-auto p-4 sm:p-8 max-w-4xl mx-auto w-full" : ""}>
+                                                    </div>,
+                                                    document.body
+                                                )
+                                            ) : (
+                                                <div className="max-w-4xl mx-auto">
                                                     <div className="flex items-center gap-2 mb-4">
                                                         <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
                                                             Section
@@ -1616,7 +1643,7 @@ export default function CustomNotes() {
                                                         placeholder="Add list entry..."
                                                     />
                                                 </div>
-                                            </div>
+                                            )
                                         ) : (
                                             <RichTextEditor
                                                 label={currentSection.name}
@@ -1655,65 +1682,15 @@ export default function CustomNotes() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -6 }}
                             transition={{ duration: 0.15 }}
-                            className="flex-1 p-3.5 sm:p-6 md:p-8 pb-16 md:pb-8 overflow-y-auto"
+                            className="flex-1 p-3.5 sm:p-6 md:p-8 pb-16 md:pb-8 overflow-y-auto relative z-10"
                         >
                             {/* Header */}
-                            <header className="mb-6 hidden md:block font-sans">
-                                <div className="flex items-center gap-3 mb-1">
+                            <header className="mb-6 flex items-center justify-between font-sans">
+                                <div className="flex items-center gap-3">
                                     <div className="p-2 bg-white/5 border border-white/10 rounded-lg">
                                         <StickyNote className="w-5 h-5 text-cyan-400" />
                                     </div>
-                                    <div>
-                                        <h1 className="text-2xl font-bold tracking-tight text-white font-sans">Custom Knowledge Studio</h1>
-                                        <p className="text-zinc-400 mt-0.5 text-xs font-mono">
-                                            SYS.CUSTOM // {stats.total} topics • {stats.totalSections} sections
-                                        </p>
-                                    </div>
-                                </div>
-                            </header>
-
-                            {/* Stats Bar */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 mb-6 font-sans">
-                                {[
-                                    { label: "Total Topics", value: stats.total, icon: BookOpen, color: "text-white" },
-                                    { label: "Sections", value: stats.totalSections, icon: Layers, color: "text-violet-400" },
-                                    { label: "Favorites", value: stats.favorites, icon: Star, color: "text-amber-400" },
-                                    { label: "Total Words", value: stats.totalWords, icon: FileText, color: "text-emerald-400" },
-                                ].map((stat, i) => (
-                                    <div
-                                        key={i}
-                                        className="p-3 sm:p-4 rounded-xl border border-[#1E293B] bg-[#10141E] flex items-center justify-between shadow-lg"
-                                    >
-                                        <div>
-                                            <div className="text-[10px] text-zinc-500 font-mono font-bold tracking-wider uppercase mb-0.5">{stat.label}</div>
-                                            <div className="text-lg sm:text-2xl font-bold text-white font-mono tracking-tight">{stat.value}</div>
-                                        </div>
-                                        <div className="p-2 sm:p-2.5 rounded-lg bg-[#141923] border border-[#1E293B]">
-                                            <stat.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${stat.color}`} />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Search & Action Row */}
-                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
-                                <div className="relative flex-1 max-w-md">
-                                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                                    <input
-                                        type="text"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        placeholder="Search topics, sections, keywords..."
-                                        className="w-full pl-10 pr-4 py-2.5 bg-[#10141E] border border-[#1E293B] rounded-xl text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-cyan-500/60 transition-all font-sans"
-                                    />
-                                    {searchQuery && (
-                                        <button
-                                            onClick={() => setSearchQuery("")}
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
-                                        >
-                                            <X className="w-4 h-4" />
-                                        </button>
-                                    )}
+                                    <h1 className="text-2xl font-bold tracking-tight text-white font-sans">Custom Knowledge Studio</h1>
                                 </div>
 
                                 <button
@@ -1724,44 +1701,7 @@ export default function CustomNotes() {
                                     <Plus className="w-4 h-4" />
                                     <span>New Topic</span>
                                 </button>
-                            </div>
-
-                            {/* Category Filter Pills matching DSA Notes */}
-                            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar mb-6 pb-1">
-                                {["All", "General", "System Design", "Interview", "Work & Study", "DevOps & Bugs", "Favorites"].map((cat) => {
-                                    const isSelected = cat === "Favorites" ? filterStatus === "Favorites" : filterCategory === cat && filterStatus === "All";
-                                    const count = cat === "All"
-                                        ? topics.length
-                                        : cat === "Favorites"
-                                            ? topics.filter(t => t.isFavorite).length
-                                            : topics.filter(t => (t.category || "General").toLowerCase() === cat.toLowerCase()).length;
-
-                                    return (
-                                        <button
-                                            key={cat}
-                                            type="button"
-                                            onClick={() => {
-                                                if (cat === "Favorites") {
-                                                    setFilterStatus("Favorites");
-                                                    setFilterCategory("All");
-                                                } else {
-                                                    setFilterStatus("All");
-                                                    setFilterCategory(cat);
-                                                }
-                                            }}
-                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${isSelected
-                                                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-semibold shadow-sm"
-                                                : "bg-[#10141E] text-zinc-400 hover:text-white border border-[#1E293B] hover:bg-[#141923]"
-                                                }`}
-                                        >
-                                            <span>{cat}</span>
-                                            <span className="px-1.5 py-0.2 rounded bg-[#141923] text-[10px] font-mono opacity-70">
-                                                {count}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                            </header>
 
                             {/* Topics Grid matching DSA Notes Cards */}
                             {filteredTopics.length === 0 ? (
@@ -1904,7 +1844,6 @@ export default function CustomNotes() {
                         </motion.main>
                     )}
                 </AnimatePresence>
-            </div>
 
             {/* ── Topic Creation / Settings Modal ─────────────────────────────── */}
             <AnimatePresence>
