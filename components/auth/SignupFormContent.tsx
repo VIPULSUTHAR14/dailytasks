@@ -61,7 +61,7 @@ export function SignupFormContent() {
                 v2.4
               </span>
             </div>
-            <span className="text-[10px] text-zinc-500 font-mono hidden sm:inline">
+            <span className="text-[10px] text-zinc-400 font-mono hidden sm:inline">
               Algorithmic Workspace OS
             </span>
           </div>
@@ -131,12 +131,12 @@ export function SignupFormContent() {
 
                 <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#0B0F17]/60 border border-[#1E293B] opacity-80">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-5 h-5 rounded-full bg-zinc-800 text-zinc-500 flex items-center justify-center font-mono text-[10px]">
+                    <div className="w-5 h-5 rounded-full bg-zinc-800 text-zinc-400 flex items-center justify-center font-mono text-[10px]">
                       3
                     </div>
                     <span className="text-zinc-400">Sprint 3: System Design & Caching Patterns</span>
                   </div>
-                  <span className="text-[11px] font-mono text-zinc-500">Upcoming</span>
+                  <span className="text-[11px] font-mono text-zinc-400">Upcoming</span>
                 </div>
               </div>
 
@@ -178,7 +178,7 @@ export function SignupFormContent() {
                     <Sparkles size={12} />
                     <span>NEW WORKSPACE</span>
                   </div>
-                  <span className="text-[11px] text-zinc-500 font-mono">AlgoCraft Auth</span>
+                  <span className="text-[11px] text-zinc-400 font-mono">AlgoCraft Auth</span>
                 </div>
                 
                 <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mt-1">
@@ -311,12 +311,12 @@ export function SignupFormContent() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-500 border-t border-[#1E293B]/60">
+      <footer className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-400 border-t border-[#1E293B]/60">
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
           <span>All workspace themes synchronized</span>
         </div>
-        <p className="text-center font-mono text-[11px]">
+        <p className="text-center font-mono text-[11px] text-zinc-400">
           AlgoCraft Workspace • High-velocity algorithmic sprint tracking
         </p>
       </footer>

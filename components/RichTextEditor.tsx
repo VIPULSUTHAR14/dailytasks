@@ -276,7 +276,7 @@ export default function RichTextEditor({
         },
         editorProps: {
             attributes: {
-                class: "tiptap ProseMirror focus:outline-none min-h-[300px] w-full text-slate-200 text-sm leading-relaxed p-4",
+                class: "tiptap ProseMirror focus:outline-none min-h-[300px] w-full text-[var(--foreground,#f1f5f9)] text-sm leading-relaxed p-4",
             },
             transformPastedHTML: (html: string) => {
                 return html
@@ -497,8 +497,14 @@ export default function RichTextEditor({
             <RichTextToolbar editor={editor} />
 
             {/* Editor body with Slash Menu & Floating Selection Toolbar */}
-            <div className={`relative flex-1 overflow-y-auto ${isFullscreen ? "bg-transparent px-4 sm:px-12 py-8 relative z-10" : "bg-[var(--background,#0d1117)]"} text-[var(--foreground,#f1f5f9)] tiptap-container`}>
-                <div className={isFullscreen ? "max-w-4xl mx-auto w-full min-h-full" : "w-full min-h-full"}>
+            <div className={`relative flex-1 overflow-y-auto ${isFullscreen ? "bg-transparent px-3 sm:px-6 md:px-10 py-6 sm:py-8 relative z-10" : "bg-[var(--background,#0d1117)]"} text-[var(--foreground,#f1f5f9)]`}>
+                <div
+                    className={
+                        isFullscreen
+                            ? "max-w-4xl mx-auto w-full min-h-[calc(100vh-140px)] bg-[var(--card,#ffffff)] border border-[var(--border-subtle,rgba(0,0,0,0.08))] rounded-2xl shadow-xl shadow-black/5 dark:shadow-black/50 p-4 sm:p-8 md:p-10 transition-all relative tiptap-container"
+                            : "w-full min-h-full relative tiptap-container"
+                    }
+                >
                     <RichTextSlashMenu editor={editor} />
                     <RichTextFloatingToolbar editor={editor} />
                     <EditorContent editor={editor} />

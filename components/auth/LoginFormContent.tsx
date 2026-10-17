@@ -59,7 +59,7 @@ export function LoginFormContent() {
                 v2.4
               </span>
             </div>
-            <span className="text-[10px] text-zinc-500 font-mono hidden sm:inline">
+            <span className="text-[10px] text-zinc-400 font-mono hidden sm:inline">
               Algorithmic Workspace OS
             </span>
           </div>
@@ -124,19 +124,19 @@ export function LoginFormContent() {
               {/* Quick stats pills */}
               <div className="grid grid-cols-3 gap-2.5 pt-1">
                 <div className="p-2.5 rounded-xl bg-[#0B0F17]/70 border border-[#1E293B] flex flex-col gap-0.5">
-                  <span className="text-[10px] font-mono text-zinc-500 flex items-center gap-1">
+                  <span className="text-[10px] font-mono text-zinc-400 font-medium flex items-center gap-1">
                     <Flame size={11} className="text-amber-400" /> STREAK
                   </span>
                   <span className="text-sm font-bold text-white font-mono">14 Days</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#0B0F17]/70 border border-[#1E293B] flex flex-col gap-0.5">
-                  <span className="text-[10px] font-mono text-zinc-500 flex items-center gap-1">
+                  <span className="text-[10px] font-mono text-zinc-400 font-medium flex items-center gap-1">
                     <Zap size={11} className="text-cyan-400" /> FOCUS
                   </span>
                   <span className="text-sm font-bold text-white font-mono">3h 40m</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#0B0F17]/70 border border-[#1E293B] flex flex-col gap-0.5">
-                  <span className="text-[10px] font-mono text-zinc-500 flex items-center gap-1">
+                  <span className="text-[10px] font-mono text-zinc-400 font-medium flex items-center gap-1">
                     <Layers size={11} className="text-emerald-400" /> THEMES
                   </span>
                   <span className="text-sm font-bold text-emerald-400 font-mono">11 Synced</span>
@@ -169,7 +169,7 @@ export function LoginFormContent() {
                     <Shield size={12} />
                     <span>SECURE ACCESS</span>
                   </div>
-                  <span className="text-[11px] text-zinc-500 font-mono">AlgoCraft Auth</span>
+                  <span className="text-[11px] text-zinc-400 font-mono">AlgoCraft Auth</span>
                 </div>
                 
                 <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white mt-1">
@@ -274,12 +274,12 @@ export function LoginFormContent() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-500 border-t border-[#1E293B]/60">
+      <footer className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-400 border-t border-[#1E293B]/60">
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
           <span>All workspace themes synchronized</span>
         </div>
-        <p className="text-center font-mono text-[11px]">
+        <p className="text-center font-mono text-[11px] text-zinc-400">
           AlgoCraft Workspace • High-velocity algorithmic sprint tracking
         </p>
       </footer>

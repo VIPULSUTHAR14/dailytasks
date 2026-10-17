@@ -41,7 +41,7 @@ export function Input({
           {label}
         </label>
         {helperText && !error && (
-          <span className="text-[11px] text-zinc-500 font-normal">{helperText}</span>
+          <span className="text-[11px] text-zinc-400 font-normal">{helperText}</span>
         )}
       </div>
 
@@ -62,7 +62,7 @@ export function Input({
         <input
           id={id}
           type={isPassword && showPassword ? "text" : type}
-          className={`flex-1 w-full bg-transparent py-3 text-sm md:text-base text-white placeholder:text-zinc-500 focus:outline-none transition-colors ${
+          className={`flex-1 w-full bg-transparent py-3 text-sm md:text-base text-white placeholder:text-zinc-400 focus:outline-none transition-colors ${
             icon ? "pl-2" : "pl-3.5"
           } ${isPassword || rightElement ? "pr-11" : "pr-3.5"} ${className}`}
           {...props}
