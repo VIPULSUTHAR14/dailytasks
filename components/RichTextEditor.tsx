@@ -231,6 +231,9 @@ export default function RichTextEditor({
             TaskList,
             TaskItem.configure({
                 nested: true,
+                HTMLAttributes: {
+                    "data-type": "taskItem",
+                },
             }),
             CodeBlockLowlight.configure({
                 lowlight,
