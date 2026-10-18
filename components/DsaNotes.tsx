@@ -16,6 +16,9 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import WorkspaceHeader from "@/components/WorkspaceHeader";
+import NotesShortcutsGuide from "@/components/NotesShortcutsGuide";
+import NotesResumeCard from "@/components/NotesResumeCard";
+import NotesJumpToResumeBanner from "@/components/NotesJumpToResumeBanner";
 
 const RichTextEditor = dynamic(() => import("@/components/RichTextEditor"), {
     ssr: false,
@@ -1231,8 +1234,22 @@ function TopicDetailPanel({
 }) {
     const [draft, setDraft] = useState<NoteTopic>({ ...topic });
     const [saved, setSaved] = useState(false);
-    const [activeTab, setActiveTab] = useState<PanelCategory>("notes");
+    const [activeTab, setActiveTab] = useState<PanelCategory>(() => {
+        if (typeof window !== "undefined") {
+            try {
+                const savedTab = localStorage.getItem(`algocraft_last_dsa_tab_${topic.id}`);
+                const validTabs: PanelCategory[] = ["notes", "revision", "theory", "algorithms", "code", "complexities", "interview", "support", "mastery"];
+                if (savedTab && validTabs.includes(savedTab as PanelCategory)) {
+                    return savedTab as PanelCategory;
+                }
+            } catch {}
+        }
+        return "notes";
+    });
     const [panelSidebarOpen, setPanelSidebarOpen] = useState(false);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [savedScrollPos, setSavedScrollPos] = useState<number>(0);
+    const [showJumpBanner, setShowJumpBanner] = useState(false);
 
     // Reset draft when topic changes
     useEffect(() => {
@@ -1303,6 +1320,65 @@ function TopicDetailPanel({
         };
     }), [draft, sidebarTabs]);
 
+    // Save active tab, topic id and timestamp whenever activeTab changes
+    useEffect(() => {
+        if (typeof window !== "undefined" && draft.id) {
+            try {
+                localStorage.setItem(`algocraft_last_dsa_tab_${draft.id}`, activeTab);
+                const tabItem = sidebarTabs.find(t => t.id === activeTab);
+                if (tabItem) {
+                    localStorage.setItem(`algocraft_last_dsa_tab_name_${draft.id}`, tabItem.label);
+                }
+                localStorage.setItem("algocraft_last_dsa_topic_id", String(draft.id));
+                localStorage.setItem("algocraft_last_dsa_timestamp", String(Date.now()));
+            } catch {}
+        }
+    }, [activeTab, draft.id, sidebarTabs]);
+
+    // Check saved scroll position when activeTab or topic changes
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            try {
+                const savedScroll = localStorage.getItem(`algocraft_last_dsa_scroll_${draft.id}_${activeTab}`);
+                if (savedScroll) {
+                    const top = Number(savedScroll);
+                    if (!isNaN(top) && top > 120) {
+                        setSavedScrollPos(top);
+                        setShowJumpBanner(true);
+                    } else {
+                        setShowJumpBanner(false);
+                        setSavedScrollPos(0);
+                    }
+                } else {
+                    setShowJumpBanner(false);
+                    setSavedScrollPos(0);
+                }
+            } catch {}
+        }
+    }, [activeTab, draft.id]);
+
+    const handleJumpToSavedPosition = () => {
+        if (scrollContainerRef.current && savedScrollPos > 0) {
+            scrollContainerRef.current.scrollTo({
+                top: savedScrollPos,
+                behavior: "smooth",
+            });
+            setShowJumpBanner(false);
+        }
+    };
+
+    const handleScrollContainer = (e: React.UIEvent<HTMLDivElement>) => {
+        const top = e.currentTarget.scrollTop;
+        if (typeof window !== "undefined") {
+            try {
+                localStorage.setItem(`algocraft_last_dsa_scroll_${draft.id}_${activeTab}`, String(top));
+            } catch {}
+        }
+        if (showJumpBanner && Math.abs(top - savedScrollPos) < 60) {
+            setShowJumpBanner(false);
+        }
+    };
+
     const handleSelectDsaSection = (tabId: string) => {
         setActiveTab(tabId as any);
         if (fullscreenEditorKey) {
@@ -1340,6 +1416,10 @@ function TopicDetailPanel({
                                     {draft.level.toUpperCase()}
                                 </span>
                                 <span className="text-zinc-500 text-[11px] font-mono">#{draft.id} • Topic Notes</span>
+                                <span className="text-cyan-400/90 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded text-[10px] font-mono hidden sm:inline-flex items-center gap-1">
+                                    <span>Resumed at:</span>
+                                    <span className="font-semibold text-cyan-300">{sidebarTabs.find(t => t.id === activeTab)?.label || "Core Notes"}</span>
+                                </span>
                             </div>
 
                             {/* Title & Favorite */}
@@ -1421,7 +1501,7 @@ function TopicDetailPanel({
                     </div>
 
                     {/* Editor Body */}
-                    <div className="flex-1 overflow-y-auto px-2.5 sm:px-6 pb-4 sm:pb-6 pt-2.5 sm:pt-4">
+                    <div ref={scrollContainerRef} onScroll={handleScrollContainer} className="flex-1 overflow-y-auto px-2.5 sm:px-6 pb-4 sm:pb-6 pt-2.5 sm:pt-4">
                     {activeTab === "notes" && (
                         <RichTextEditor
                             label="Core Notes"
@@ -1686,6 +1766,14 @@ function TopicDetailPanel({
                         </div>
                     )}
                 </div>
+
+                {/* Floating In-Note Jump Banner */}
+                <NotesJumpToResumeBanner
+                    visible={showJumpBanner}
+                    savedPositionDesc={`Last viewed ~${Math.round(savedScrollPos)}px down in ${sidebarTabs.find(t => t.id === activeTab)?.label || "Notes"}`}
+                    onJump={handleJumpToSavedPosition}
+                    onDismiss={() => setShowJumpBanner(false)}
+                />
         </motion.div>
     );
 }
@@ -1879,6 +1967,33 @@ export default function DsaNotes() {
         });
     }, [topics, searchQuery, filterLevel, filterStatus]);
 
+    const [lastVisitedData, setLastVisitedData] = useState<{
+        topic: NoteTopic;
+        tabName?: string;
+        timestamp?: number;
+    } | null>(null);
+    const [resumeDismissed, setResumeDismissed] = useState(false);
+
+    useEffect(() => {
+        if (typeof window !== "undefined" && topics.length > 0) {
+            try {
+                const lastId = localStorage.getItem("algocraft_last_dsa_topic_id");
+                if (lastId) {
+                    const found = topics.find(t => String(t.id) === lastId);
+                    if (found) {
+                        const tabName = localStorage.getItem(`algocraft_last_dsa_tab_name_${lastId}`) || "Core Notes";
+                        const ts = localStorage.getItem("algocraft_last_dsa_timestamp");
+                        setLastVisitedData({
+                            topic: found,
+                            tabName,
+                            timestamp: ts ? Number(ts) : undefined,
+                        });
+                    }
+                }
+            } catch {}
+        }
+    }, [topics, selectedTopic]);
+
     const stats = useMemo(() => {
         const total = topics.length;
         const completed = topics.filter(t => t.completed).length;
@@ -2001,19 +2116,48 @@ export default function DsaNotes() {
                 ) : (
                     <main className="flex-1 p-3.5 sm:p-6 md:p-8 pb-16 md:pb-8 overflow-y-auto relative z-10 bg-transparent">
                     {/* Header */}
-                    <header className="mb-6 hidden md:block font-sans">
-                        <div className="flex items-center gap-3 mb-1">
+                    <header className="mb-6 flex flex-wrap items-center justify-between gap-3 font-sans">
+                        <div className="flex items-center gap-3">
                             <div className="p-2 bg-white/5 border border-white/10 rounded-lg">
                                 <StickyNote className="w-5 h-5 text-cyan-400" />
                             </div>
                             <div>
-                                <h1 className="text-2xl font-bold tracking-tight text-white font-sans">DSA Knowledge Base</h1>
+                                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white font-sans">DSA Knowledge Base</h1>
                                 <p className="text-zinc-400 mt-0.5 text-xs font-mono">
                                     SYS.NOTES // {stats.total} topics • {stats.completed} mastered
                                 </p>
                             </div>
                         </div>
+
+                        {/* Shortcuts Button */}
+                        <NotesShortcutsGuide />
                     </header>
+
+                    {/* Resume Where You Left Off Hero Card */}
+                    {lastVisitedData && !resumeDismissed && (
+                        <div className="mb-6 font-sans">
+                            <NotesResumeCard
+                                title={lastVisitedData.topic.name}
+                                categoryOrLevel={lastVisitedData.topic.level}
+                                categoryColor={LEVEL_CONFIG[lastVisitedData.topic.level]?.color}
+                                categoryBg={LEVEL_CONFIG[lastVisitedData.topic.level]?.bgColor}
+                                categoryBorder={LEVEL_CONFIG[lastVisitedData.topic.level]?.borderColor}
+                                lastSectionName={lastVisitedData.tabName}
+                                timestamp={lastVisitedData.timestamp}
+                                metaBadge={`${getMasteryPercent(lastVisitedData.topic.mastery)}% Mastered • ${lastVisitedData.topic.revisionCount} revisions`}
+                                onResume={() => {
+                                    setSelectedTopic(lastVisitedData.topic);
+                                    if (typeof window !== "undefined") {
+                                        try {
+                                            localStorage.setItem("algocraft_last_dsa_topic_id", lastVisitedData.topic.id.toString());
+                                            localStorage.setItem("algocraft_last_dsa_timestamp", Date.now().toString());
+                                        } catch {}
+                                    }
+                                }}
+                                onDismiss={() => setResumeDismissed(true)}
+                            />
+                        </div>
+                    )}
 
 
 

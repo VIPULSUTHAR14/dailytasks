@@ -37,6 +37,7 @@ import RichTextToolbar from "./RichTextToolbar";
 import RichTextSlashMenu from "./RichTextSlashMenu";
 import RichTextFloatingToolbar from "./RichTextFloatingToolbar";
 import RichTextEditorSkeleton from "./RichTextEditor.skeleton";
+import NotesJumpToResumeBanner from "./NotesJumpToResumeBanner";
 import "./rich-editor.css";
 
 declare module "@tiptap/core" {
@@ -138,6 +139,56 @@ export default function RichTextEditor({
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [isFullscreen, handleToggleFullscreen]);
+
+    // Fullscreen scroll restoration & jump banner
+    const fullscreenScrollRef = useRef<HTMLDivElement>(null);
+    const [savedFullscreenScrollPos, setSavedFullscreenScrollPos] = useState<number>(0);
+    const [showFullscreenJumpBanner, setShowFullscreenJumpBanner] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (typeof window !== "undefined" && isFullscreen) {
+            try {
+                const key = `algocraft_editor_fs_scroll_${label || "editor"}_${activeSectionId || "default"}`;
+                const saved = localStorage.getItem(key);
+                if (saved) {
+                    const top = Number(saved);
+                    if (!isNaN(top) && top > 120) {
+                        setSavedFullscreenScrollPos(top);
+                        setShowFullscreenJumpBanner(true);
+                        return;
+                    }
+                }
+                setShowFullscreenJumpBanner(false);
+                setSavedFullscreenScrollPos(0);
+            } catch {}
+        } else {
+            setShowFullscreenJumpBanner(false);
+        }
+    }, [isFullscreen, activeSectionId, label]);
+
+    const handleFullscreenJump = () => {
+        if (fullscreenScrollRef.current && savedFullscreenScrollPos > 0) {
+            fullscreenScrollRef.current.scrollTo({
+                top: savedFullscreenScrollPos,
+                behavior: "smooth",
+            });
+            setShowFullscreenJumpBanner(false);
+        }
+    };
+
+    const handleFullscreenScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        if (!isFullscreen) return;
+        const top = e.currentTarget.scrollTop;
+        if (typeof window !== "undefined") {
+            try {
+                const key = `algocraft_editor_fs_scroll_${label || "editor"}_${activeSectionId || "default"}`;
+                localStorage.setItem(key, String(top));
+            } catch {}
+        }
+        if (showFullscreenJumpBanner && Math.abs(top - savedFullscreenScrollPos) < 60) {
+            setShowFullscreenJumpBanner(false);
+        }
+    };
 
     // Outline state
     const [headings, setHeadings] = useState<DocumentHeading[]>([]);
@@ -500,7 +551,11 @@ export default function RichTextEditor({
             <RichTextToolbar editor={editor} />
 
             {/* Editor body with Slash Menu & Floating Selection Toolbar */}
-            <div className={`relative flex-1 overflow-y-auto ${isFullscreen ? "bg-transparent px-3 sm:px-6 md:px-10 py-6 sm:py-8 relative z-10" : "bg-[var(--background,#0d1117)]"} text-[var(--foreground,#f1f5f9)]`}>
+            <div
+                ref={fullscreenScrollRef}
+                onScroll={handleFullscreenScroll}
+                className={`relative flex-1 overflow-y-auto ${isFullscreen ? "bg-transparent px-3 sm:px-6 md:px-10 py-6 sm:py-8 relative z-10" : "bg-[var(--background,#0d1117)]"} text-[var(--foreground,#f1f5f9)]`}
+            >
                 <div
                     className={
                         isFullscreen
@@ -540,6 +595,16 @@ export default function RichTextEditor({
                     )}
                 </div>
             </div>
+
+            {/* Floating in-editor Jump Banner when fullscreen */}
+            {isFullscreen && (
+                <NotesJumpToResumeBanner
+                    visible={showFullscreenJumpBanner}
+                    savedPositionDesc={`Last viewed ~${Math.round(savedFullscreenScrollPos)}px down in ${label || "Editor"}`}
+                    onJump={handleFullscreenJump}
+                    onDismiss={() => setShowFullscreenJumpBanner(false)}
+                />
+            )}
         </div>
     );
 

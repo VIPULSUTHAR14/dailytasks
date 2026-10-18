@@ -19,6 +19,9 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import WorkspaceHeader from "@/components/WorkspaceHeader";
+import NotesShortcutsGuide from "@/components/NotesShortcutsGuide";
+import NotesResumeCard from "@/components/NotesResumeCard";
+import NotesJumpToResumeBanner from "@/components/NotesJumpToResumeBanner";
 
 const RichTextEditor = dynamic(() => import("@/components/RichTextEditor"), {
     ssr: false,
@@ -848,6 +851,17 @@ export default function CustomNotes() {
     const [activeSectionId, setActiveSectionId] = useState<string>("");
     const [isEditorFullscreen, setIsEditorFullscreen] = useState(false);
 
+    // Last visited note tracking & scroll restoration
+    const [lastVisitedNote, setLastVisitedNote] = useState<{
+        topic: CustomTopic;
+        sectionName?: string;
+        timestamp?: number;
+    } | null>(null);
+    const [resumeDismissed, setResumeDismissed] = useState(false);
+    const customScrollRef = useRef<HTMLElement>(null);
+    const [savedCustomScrollPos, setSavedCustomScrollPos] = useState<number>(0);
+    const [showCustomJumpBanner, setShowCustomJumpBanner] = useState(false);
+
     // Modal
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [editingTopic, setEditingTopic] = useState<CustomTopic | null>(null);
@@ -1091,17 +1105,103 @@ export default function CustomNotes() {
     // Open Topic Detail
     const openTopicDetail = (topic: CustomTopic) => {
         setActiveTopic(topic);
-        if (topic.sections.length > 0) {
-            setActiveSectionId(topic.sections[0].id);
-        }
+        let targetSecId = topic.sections[0]?.id || "";
         if (typeof window !== "undefined") {
             try {
+                const savedSecId = localStorage.getItem(`algocraft_last_custom_section_${topic.id}`);
+                if (savedSecId && topic.sections.some(s => s.id === savedSecId)) {
+                    targetSecId = savedSecId;
+                }
                 localStorage.setItem("algocraft_last_custom_note_id", topic.id);
+                localStorage.setItem("algocraft_last_custom_timestamp", String(Date.now()));
             } catch {
                 // Ignore storage errors
             }
         }
+        if (targetSecId) {
+            setActiveSectionId(targetSecId);
+        }
     };
+
+    // Save active section, topic ID and timestamp whenever activeTopic or activeSectionId changes
+    useEffect(() => {
+        if (typeof window !== "undefined" && activeTopic && activeSectionId) {
+            try {
+                localStorage.setItem(`algocraft_last_custom_section_${activeTopic.id}`, activeSectionId);
+                const sec = activeTopic.sections.find(s => s.id === activeSectionId);
+                if (sec) {
+                    localStorage.setItem(`algocraft_last_custom_section_name_${activeTopic.id}`, sec.name);
+                }
+                localStorage.setItem("algocraft_last_custom_note_id", activeTopic.id);
+                localStorage.setItem("algocraft_last_custom_timestamp", String(Date.now()));
+            } catch {}
+        }
+    }, [activeTopic, activeSectionId]);
+
+    // Detect saved scroll position for jump banner
+    useEffect(() => {
+        if (typeof window !== "undefined" && activeTopic && activeSectionId) {
+            try {
+                const savedScroll = localStorage.getItem(`algocraft_last_custom_scroll_${activeTopic.id}_${activeSectionId}`);
+                if (savedScroll) {
+                    const top = Number(savedScroll);
+                    if (!isNaN(top) && top > 120) {
+                        setSavedCustomScrollPos(top);
+                        setShowCustomJumpBanner(true);
+                    } else {
+                        setShowCustomJumpBanner(false);
+                        setSavedCustomScrollPos(0);
+                    }
+                } else {
+                    setShowCustomJumpBanner(false);
+                    setSavedCustomScrollPos(0);
+                }
+            } catch {}
+        }
+    }, [activeTopic, activeSectionId]);
+
+    const handleCustomJump = () => {
+        if (customScrollRef.current && savedCustomScrollPos > 0) {
+            customScrollRef.current.scrollTo({
+                top: savedCustomScrollPos,
+                behavior: "smooth",
+            });
+            setShowCustomJumpBanner(false);
+        }
+    };
+
+    const handleCustomScroll = (e: React.UIEvent<HTMLElement>) => {
+        const top = e.currentTarget.scrollTop;
+        if (typeof window !== "undefined" && activeTopic && activeSectionId) {
+            try {
+                localStorage.setItem(`algocraft_last_custom_scroll_${activeTopic.id}_${activeSectionId}`, String(top));
+            } catch {}
+        }
+        if (showCustomJumpBanner && Math.abs(top - savedCustomScrollPos) < 60) {
+            setShowCustomJumpBanner(false);
+        }
+    };
+
+    // Load last visited custom note for resume card
+    useEffect(() => {
+        if (typeof window !== "undefined" && topics.length > 0) {
+            try {
+                const lastId = localStorage.getItem("algocraft_last_custom_note_id");
+                if (lastId) {
+                    const found = topics.find(t => t.id === lastId);
+                    if (found) {
+                        const secName = localStorage.getItem(`algocraft_last_custom_section_name_${lastId}`) || found.sections[0]?.name;
+                        const ts = localStorage.getItem("algocraft_last_custom_timestamp");
+                        setLastVisitedNote({
+                            topic: found,
+                            sectionName: secName,
+                            timestamp: ts ? Number(ts) : undefined,
+                        });
+                    }
+                }
+            } catch {}
+        }
+    }, [topics, activeTopic]);
 
     // Update section content
     const updateActiveSectionContent = async (sectionId: string, content: string) => {
@@ -1552,7 +1652,11 @@ export default function CustomNotes() {
                             </div>
 
                             {/* Section Content Canvas - Directly full width, NO side section sidebar! */}
-                            <main className="flex-1 overflow-y-auto px-2.5 sm:px-6 md:px-8 pb-16 md:pb-8 pt-2.5 sm:pt-4 bg-transparent">
+                            <main
+                                ref={customScrollRef}
+                                onScroll={handleCustomScroll}
+                                className="flex-1 overflow-y-auto px-2.5 sm:px-6 md:px-8 pb-16 md:pb-8 pt-2.5 sm:pt-4 bg-transparent"
+                            >
                                 {currentSection ? (
                                     <div className="w-full max-w-7xl mx-auto">
                                         {currentSection.type === "list" ? (
@@ -1674,6 +1778,14 @@ export default function CustomNotes() {
                                     </div>
                                 )}
                             </main>
+
+                            {/* Floating In-Note Jump Banner */}
+                            <NotesJumpToResumeBanner
+                                visible={showCustomJumpBanner}
+                                savedPositionDesc={`Last viewed ~${Math.round(savedCustomScrollPos)}px down in ${currentSection?.name || "Notes"}`}
+                                onJump={handleCustomJump}
+                                onDismiss={() => setShowCustomJumpBanner(false)}
+                            />
                         </motion.div>
                     ) : (
                         <motion.main
@@ -1685,23 +1797,46 @@ export default function CustomNotes() {
                             className="flex-1 p-3.5 sm:p-6 md:p-8 pb-16 md:pb-8 overflow-y-auto relative z-10"
                         >
                             {/* Header */}
-                            <header className="mb-6 flex items-center justify-between font-sans">
+                            <header className="mb-6 flex flex-wrap items-center justify-between gap-3 font-sans">
                                 <div className="flex items-center gap-3">
                                     <div className="p-2 bg-white/5 border border-white/10 rounded-lg">
                                         <StickyNote className="w-5 h-5 text-cyan-400" />
                                     </div>
-                                    <h1 className="text-2xl font-bold tracking-tight text-white font-sans">Custom Knowledge Studio</h1>
+                                    <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white font-sans">Custom Knowledge Studio</h1>
                                 </div>
 
-                                <button
-                                    type="button"
-                                    onClick={openCreateModal}
-                                    className="flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-zinc-950 text-xs font-bold rounded-xl transition-all shadow-lg shadow-cyan-500/20 active:scale-95 shrink-0 cursor-pointer"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                    <span>New Topic</span>
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <NotesShortcutsGuide />
+                                    <button
+                                        type="button"
+                                        onClick={openCreateModal}
+                                        className="flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-zinc-950 text-xs font-bold rounded-xl transition-all shadow-lg shadow-cyan-500/20 active:scale-95 shrink-0 cursor-pointer"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        <span>New Topic</span>
+                                    </button>
+                                </div>
                             </header>
+
+                            {/* Resume Where You Left Off Hero Card */}
+                            {lastVisitedNote && !resumeDismissed && (
+                                <div className="mb-6 font-sans">
+                                    <NotesResumeCard
+                                        title={lastVisitedNote.topic.title}
+                                        categoryOrLevel={lastVisitedNote.topic.category || "General"}
+                                        categoryColor="text-cyan-400"
+                                        categoryBg="bg-cyan-400/10"
+                                        categoryBorder="border-cyan-400/20"
+                                        lastSectionName={lastVisitedNote.sectionName}
+                                        timestamp={lastVisitedNote.timestamp}
+                                        metaBadge={`${lastVisitedNote.topic.sections.length} ${lastVisitedNote.topic.sections.length === 1 ? "Section" : "Sections"}`}
+                                        onResume={() => {
+                                            openTopicDetail(lastVisitedNote.topic);
+                                        }}
+                                        onDismiss={() => setResumeDismissed(true)}
+                                    />
+                                </div>
+                            )}
 
                             {/* Topics Grid matching DSA Notes Cards */}
                             {filteredTopics.length === 0 ? (

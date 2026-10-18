@@ -21,7 +21,7 @@ const SLASH_COMMANDS: SlashItem[] = [
         id: "h1",
         label: "Heading 1",
         description: "Large section heading",
-        icon: <Heading1 className="w-4 h-4 text-cyan-400" />,
+        icon: <Heading1 className="w-4 h-4 text-cyan-500" />,
         aliases: ["h1", "heading1", "header1"],
         command: (editor) => editor.chain().focus().toggleHeading({ level: 1 }).run(),
     },
@@ -29,7 +29,7 @@ const SLASH_COMMANDS: SlashItem[] = [
         id: "h2",
         label: "Heading 2",
         description: "Medium subsection heading",
-        icon: <Heading2 className="w-4 h-4 text-cyan-400" />,
+        icon: <Heading2 className="w-4 h-4 text-cyan-500" />,
         aliases: ["h2", "heading2", "header2"],
         command: (editor) => editor.chain().focus().toggleHeading({ level: 2 }).run(),
     },
@@ -37,7 +37,7 @@ const SLASH_COMMANDS: SlashItem[] = [
         id: "h3",
         label: "Heading 3",
         description: "Small subtopic heading",
-        icon: <Heading3 className="w-4 h-4 text-cyan-400" />,
+        icon: <Heading3 className="w-4 h-4 text-cyan-500" />,
         aliases: ["h3", "heading3", "header3"],
         command: (editor) => editor.chain().focus().toggleHeading({ level: 3 }).run(),
     },
@@ -45,7 +45,7 @@ const SLASH_COMMANDS: SlashItem[] = [
         id: "table",
         label: "Table",
         description: "Insert a 3x3 structured table",
-        icon: <TableIcon className="w-4 h-4 text-emerald-400" />,
+        icon: <TableIcon className="w-4 h-4 text-emerald-500" />,
         aliases: ["table", "grid"],
         command: (editor) => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
     },
@@ -53,7 +53,7 @@ const SLASH_COMMANDS: SlashItem[] = [
         id: "code",
         label: "Code Block",
         description: "Syntax highlighted code snippet",
-        icon: <Code className="w-4 h-4 text-amber-400" />,
+        icon: <Code className="w-4 h-4 text-amber-500" />,
         aliases: ["code", "codeblock", "pre"],
         command: (editor) => editor.chain().focus().toggleCodeBlock().run(),
     },
@@ -61,7 +61,7 @@ const SLASH_COMMANDS: SlashItem[] = [
         id: "todo",
         label: "To-do Checklist",
         description: "Track tasks with checkable boxes",
-        icon: <CheckSquare className="w-4 h-4 text-cyan-400" />,
+        icon: <CheckSquare className="w-4 h-4 text-cyan-500" />,
         aliases: ["todo", "task", "checklist", "check"],
         command: (editor) => editor.chain().focus().toggleTaskList().run(),
     },
@@ -69,15 +69,15 @@ const SLASH_COMMANDS: SlashItem[] = [
         id: "divider",
         label: "Divider",
         description: "Horizontal dividing line",
-        icon: <Minus className="w-4 h-4 text-slate-400" />,
+        icon: <Minus className="w-4 h-4 text-zinc-400" />,
         aliases: ["divider", "hr", "line", "rule"],
         command: (editor) => editor.chain().focus().setHorizontalRule().run(),
     },
     {
         id: "quote",
         label: "Blockquote",
-        description: "Highlight a quote or note",
-        icon: <Quote className="w-4 h-4 text-amber-400" />,
+        description: "Highlight a quote or callout",
+        icon: <Quote className="w-4 h-4 text-amber-500" />,
         aliases: ["quote", "blockquote"],
         command: (editor) => editor.chain().focus().toggleBlockquote().run(),
     },
@@ -89,6 +89,7 @@ export default function RichTextSlashMenu({ editor }: { editor: Editor | null })
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [position, setPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
     const menuRef = useRef<HTMLDivElement>(null);
+    const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
     const filteredItems = SLASH_COMMANDS.filter((item) => {
         if (!query) return true;
@@ -99,6 +100,7 @@ export default function RichTextSlashMenu({ editor }: { editor: Editor | null })
         );
     });
 
+    // Detect `/` command query and compute smart position
     useEffect(() => {
         if (!editor) return;
 
@@ -126,10 +128,18 @@ export default function RichTextSlashMenu({ editor }: { editor: Editor | null })
                 const editorEl = editor.view.dom.closest(".tiptap-container") || editor.view.dom;
                 const rect = editorEl.getBoundingClientRect();
 
-                setPosition({
-                    top: coords.bottom - rect.top + 8,
-                    left: Math.max(16, Math.min(coords.left - rect.left, rect.width - 240)),
-                });
+                // Smart vertical flip: If near bottom of viewport, position above cursor
+                const estimatedHeight = 280;
+                const spaceBelow = window.innerHeight - coords.bottom;
+                const showAbove = spaceBelow < estimatedHeight && coords.top > estimatedHeight;
+
+                const top = showAbove
+                    ? Math.max(10, coords.top - rect.top - estimatedHeight - 8)
+                    : Math.max(10, coords.bottom - rect.top + 8);
+
+                const left = Math.max(16, Math.min(coords.left - rect.left, rect.width - 270));
+
+                setPosition({ top, left });
                 setIsOpen(true);
             } else {
                 setIsOpen(false);
@@ -144,6 +154,16 @@ export default function RichTextSlashMenu({ editor }: { editor: Editor | null })
             editor.off("selectionUpdate", handleUpdate);
         };
     }, [editor]);
+
+    // Auto-scroll menu into view when selectedIndex changes
+    useEffect(() => {
+        if (isOpen && itemRefs.current[selectedIndex]) {
+            itemRefs.current[selectedIndex]?.scrollIntoView({
+                block: "nearest",
+                behavior: "smooth",
+            });
+        }
+    }, [selectedIndex, isOpen]);
 
     const executeCommand = React.useCallback((item: SlashItem) => {
         if (!editor) return;
@@ -168,17 +188,21 @@ export default function RichTextSlashMenu({ editor }: { editor: Editor | null })
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "ArrowDown") {
                 e.preventDefault();
+                e.stopPropagation();
                 setSelectedIndex((prev) => (prev + 1) % (filteredItems.length || 1));
             } else if (e.key === "ArrowUp") {
                 e.preventDefault();
+                e.stopPropagation();
                 setSelectedIndex((prev) => (prev - 1 + filteredItems.length) % (filteredItems.length || 1));
             } else if (e.key === "Enter" || e.key === "Tab") {
                 if (filteredItems.length > 0) {
                     e.preventDefault();
+                    e.stopPropagation();
                     executeCommand(filteredItems[selectedIndex]);
                 }
             } else if (e.key === "Escape") {
                 e.preventDefault();
+                e.stopPropagation();
                 setIsOpen(false);
             }
         };
@@ -192,31 +216,39 @@ export default function RichTextSlashMenu({ editor }: { editor: Editor | null })
     return (
         <div
             ref={menuRef}
-            className="absolute z-50 w-56 bg-[var(--surface,#161b24)] border border-[var(--border-subtle,#2d3748)] rounded-xl shadow-2xl p-1 text-xs select-none max-h-64 overflow-y-auto scrollbar-thin animate-in fade-in zoom-in-95 duration-100"
+            className="absolute z-50 w-64 bg-[var(--surface,#161b24)] border border-[var(--border-subtle,#2d3748)] rounded-xl shadow-2xl p-1.5 text-xs select-none max-h-72 overflow-y-auto overscroll-contain scrollbar-thin animate-in fade-in zoom-in-95 duration-100"
             style={{ top: `${position.top}px`, left: `${position.left}px` }}
         >
-            <div className="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-[var(--border-subtle,#262c36)] mb-1">
-                Commands
+            <div className="px-2.5 py-1 text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider border-b border-[var(--border-subtle,#262c36)] mb-1 flex items-center justify-between">
+                <span>Commands</span>
+                <span className="text-[9px] font-mono opacity-70">↑↓ to move</span>
             </div>
+
             {filteredItems.map((item, index) => {
                 const isSelected = index === selectedIndex;
                 return (
                     <button
                         key={item.id}
+                        ref={(el) => { itemRefs.current[index] = el; }}
                         type="button"
-                        onClick={() => executeCommand(item)}
-                        className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-left transition cursor-pointer ${
+                        onMouseDown={(e) => {
+                            // Prevent losing editor focus on click
+                            e.preventDefault();
+                            executeCommand(item);
+                        }}
+                        onMouseEnter={() => setSelectedIndex(index)}
+                        className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left transition cursor-pointer my-0.5 ${
                             isSelected
-                                ? "bg-cyan-500/20 text-cyan-300 font-medium"
-                                : "text-[var(--foreground,#cbd5e1)] hover:bg-[var(--card-hover,#1a202c)] hover:text-white"
+                                ? "bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 font-bold border border-cyan-500/30 shadow-sm"
+                                : "text-[var(--foreground,#f1f5f9)] hover:bg-[var(--card-hover,#1a202c)] border border-transparent"
                         }`}
                     >
-                        <div className="p-1 rounded bg-[var(--card,#1a202c)] border border-[var(--border-subtle,#2d3748)] shrink-0">
+                        <div className="p-1.5 rounded-md bg-[var(--card,#1a202c)] border border-[var(--border-subtle,#2d3748)] shrink-0">
                             {item.icon}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-xs truncate">{item.label}</div>
-                            <div className="text-[10px] opacity-60 truncate">{item.description}</div>
+                            <div className="font-semibold text-xs truncate leading-snug">{item.label}</div>
+                            <div className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">{item.description}</div>
                         </div>
                     </button>
                 );
