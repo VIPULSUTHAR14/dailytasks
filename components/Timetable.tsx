@@ -26,6 +26,94 @@ export type TimetableRow = {
     completed: boolean;
 };
 
+// Helper: parse string like "09:00 AM", "9:00AM", "14:30" to seconds from midnight
+function parseTimeToSeconds(timeStr: string): number | null {
+    if (!timeStr) return null;
+    const trimmed = timeStr.trim().toUpperCase();
+    const match = trimmed.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?$/);
+    if (!match) return null;
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2] ? parseInt(match[2], 10) : 0;
+    const meridian = match[3];
+
+    if (meridian === "PM" && hours < 12) hours += 12;
+    if (meridian === "AM" && hours === 12) hours = 0;
+
+    return hours * 3600 + minutes * 60;
+}
+
+// Helper: parse time range like "09:00 AM - 10:30 AM" into duration in seconds
+function getDurationFromTimeRange(timeRange?: string): number | null {
+    if (!timeRange) return null;
+    const separator = timeRange.includes(" - ")
+        ? " - "
+        : timeRange.includes("-")
+        ? "-"
+        : timeRange.includes("–")
+        ? "–"
+        : timeRange.toLowerCase().includes(" to ")
+        ? " to "
+        : null;
+    if (!separator) return null;
+    const parts = timeRange.split(separator);
+    if (parts.length !== 2) return null;
+    const startSec = parseTimeToSeconds(parts[0]);
+    const endSec = parseTimeToSeconds(parts[1]);
+    if (startSec === null || endSec === null) return null;
+
+    let diff = endSec - startSec;
+    if (diff <= 0) {
+        diff += 24 * 3600; // spans across midnight
+    }
+    return diff > 0 ? diff : null;
+}
+
+// Helper: parse duration string like "1h 30m", "2h", "45m", "90" into seconds
+function parseDurationStringToSeconds(dur?: string): number | null {
+    if (!dur) return null;
+    let seconds = 0;
+    let matched = false;
+
+    const hMatch = dur.match(/(\d+(?:\.\d+)?)\s*h(?:ou?rs?)?/i);
+    const mMatch = dur.match(/(\d+(?:\.\d+)?)\s*m(?:in(?:ute)?s?)?/i);
+    const sMatch = dur.match(/(\d+(?:\.\d+)?)\s*s(?:ec(?:ond)?s?)?/i);
+
+    if (hMatch) {
+        seconds += parseFloat(hMatch[1]) * 3600;
+        matched = true;
+    }
+    if (mMatch) {
+        seconds += parseFloat(mMatch[1]) * 60;
+        matched = true;
+    }
+    if (sMatch) {
+        seconds += parseFloat(sMatch[1]);
+        matched = true;
+    }
+
+    if (!matched) {
+        const num = parseFloat(dur);
+        if (!isNaN(num)) {
+            seconds = num * 60;
+            matched = true;
+        }
+    }
+
+    return matched && seconds > 0 ? Math.round(seconds) : null;
+}
+
+// Helper: get the full slot duration in seconds from duration or time range
+function getSlotDurationSeconds(row?: TimetableRow | null): number {
+    if (!row) return 0;
+    const fromDur = parseDurationStringToSeconds(row.duration);
+    if (fromDur && fromDur > 0) return fromDur;
+
+    const fromRange = getDurationFromTimeRange(row.time);
+    if (fromRange && fromRange > 0) return fromRange;
+
+    return 3600;
+}
+
 export default function Timetable() {
     const [schedule, setSchedule] = useState<TimetableRow[]>([]);
     const [loading, setLoading] = useState(true);
@@ -36,8 +124,14 @@ export default function Timetable() {
     const [activeTab, setActiveTab] = useState<"Today" | "Table" | "Timeline" | "Analytics">("Today");
 
     // Live session timer state
-    const [timerSeconds, setTimerSeconds] = useState(45 * 60);
+    const [timerSeconds, setTimerSeconds] = useState(0);
     const [isTimerRunning, setIsTimerRunning] = useState(false);
+
+    // Keep ref to schedule to avoid stale closures in timer interval
+    const scheduleRef = useRef<TimetableRow[]>(schedule);
+    useEffect(() => {
+        scheduleRef.current = schedule;
+    }, [schedule]);
 
     // Block Form State
     const [newTime, setNewTime] = useState("09:00 AM - 10:30 AM");
@@ -50,18 +144,32 @@ export default function Timetable() {
 
     const router = useRouter();
 
+    // Ref to advance function so the timer interval can call the latest version
+    const advanceRef = useRef<() => void>(() => {});
+
     // Live ticking focus timer
     useEffect(() => {
         if (!isTimerRunning) return;
         const interval = setInterval(() => {
-            setTimerSeconds((prev) => (prev > 0 ? prev - 1 : 0));
+            setTimerSeconds((prev) => {
+                if (prev <= 1) {
+                    // Current session time has finished! Advance to the next session
+                    advanceRef.current();
+                    return 0;
+                }
+                return prev - 1;
+            });
         }, 1000);
         return () => clearInterval(interval);
     }, [isTimerRunning]);
 
     const formatTimer = (secs: number) => {
-        const m = Math.floor(secs / 60);
+        const h = Math.floor(secs / 3600);
+        const m = Math.floor((secs % 3600) / 60);
         const s = secs % 60;
+        if (h > 0) {
+            return `${h}h ${m < 10 ? "0" : ""}${m}m ${s < 10 ? "0" : ""}${s}s`;
+        }
         return `${m}m ${s < 10 ? "0" : ""}${s}s`;
     };
 
@@ -284,26 +392,121 @@ export default function Timetable() {
     const scheduledWidthPct = totalHours > 0 ? Math.max(0, 100 - completedWidthPct - activeWidthPct) : 0;
 
     const activeSlotIndex = schedule.findIndex((s) => s.isActiveNow);
-    const activeSlot = activeSlotIndex >= 0 ? schedule[activeSlotIndex] : (schedule.length > 0 ? schedule[0] : null);
+    const effectiveActiveIndex = activeSlotIndex >= 0 ? activeSlotIndex : 0;
+    const activeSlot = schedule.length > 0 ? schedule[effectiveActiveIndex] : null;
     const slotDisplay = totalCount > 0
-        ? `SLOT ${String((activeSlotIndex >= 0 ? activeSlotIndex : 0) + 1).padStart(2, "0")}/${String(totalCount).padStart(2, "0")}`
+        ? `SLOT ${String(effectiveActiveIndex + 1).padStart(2, "0")}/${String(totalCount).padStart(2, "0")}`
         : "NO SLOTS";
+
+    // Track active slot changes to update session timer to the timetable slot's time
+    const activeSlotKey = activeSlot ? `${activeSlot.id || effectiveActiveIndex}-${activeSlot.time}-${activeSlot.duration}` : null;
+    const prevSlotKeyRef = useRef<string | null>(null);
+
+    // Synchronize timer with the active slot's exact duration from the timetable
+    useEffect(() => {
+        if (activeSlot && activeSlotKey !== prevSlotKeyRef.current) {
+            prevSlotKeyRef.current = activeSlotKey;
+            setTimerSeconds(getSlotDurationSeconds(activeSlot));
+        } else if (!activeSlot) {
+            prevSlotKeyRef.current = null;
+            setTimerSeconds(0);
+        }
+    }, [activeSlotKey, activeSlot]);
+
+    // Sequential progression: when 1st session finishes, complete it, advance to 2nd session, and take 2nd session's time
+    const advanceToNextSession = () => {
+        const curSchedule = scheduleRef.current;
+        if (curSchedule.length === 0) {
+            setIsTimerRunning(false);
+            return;
+        }
+
+        const currentIdx = curSchedule.findIndex((s) => s.isActiveNow);
+        const activeIdx = currentIdx >= 0 ? currentIdx : 0;
+        const nextIdx = activeIdx + 1;
+
+        if (nextIdx < curSchedule.length) {
+            // Mark current session as completed and activate the next session in the timetable
+            const updated = curSchedule.map((row, idx) => ({
+                ...row,
+                completed: idx === activeIdx ? true : row.completed,
+                isActiveNow: idx === nextIdx,
+            }));
+            setSchedule(updated);
+
+            const nextSlot = updated[nextIdx];
+            const nextDuration = getSlotDurationSeconds(nextSlot);
+            prevSlotKeyRef.current = `${nextSlot.id || nextIdx}-${nextSlot.time}-${nextSlot.duration}`;
+            setTimerSeconds(nextDuration);
+            setIsTimerRunning(true);
+
+            fetch("/api/timetable", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ schedule: updated }),
+            }).catch(console.error);
+        } else {
+            // All sessions in timetable completed!
+            const updated = curSchedule.map((row, idx) => ({
+                ...row,
+                completed: idx === activeIdx ? true : row.completed,
+                isActiveNow: false,
+            }));
+            setSchedule(updated);
+            setIsTimerRunning(false);
+            setTimerSeconds(0);
+
+            fetch("/api/timetable", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ schedule: updated }),
+            }).catch(console.error);
+        }
+    };
+
+    // Keep advanceRef pointing to the latest version
+    advanceRef.current = advanceToNextSession;
 
     const handleNextSlot = () => {
         if (schedule.length === 0) return;
-        const currentIndex = schedule.findIndex((s) => s.isActiveNow);
-        const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % schedule.length : 0;
+        const nextIndex = (effectiveActiveIndex + 1) % schedule.length;
         const updated = schedule.map((row, idx) => ({
             ...row,
             isActiveNow: idx === nextIndex,
         }));
         setSchedule(updated);
-        setTimerSeconds(45 * 60);
+        const nextSlot = updated[nextIndex];
+        const nextDuration = getSlotDurationSeconds(nextSlot);
+        prevSlotKeyRef.current = `${nextSlot.id || nextIndex}-${nextSlot.time}-${nextSlot.duration}`;
+        setTimerSeconds(nextDuration);
         fetch("/api/timetable", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ schedule: updated }),
         }).catch(console.error);
+    };
+
+    const handleSetActiveSlot = (index: number) => {
+        const updated = schedule.map((row, idx) => ({
+            ...row,
+            isActiveNow: idx === index,
+        }));
+        setSchedule(updated);
+        const targetSlot = updated[index];
+        const targetDuration = getSlotDurationSeconds(targetSlot);
+        prevSlotKeyRef.current = `${targetSlot.id || index}-${targetSlot.time}-${targetSlot.duration}`;
+        setTimerSeconds(targetDuration);
+        setIsTimerRunning(true);
+        fetch("/api/timetable", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ schedule: updated }),
+        }).catch(console.error);
+    };
+
+    const handleResetTimer = () => {
+        if (!activeSlot) return;
+        setTimerSeconds(getSlotDurationSeconds(activeSlot));
     };
 
     const getEnergyBadge = (energy?: EnergyLevel) => {
@@ -389,15 +592,31 @@ export default function Timetable() {
                                         <span className="text-xs font-normal text-zinc-500">No active block</span>
                                     )}
                                 </div>
+                                {activeSlot && (
+                                    <div className="text-[11px] text-zinc-400 truncate max-w-[220px] flex items-center gap-1.5 mt-0.5">
+                                        <span className="text-cyan-300 font-semibold truncate">{activeSlot.task}</span>
+                                        <span className="text-zinc-600 shrink-0">•</span>
+                                        <span className="font-mono text-zinc-400 text-[10px] shrink-0">{activeSlot.time}</span>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="flex items-center gap-1 pl-2 border-l border-[#1E293B]">
                                 <button
                                     onClick={() => setIsTimerRunning(!isTimerRunning)}
-                                    className="p-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                                    disabled={totalCount === 0}
+                                    className="p-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] text-zinc-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
                                     title={isTimerRunning ? "Pause" : "Resume"}
                                 >
                                     {isTimerRunning ? <Pause size={13} /> : <Play size={13} />}
+                                </button>
+                                <button
+                                    onClick={handleResetTimer}
+                                    disabled={totalCount === 0}
+                                    className="p-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] text-zinc-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                                    title="Reset to full slot time"
+                                >
+                                    <RotateCcw size={12} />
                                 </button>
                                 <button
                                     onClick={handleNextSlot}
@@ -702,12 +921,13 @@ export default function Timetable() {
                                     ) : (
                                         schedule.map((row, idx) => {
                                         const energy = getEnergyBadge(row.energyFocus);
+                                        const isRowActive = row.isActiveNow || (activeSlotIndex < 0 && idx === 0);
 
                                         return (
                                             <tr
                                                 key={row.id || idx}
                                                 className={`transition-colors duration-150 hover:bg-[#141923]/80 ${
-                                                    row.isActiveNow
+                                                    isRowActive
                                                         ? "bg-cyan-500/[0.04]"
                                                         : row.completed
                                                         ? "bg-[#10141E]/40"
@@ -733,12 +953,12 @@ export default function Timetable() {
                                                     <div className="flex items-center gap-1.5">
                                                         <span
                                                             className={`w-1.5 h-1.5 rounded-full ${
-                                                                row.isActiveNow ? "bg-cyan-400 animate-pulse" : "bg-zinc-600"
+                                                                isRowActive ? "bg-cyan-400 animate-pulse" : "bg-zinc-600"
                                                             }`}
                                                         />
                                                         <span
                                                             className={
-                                                                row.isActiveNow
+                                                                isRowActive
                                                                     ? "text-cyan-300 font-semibold"
                                                                     : "text-zinc-300"
                                                             }
@@ -766,7 +986,7 @@ export default function Timetable() {
                                                             >
                                                                 {row.task}
                                                             </span>
-                                                            {row.isActiveNow && (
+                                                            {isRowActive && (
                                                                 <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
                                                                     ACTIVE NOW
                                                                 </span>
@@ -805,11 +1025,22 @@ export default function Timetable() {
                                                 {/* Actions */}
                                                 <td className="py-3.5 px-4 text-right whitespace-nowrap">
                                                     <div className="flex items-center justify-end gap-1">
-                                                        {row.isActiveNow && (
+                                                        {isRowActive && (
                                                             <button className="px-2 py-1 mr-1 rounded bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-[10px] font-mono font-bold hover:bg-cyan-500/25 transition-colors">
                                                                 Log
                                                             </button>
                                                         )}
+                                                        <button
+                                                            onClick={() => handleSetActiveSlot(idx)}
+                                                            className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
+                                                                isRowActive
+                                                                    ? "text-cyan-300 bg-cyan-500/20 border-cyan-500/40"
+                                                                    : "text-zinc-400 hover:text-cyan-300 hover:bg-[#141923] border-transparent hover:border-[#1E293B]"
+                                                            }`}
+                                                            title={isRowActive ? "Active Session in Timer" : "Start this session in timer"}
+                                                        >
+                                                            <Play size={13} className={isRowActive ? "fill-cyan-300" : ""} />
+                                                        </button>
                                                         <button
                                                             onClick={() => openEditModal(idx)}
                                                             className="p-1.5 rounded-lg text-zinc-400 hover:text-cyan-300 hover:bg-[#141923] border border-transparent hover:border-[#1E293B] transition-colors cursor-pointer"
