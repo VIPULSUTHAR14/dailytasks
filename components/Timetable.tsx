@@ -26,71 +26,8 @@ export type TimetableRow = {
     completed: boolean;
 };
 
-const DEFAULT_SCHEDULE: TimetableRow[] = [
-    {
-        id: "slot-1",
-        time: "08:00 AM - 10:00 AM",
-        duration: "2h 00m",
-        task: "DSA • Arrays & Two Pointers",
-        description: "LeetCode Med: 3 Sum, Container With Most Water, Trapping Rain Water",
-        tag: "#DSA-Grind",
-        sprint: "Sprint 4",
-        energyFocus: "Deep Work",
-        isActiveNow: false,
-        completed: false,
-    },
-    {
-        id: "slot-2",
-        time: "10:30 AM - 12:30 PM",
-        duration: "2h 00m",
-        task: "System Design & Architecture Notes",
-        description: "Distributed Cache Invalidation, Redis Cluster sharding, Bloom filters",
-        tag: "#SystemDesign",
-        sprint: "HLD-Core",
-        energyFocus: "Medium Focus",
-        isActiveNow: true,
-        completed: false,
-    },
-    {
-        id: "slot-3",
-        time: "02:00 PM - 03:30 PM",
-        duration: "1h 30m",
-        task: "Aptitude Prep • Quantitative & Logic Speedrun",
-        description: "Time & Work, Probability distributions, Syllogisms drill sets",
-        tag: "#Aptitude",
-        sprint: "Speed Drills",
-        energyFocus: "Rapid Drills",
-        isActiveNow: false,
-        completed: false,
-    },
-    {
-        id: "slot-4",
-        time: "04:30 PM - 06:30 PM",
-        duration: "2h 00m",
-        task: "Mock Interview Review & Doubts",
-        description: "Analyze recorded session with Senior SDE-2 • Behavioral STAR format synthesis",
-        tag: "#InterviewPrep",
-        sprint: "Peer Review",
-        energyFocus: "Interactive",
-        isActiveNow: false,
-        completed: false,
-    },
-    {
-        id: "slot-5",
-        time: "08:00 PM - 09:30 PM",
-        duration: "1h 30m",
-        task: "Algorithmic Complexity & Retrospective",
-        description: "Review missed edge cases, update revision flashcards, log sprint velocity",
-        tag: "#Retro",
-        sprint: "Sprint 4",
-        energyFocus: "Medium Focus",
-        isActiveNow: false,
-        completed: false,
-    },
-];
-
 export default function Timetable() {
-    const [schedule, setSchedule] = useState<TimetableRow[]>(DEFAULT_SCHEDULE);
+    const [schedule, setSchedule] = useState<TimetableRow[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -99,16 +36,17 @@ export default function Timetable() {
     const [activeTab, setActiveTab] = useState<"Today" | "Table" | "Timeline" | "Analytics">("Today");
 
     // Live session timer state
-    const [timerSeconds, setTimerSeconds] = useState(42 * 60 + 18); // 42m 18s from screenshot
-    const [isTimerRunning, setIsTimerRunning] = useState(true);
+    const [timerSeconds, setTimerSeconds] = useState(45 * 60);
+    const [isTimerRunning, setIsTimerRunning] = useState(false);
 
-    // New Block Form
-    const [newTime, setNewTime] = useState("07:00 PM - 08:30 PM");
+    // Block Form State
+    const [newTime, setNewTime] = useState("09:00 AM - 10:30 AM");
     const [newDuration, setNewDuration] = useState("1h 30m");
     const [newTask, setNewTask] = useState("");
     const [newDesc, setNewDesc] = useState("");
-    const [newTag, setNewTag] = useState("#DSA");
+    const [newTag, setNewTag] = useState("#Focus");
     const [newEnergy, setNewEnergy] = useState<EnergyLevel>("Deep Work");
+    const [newIsActive, setNewIsActive] = useState(false);
 
     const router = useRouter();
 
@@ -133,26 +71,22 @@ export default function Timetable() {
             const res = await fetch("/api/timetable");
             if (res.ok) {
                 const data = await res.json();
-                if (data.timetable && data.timetable.schedule && data.timetable.schedule.length > 0) {
-                    // Merge database rows with rich AlgoCraft fields if missing
-                    const merged = data.timetable.schedule.map((row: TimetableRow, idx: number) => {
-                        const fallback = DEFAULT_SCHEDULE[idx] || DEFAULT_SCHEDULE[0];
-                        return {
-                            ...fallback,
+                if (data.timetable && Array.isArray(data.timetable.schedule)) {
+                    setSchedule(
+                        data.timetable.schedule.map((row: TimetableRow) => ({
                             ...row,
-                            completed: row.completed ?? false,
-                        };
-                    });
-                    setSchedule(merged);
+                            completed: Boolean(row.completed),
+                        }))
+                    );
                 } else {
-                    setSchedule(DEFAULT_SCHEDULE);
+                    setSchedule([]);
                 }
             } else {
-                setSchedule(DEFAULT_SCHEDULE);
+                setSchedule([]);
             }
         } catch (e) {
             console.error("Failed to fetch timetable", e);
-            setSchedule(DEFAULT_SCHEDULE);
+            setSchedule([]);
         } finally {
             setLoading(false);
         }
@@ -195,12 +129,13 @@ export default function Timetable() {
 
     const openAddModal = () => {
         setEditingIndex(null);
-        setNewTime("07:00 PM - 08:30 PM");
+        setNewTime("09:00 AM - 10:30 AM");
         setNewDuration("1h 30m");
         setNewTask("");
         setNewDesc("");
-        setNewTag("#DSA");
+        setNewTag("#Focus");
         setNewEnergy("Deep Work");
+        setNewIsActive(schedule.length === 0);
         setIsAddModalOpen(true);
     };
 
@@ -212,8 +147,9 @@ export default function Timetable() {
         setNewDuration(row.duration);
         setNewTask(row.task);
         setNewDesc(row.description || "");
-        setNewTag(row.tag || "#DSA");
+        setNewTag(row.tag || "#Focus");
         setNewEnergy(row.energyFocus || "Deep Work");
+        setNewIsActive(Boolean(row.isActiveNow));
         setIsAddModalOpen(true);
     };
 
@@ -223,6 +159,8 @@ export default function Timetable() {
         if (editingIndex === index) {
             setIsAddModalOpen(false);
             setEditingIndex(null);
+        } else if (editingIndex !== null && editingIndex > index) {
+            setEditingIndex(editingIndex - 1);
         }
 
         try {
@@ -233,6 +171,23 @@ export default function Timetable() {
             });
         } catch (error) {
             console.error("Failed to delete timetable row", error);
+        }
+    };
+
+    const handleClearAll = async () => {
+        if (!window.confirm("Are you sure you want to clear your entire timetable?")) return;
+        setSchedule([]);
+        setEditingIndex(null);
+        setIsAddModalOpen(false);
+
+        try {
+            await fetch("/api/timetable", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ schedule: [] }),
+            });
+        } catch (error) {
+            console.error("Failed to clear timetable", error);
         }
     };
 
@@ -253,7 +208,11 @@ export default function Timetable() {
                         description: newDesc.trim() || undefined,
                         tag: newTag.startsWith("#") ? newTag : `#${newTag}`,
                         energyFocus: newEnergy,
+                        isActiveNow: newIsActive,
                     };
+                }
+                if (newIsActive) {
+                    return { ...row, isActiveNow: false };
                 }
                 return row;
             });
@@ -265,12 +224,15 @@ export default function Timetable() {
                 task: newTask.trim(),
                 description: newDesc.trim() || undefined,
                 tag: newTag.startsWith("#") ? newTag : `#${newTag}`,
-                sprint: "Sprint 4",
+                sprint: "Sprint 1",
                 energyFocus: newEnergy,
-                isActiveNow: false,
+                isActiveNow: newIsActive,
                 completed: false,
             };
-            updated = [...schedule, newBlock];
+            const previous = newIsActive
+                ? schedule.map((row) => ({ ...row, isActiveNow: false }))
+                : schedule;
+            updated = [...previous, newBlock];
         }
 
         setSchedule(updated);
@@ -286,9 +248,63 @@ export default function Timetable() {
         }).catch((err) => console.error(err));
     };
 
+    const parseDurationToHours = (dur?: string): number => {
+        if (!dur) return 0;
+        let hours = 0;
+        const hMatch = dur.match(/(\d+(?:\.\d+)?)\s*h/i);
+        const mMatch = dur.match(/(\d+(?:\.\d+)?)\s*m/i);
+        if (hMatch) hours += parseFloat(hMatch[1]);
+        if (mMatch) hours += parseFloat(mMatch[1]) / 60;
+        if (!hMatch && !mMatch) {
+            const num = parseFloat(dur);
+            if (!isNaN(num)) hours += num;
+        }
+        return hours;
+    };
+
     const completedCount = schedule.filter((s) => s.completed).length;
     const totalCount = schedule.length;
     const progressPct = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
+
+    const totalHours = schedule.reduce((acc, row) => acc + parseDurationToHours(row.duration), 0);
+    const completedHours = schedule
+        .filter((s) => s.completed)
+        .reduce((acc, row) => acc + parseDurationToHours(row.duration), 0);
+    const activeHours = schedule
+        .filter((s) => s.isActiveNow)
+        .reduce((acc, row) => acc + parseDurationToHours(row.duration), 0);
+    const scheduledHours = Math.max(0, totalHours - completedHours - activeHours);
+
+    const deepWorkHours = schedule
+        .filter((s) => s.energyFocus === "Deep Work")
+        .reduce((acc, row) => acc + parseDurationToHours(row.duration), 0);
+
+    const completedWidthPct = totalHours > 0 ? (completedHours / totalHours) * 100 : 0;
+    const activeWidthPct = totalHours > 0 ? (activeHours / totalHours) * 100 : 0;
+    const scheduledWidthPct = totalHours > 0 ? Math.max(0, 100 - completedWidthPct - activeWidthPct) : 0;
+
+    const activeSlotIndex = schedule.findIndex((s) => s.isActiveNow);
+    const activeSlot = activeSlotIndex >= 0 ? schedule[activeSlotIndex] : (schedule.length > 0 ? schedule[0] : null);
+    const slotDisplay = totalCount > 0
+        ? `SLOT ${String((activeSlotIndex >= 0 ? activeSlotIndex : 0) + 1).padStart(2, "0")}/${String(totalCount).padStart(2, "0")}`
+        : "NO SLOTS";
+
+    const handleNextSlot = () => {
+        if (schedule.length === 0) return;
+        const currentIndex = schedule.findIndex((s) => s.isActiveNow);
+        const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % schedule.length : 0;
+        const updated = schedule.map((row, idx) => ({
+            ...row,
+            isActiveNow: idx === nextIndex,
+        }));
+        setSchedule(updated);
+        setTimerSeconds(45 * 60);
+        fetch("/api/timetable", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ schedule: updated }),
+        }).catch(console.error);
+    };
 
     const getEnergyBadge = (energy?: EnergyLevel) => {
         switch (energy) {
@@ -348,7 +364,7 @@ export default function Timetable() {
                             </p>
                         </div>
 
-                        {/* Active Session Timer Widget (Top right of Screenshot 2) */}
+                        {/* Active Session Timer Widget */}
                         <div className="flex items-center gap-4 bg-[#10141E] border border-[#1E293B] px-4 py-2.5 rounded-xl shadow-xl shadow-black/50 shrink-0 self-start md:self-auto">
                             <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
                                 <Clock size={16} />
@@ -360,12 +376,18 @@ export default function Timetable() {
                                         ACTIVE SESSION
                                     </span>
                                     <span className="text-[10px] font-mono text-cyan-400 font-bold">
-                                        SLOT 01/05
+                                        {slotDisplay}
                                     </span>
                                 </div>
                                 <div className="text-sm font-bold font-mono text-white tracking-wide">
-                                    {formatTimer(timerSeconds)}{" "}
-                                    <span className="text-xs font-normal text-zinc-400">remaining</span>
+                                    {totalCount > 0 ? (
+                                        <>
+                                            {formatTimer(timerSeconds)}{" "}
+                                            <span className="text-xs font-normal text-zinc-400">remaining</span>
+                                        </>
+                                    ) : (
+                                        <span className="text-xs font-normal text-zinc-500">No active block</span>
+                                    )}
                                 </div>
                             </div>
 
@@ -378,8 +400,9 @@ export default function Timetable() {
                                     {isTimerRunning ? <Pause size={13} /> : <Play size={13} />}
                                 </button>
                                 <button
-                                    onClick={() => setTimerSeconds(45 * 60)}
-                                    className="p-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                                    onClick={handleNextSlot}
+                                    disabled={totalCount === 0}
+                                    className="p-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] text-zinc-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
                                     title="Next Slot"
                                 >
                                     <SkipForward size={13} />
@@ -411,25 +434,34 @@ export default function Timetable() {
                                     </span>
                                 </div>
 
-                                {/* Tri-color progress bar matching Screenshot 2 */}
+                                {/* Dynamic tri-color progress bar */}
                                 <div className="h-2 w-full bg-zinc-800 rounded-full overflow-hidden flex gap-0.5">
-                                    <div className="h-full bg-emerald-400 rounded-l-full" style={{ width: "25%" }} />
-                                    <div className="h-full bg-cyan-400" style={{ width: "25%" }} />
-                                    <div className="h-full bg-zinc-700 rounded-r-full" style={{ width: "50%" }} />
+                                    <div
+                                        className="h-full bg-emerald-400 rounded-l-full transition-all duration-300"
+                                        style={{ width: `${completedWidthPct}%` }}
+                                    />
+                                    <div
+                                        className="h-full bg-cyan-400 transition-all duration-300"
+                                        style={{ width: `${activeWidthPct}%` }}
+                                    />
+                                    <div
+                                        className="h-full bg-zinc-700 rounded-r-full transition-all duration-300"
+                                        style={{ width: `${scheduledWidthPct}%` }}
+                                    />
                                 </div>
 
-                                <div className="flex items-center gap-4 text-[11px] font-mono mt-2 text-zinc-400">
+                                <div className="flex flex-wrap items-center gap-4 text-[11px] font-mono mt-2 text-zinc-400">
                                     <span className="flex items-center gap-1.5">
                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                                        2.0h Completed
+                                        {completedHours.toFixed(1)}h Completed
                                     </span>
                                     <span className="flex items-center gap-1.5">
                                         <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                                        2.0h Live Now
+                                        {activeHours.toFixed(1)}h Live Now
                                     </span>
                                     <span className="flex items-center gap-1.5">
                                         <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
-                                        5.5h Scheduled
+                                        {scheduledHours.toFixed(1)}h Scheduled
                                     </span>
                                 </div>
                             </div>
@@ -440,21 +472,25 @@ export default function Timetable() {
                                     <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">
                                         TARGET VELOCITY
                                     </span>
-                                    <span className="font-bold text-white font-mono mt-0.5 block">9.5 Hours</span>
+                                    <span className="font-bold text-white font-mono mt-0.5 block">
+                                        {totalHours.toFixed(1)} Hours
+                                    </span>
                                 </div>
                                 <div className="border-l border-[#1E293B] pl-3">
                                     <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">
                                         PLANNED DEEP WORK
                                     </span>
-                                    <span className="font-bold text-cyan-400 font-mono mt-0.5 block">8.0 Hours</span>
+                                    <span className="font-bold text-cyan-400 font-mono mt-0.5 block">
+                                        {deepWorkHours.toFixed(1)} Hours
+                                    </span>
                                 </div>
                                 <div className="border-l border-[#1E293B] pl-3">
                                     <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider block">
-                                        STREAK HEALTH
+                                        TOTAL BLOCKS
                                     </span>
                                     <span className="font-bold text-amber-400 font-mono mt-0.5 flex items-center gap-1">
-                                        <Flame size={13} />
-                                        14 Days
+                                        <Zap size={13} />
+                                        {totalCount} Sessions
                                     </span>
                                 </div>
                             </div>
@@ -465,70 +501,71 @@ export default function Timetable() {
                             <div>
                                 <div className="flex items-center justify-between text-xs mb-1">
                                     <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                                        CHRONOMETRIC HEATMAP
+                                        CHRONOMETRIC FOCUS MAP
                                     </span>
                                     <span className="text-[11px] font-mono text-zinc-400">
-                                        Peak: 09:00-11:00
+                                        {schedule.length > 0 ? `${schedule.length} Blocks Today` : "No Active Cadence"}
                                     </span>
                                 </div>
 
-                                {/* 24-hour horizontal grid */}
+                                {/* Focus Blocks Bar */}
                                 <div className="pt-2">
-                                    <div className="flex justify-between text-[10px] font-mono text-zinc-500 pb-1.5">
-                                        <span>06:00</span>
-                                        <span>12:00</span>
-                                        <span>18:00</span>
-                                        <span>24:00</span>
-                                    </div>
-
-                                    {/* Heatmap Blocks */}
-                                    <div className="space-y-1">
-                                        <div className="h-3 w-full bg-zinc-900 rounded flex overflow-hidden">
-                                            <div className="w-[15%] bg-transparent" />
-                                            <div className="w-[20%] bg-emerald-500/80 rounded-sm" title="Deep Work" />
-                                            <div className="w-[5%] bg-transparent" />
-                                            <div className="w-[25%] bg-cyan-500/80 rounded-sm" title="Core Notes" />
-                                            <div className="w-[10%] bg-zinc-800" title="Break" />
-                                            <div className="w-[25%] bg-amber-500/80 rounded-sm" title="Drill" />
+                                    {schedule.length === 0 ? (
+                                        <div className="h-12 flex items-center justify-center text-xs text-zinc-500 font-mono border border-dashed border-[#1E293B] rounded-lg">
+                                            Add schedule blocks to visualize chronometric focus intervals
                                         </div>
-                                        <div className="h-3 w-full bg-zinc-900 rounded flex overflow-hidden">
-                                            <div className="w-[30%] bg-emerald-500/40 rounded-sm" />
-                                            <div className="w-[10%] bg-zinc-800" />
-                                            <div className="w-[40%] bg-cyan-500/70 rounded-sm" />
-                                            <div className="w-[20%] bg-transparent" />
+                                    ) : (
+                                        <div className="space-y-2">
+                                            <div className="h-4 w-full bg-[#0B0F17] rounded-md flex overflow-hidden gap-1 p-0.5 border border-[#1E293B]">
+                                                {schedule.map((row, idx) => {
+                                                    const dur = parseDurationToHours(row.duration);
+                                                    const widthPct = totalHours > 0 ? Math.max(8, (dur / totalHours) * 100) : 100 / schedule.length;
+                                                    const bgClass =
+                                                        row.energyFocus === "Deep Work"
+                                                            ? "bg-emerald-500/80 hover:bg-emerald-400"
+                                                            : row.energyFocus === "Medium Focus"
+                                                            ? "bg-cyan-500/80 hover:bg-cyan-400"
+                                                            : row.energyFocus === "Rapid Drills"
+                                                            ? "bg-amber-500/80 hover:bg-amber-400"
+                                                            : "bg-purple-500/80 hover:bg-purple-400";
+                                                    return (
+                                                        <div
+                                                            key={row.id || idx}
+                                                            style={{ width: `${widthPct}%` }}
+                                                            className={`${bgClass} rounded-xs h-full transition-all cursor-pointer`}
+                                                            title={`${row.task} (${row.time})`}
+                                                        />
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
-                                        <div className="h-3 w-full bg-zinc-900 rounded flex overflow-hidden">
-                                            <div className="w-[50%] bg-cyan-500/90 rounded-sm" />
-                                            <div className="w-[20%] bg-amber-500/70 rounded-sm" />
-                                            <div className="w-[30%] bg-zinc-800" />
-                                        </div>
-                                    </div>
+                                    )}
 
                                     {/* Heatmap Legend */}
                                     <div className="flex items-center gap-4 text-[10px] font-mono mt-3 text-zinc-400">
                                         <span className="flex items-center gap-1">
                                             <span className="w-2 h-2 rounded-xs bg-emerald-400" />
-                                            Deep
+                                            Deep Work
                                         </span>
                                         <span className="flex items-center gap-1">
                                             <span className="w-2 h-2 rounded-xs bg-cyan-400" />
-                                            Core
+                                            Medium Focus
                                         </span>
                                         <span className="flex items-center gap-1">
                                             <span className="w-2 h-2 rounded-xs bg-amber-400" />
-                                            Drill
+                                            Rapid Drills
                                         </span>
                                         <span className="flex items-center gap-1">
-                                            <span className="w-2 h-2 rounded-xs bg-zinc-700" />
-                                            Break
+                                            <span className="w-2 h-2 rounded-xs bg-purple-400" />
+                                            Interactive
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="pt-3 border-t border-[#1E293B] flex items-center justify-between text-xs text-zinc-400 font-mono">
-                                <span>Rest intervals calculated</span>
-                                <span className="text-cyan-400">120 mins allocated</span>
+                                <span>Total focused intervals</span>
+                                <span className="text-cyan-400">{totalHours.toFixed(1)} hrs planned</span>
                             </div>
                         </div>
                     </div>
@@ -553,10 +590,22 @@ export default function Timetable() {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                            {schedule.length > 0 && (
+                                <button
+                                    onClick={handleClearAll}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-xs font-semibold text-rose-400 hover:text-rose-300 transition-colors cursor-pointer"
+                                    title="Clear all blocks"
+                                >
+                                    <Trash2 size={12} />
+                                    <span>Clear All</span>
+                                </button>
+                            )}
+
                             <button
                                 onClick={resetCheckmarks}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-semibold text-zinc-300 transition-colors cursor-pointer"
+                                disabled={schedule.length === 0}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#141923] hover:bg-[#1E293B] border border-[#1E293B] text-xs font-semibold text-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                             >
                                 <RotateCcw size={12} />
                                 <span>Reset Checklist</span>
@@ -602,7 +651,7 @@ export default function Timetable() {
                         </div>
                     )}
 
-                    {/* Hourly Focus Matrix Table matching Screenshot 2 */}
+                    {/* Hourly Focus Matrix Table */}
                     <div className="bg-[#10141E] border border-[#1E293B] rounded-xl overflow-hidden shadow-xl shadow-black/50 pb-8">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-xs border-collapse">
@@ -618,7 +667,40 @@ export default function Timetable() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[#1E293B]/60">
-                                    {schedule.map((row, idx) => {
+                                    {loading ? (
+                                        <tr>
+                                            <td colSpan={7} className="py-14 text-center text-zinc-400 font-mono">
+                                                <div className="flex flex-col items-center justify-center gap-2">
+                                                    <Loader2 className="w-5 h-5 animate-spin text-cyan-400" />
+                                                    <span className="text-xs">Loading timetable...</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : schedule.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={7} className="py-14 text-center">
+                                                <div className="flex flex-col items-center justify-center gap-3">
+                                                    <div className="w-12 h-12 rounded-xl bg-[#141923] border border-[#1E293B] flex items-center justify-center text-cyan-400">
+                                                        <Clock size={20} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-white">No schedule blocks found</p>
+                                                        <p className="text-xs text-zinc-500 mt-1 max-w-sm mx-auto">
+                                                            Your timetable is currently empty. Add your own personalized focus blocks to start organizing your day.
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        onClick={openAddModal}
+                                                        className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-zinc-950 font-bold text-xs transition-colors cursor-pointer mt-1 shadow-lg shadow-cyan-500/20"
+                                                    >
+                                                        <Plus size={13} />
+                                                        <span>Add Your First Block</span>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        schedule.map((row, idx) => {
                                         const energy = getEnergyBadge(row.energyFocus);
 
                                         return (
@@ -746,7 +828,7 @@ export default function Timetable() {
                                                 </td>
                                             </tr>
                                         );
-                                    })}
+                                    }))}
                                 </tbody>
                             </table>
                         </div>
@@ -1001,6 +1083,22 @@ export default function Timetable() {
                                         ))}
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* Active Session Checkbox */}
+                            <div className="pt-1">
+                                <label className="flex items-center gap-2.5 text-xs text-zinc-300 cursor-pointer select-none bg-[#0B0F17] border border-[#1E293B] p-3 rounded-xl hover:border-zinc-700 transition-colors">
+                                    <input
+                                        type="checkbox"
+                                        checked={newIsActive}
+                                        onChange={(e) => setNewIsActive(e.target.checked)}
+                                        className="w-4 h-4 rounded border-[#1E293B] bg-[#141923] text-cyan-500 focus:ring-0 cursor-pointer"
+                                    />
+                                    <div>
+                                        <span className="font-semibold text-white block">Mark as Current Active Session</span>
+                                        <span className="text-[10px] text-zinc-400">Highlights this block and links it to the focus timer at the top</span>
+                                    </div>
+                                </label>
                             </div>
 
                             {/* Modal Footer */}
